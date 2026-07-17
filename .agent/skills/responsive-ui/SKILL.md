@@ -39,8 +39,28 @@ Design tokens/components reference: [`docs/design-system.md`](../../../docs/desi
    query-backed screen needs a designed (even if simple/placeholder) state for each, not just the
    happy path.
 
-## When design-system tokens are still placeholders
+## Landscape and tablet — concrete rules
 
-Build the real layout/structure now using the placeholder tokens from
-`docs/design-system.md`. Don't block feature work on the final visual design — the token
-indirection means swapping in real values later touches one file, not every screen.
+`docs/design-system.md` §11 has the full spec (phone-size variance, tablet strategy, landscape
+reflow rules, and the `useResponsive()` implementation pattern) — read it before building any
+screen, not just this summary:
+
+- Every screen must be scrollable by default, never a fixed-height `flex` layout that assumes a
+  tall portrait viewport — that's the first thing that breaks in landscape or on a short phone.
+- Onboarding-style (question + input stacked) and the presence/chat screen must reflow to a
+  left/right split in landscape, driven by `useWindowDimensions()`/the shared `useResponsive()`
+  hook — not a fixed per-device check.
+- Tablet: constrain and center content (don't stretch cards edge-to-edge); only build a real
+  multi-pane layout for specific screens where it clearly helps (see design-system.md §11.2).
+- Decorative/ambient background elements must be sized relative to the container, never
+  fixed-pixel for a single reference device size.
+- Decide and state each screen's orientation policy explicitly (portrait-locked vs. rotatable) —
+  don't leave it implicit.
+
+## Design tokens are populated — use them, don't invent
+
+`docs/design-system.md` now has real colors, typography, spacing/radius scales, and the "liquid
+glass" material recipe (light + dark glass, with an explicit React Native implementation
+approach using `expo-blur` + `expo-linear-gradient` + platform shadow/elevation). Build against
+those tokens and the shared `GlassCard` primitive — if a screen needs a value that isn't in the
+doc, add it to the doc first rather than hardcoding a one-off.
