@@ -15,7 +15,7 @@ from it (see below).
   scope, constraints.
 - [`docs/architecture.md`](docs/architecture.md) — folder structure, state management, data
   flow.
-- [`docs/design-system.md`](docs/design-system.md) — design tokens/components (in progress).
+- [`docs/design-system.md`](docs/design-system.md) — design tokens/components.
 - [`docs/coding-standards.md`](docs/coding-standards.md) — conventions, including the git
   workflow below.
 

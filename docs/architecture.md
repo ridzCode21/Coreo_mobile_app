@@ -8,7 +8,7 @@ update this file in the same change.
 
 1. **Feature-based, not type-based.** Group by domain (`workouts`, `nutrition`, `auth`), not by
    technical layer (`components`, `screens`, `hooks` at the top level).
-2. **Routes are thin.** `app/` (Expo Router) contains only route wiring — layout, params,
+2. **Routes are thin.** `src/app/` (Expo Router) contains only route wiring — layout, params,
    redirects. Real screen logic lives in `src/features/*` and is imported into the route file.
 3. **One way to hold each kind of state.** Server data → TanStack Query. Small global client
    state → Zustand. Form state → React Hook Form. Never two tools for the same job.
@@ -17,67 +17,71 @@ update this file in the same change.
 
 ## 2. Top-level layout
 
-```
-app/                          # Expo Router — file-based routes, typed routes enabled
-  _layout.tsx                 # Root layout: providers, fonts, splash handling
-  (auth)/
-    login.tsx
-    sign-up.tsx
-    _layout.tsx
-  (app)/                      # authenticated area
-    (tabs)/
-      index.tsx                # e.g. Home/Dashboard
-      workouts.tsx
-      nutrition.tsx
-      profile.tsx
-      _layout.tsx
-    workout/[id].tsx
-    _layout.tsx
+Scaffolded as of `feature/app-scaffold` (Expo SDK 57, RN 0.86). Routes live under `src/app/`, not
+a root-level `app/` — Expo Router's own current template convention, and it keeps everything
+app-related under `src/` with only config/docs at the repo root:
 
+```
 src/
+  app/                          # Expo Router — file-based routes, typed routes enabled
+    _layout.tsx                  # Root layout: providers (Query/SafeArea/Gesture), fonts, splash,
+                                  # Stack.Protected auth-gate between (auth) and (app)
+    (auth)/
+      _layout.tsx
+      login.tsx                  # ← real screens/visual design are feature work, see §1.4
+    (app)/                       # authenticated area
+      _layout.tsx
+      index.tsx                  # Home stub today; will grow (tabs)/ or the petal-cluster
+                                  # layout once that navigation feature is built (design-system.md §8)
+      # workout/[id].tsx, etc. — added per-feature as they're built
+
   features/
-    auth/
-      api/                    # query/mutation hooks calling the API layer
-      components/             # feature-local UI
-      screens/                # screen-level components rendered by app/ routes
-      store/                  # feature-local Zustand slice, if any
-      schemas.ts              # Zod schemas for this feature's forms/data
-      types.ts
-      index.ts                # public exports — other features import only from here
-    workouts/
+    auth/                        # scaffolded: session store, login schema, login mutation
+      api/                       # query/mutation hooks calling the API layer
+      components/                # feature-local UI
+      store/                     # feature-local Zustand slice (sessionStore)
+      schemas.ts                 # Zod schemas for this feature's forms/data
+      index.ts                   # public exports — other features import only from here
+    workouts/                    # not yet created — added when that feature is planned/built
     nutrition/
     profile/
     onboarding/
 
   shared/
     api/
-      client.ts                # single fetch/axios instance, base URL, interceptors
-      queryClient.ts            # TanStack QueryClient instance + default options
-      errors.ts                 # normalized API error shape + helpers
-    components/                 # design-system primitives (Button, Text, Card, Screen, ...)
-    hooks/                      # cross-feature hooks (useDebounce, useAppState, ...)
+      client.ts                  # single fetch instance, base URL, auth header, error normalization
+      queryClient.ts             # TanStack QueryClient instance + default options
+      errors.ts                  # normalized ApiError shape + helpers
+    components/
+      GlassCard.tsx               # the liquid-glass material primitive (design-system.md §4)
+      Screen.tsx                  # safe-area + scroll + responsive-width screen wrapper
+    hooks/
+      useResponsive.ts            # breakpoint/orientation (design-system.md §11.4)
     lib/
-      secureStorage.ts          # thin wrapper around expo-secure-store
-      storage.ts                # non-sensitive persisted storage (e.g. MMKV/AsyncStorage)
-    stores/                     # app-wide Zustand stores (session, app-settings)
-    theme/                       # design tokens consumed from docs/design-system.md
-    types/                       # shared TypeScript types
-    utils/                       # pure helper functions
+      secureStorage.ts            # thin wrapper around expo-secure-store
+    theme/
+      tokens.ts                   # colors/spacing/radii/typography — mirrors design-system.md
+    types/                        # shared TypeScript types
+    utils/                        # pure helper functions
     constants/
 
-assets/                         # fonts, images, lottie files
-app.config.ts                   # Expo config as code (env-aware)
-eas.json                        # EAS build/submit profiles (added when app is scaffolded)
+assets/                          # icons/splash (placeholder branding — real assets pending)
+app.config.ts                    # Expo config as code (env-aware)
+eas.json                         # EAS build/submit profiles — not yet created, separate task
 ```
+
+Not yet created, added on demand: `shared/stores/` (only if an app-wide Zustand store is needed
+beyond feature-local ones), `shared/lib/storage.ts` (non-sensitive persisted storage, if/when
+needed).
 
 ### Import rules
 
 - A feature may import from `src/shared/*` and from another feature's `index.ts` (its public
   surface) — never reach into another feature's internal files (`features/workouts/components/X`
   from outside `workouts`).
-- `app/*` route files import from `src/features/*/screens` only. No business logic in `app/*`.
-- Use path aliases (`@/features/*`, `@/shared/*`) instead of long relative paths; configure in
-  `tsconfig.json` once the project is scaffolded.
+- `src/app/*` route files import from `src/features/*` only. No business logic in `src/app/*`.
+- Path aliases: `@/*` → `./src/*` (configured in `tsconfig.json`), so `@/features/auth` and
+  `@/shared/theme/tokens` resolve directly — use these instead of long relative paths.
 
 ## 3. State management decision table
 
@@ -106,35 +110,38 @@ Zustand. Otherwise → local state.
 
 ## 5. Navigation
 
-- Expo Router, typed routes enabled (`experiments.typedRoutes` in `app.json`/`app.config.ts`)
-  once the app is scaffolded.
-- Route groups: `(auth)` for unauthenticated flow, `(app)` for authenticated flow with its own
-  `(tabs)` group. Root layout decides which group to render based on session state from the auth
-  Zustand store.
+- Expo Router, typed routes enabled (`experiments.typedRoutes` in `app.config.ts`).
+- Route groups: `(auth)` for unauthenticated flow, `(app)` for authenticated flow. The root
+  layout (`src/app/_layout.tsx`) renders both groups wrapped in `<Stack.Protected guard={...}>`,
+  gated on session state from `useSessionStore` (auth feature) — Expo Router's supported pattern
+  for auth flows, rather than a manual redirect-in-effect. A `(tabs)`/petal-cluster layout inside
+  `(app)` is added when that navigation feature is actually built (see design-system.md §8) —
+  today `(app)` has a single stub screen.
 - Deep links validated at the boundary (don't trust params blindly — parse/validate with Zod
   before use, same as any external input).
 
 ## 6. Native/runtime configuration
 
-- **New Architecture** enabled from the start (`newArchEnabled: true` in Expo config) — don't
-  add libraries that require legacy-architecture opt-out.
-- **Development builds** (`expo-dev-client`), not Expo Go, once native modules (SecureStore,
-  Sentry later, etc.) are in play.
-- Environment config via `app.config.ts` reading `process.env`, with EAS secrets for
-  build-time values in non-local environments. Never commit real secrets — `.env` is
-  git-ignored, `.env.example` documents required keys.
+- **New Architecture** — as of Expo SDK 57 / RN 0.86 this is the only architecture; there's no
+  `newArchEnabled` flag to set and no legacy fallback to worry about breaking.
+- **Development builds** (`expo-dev-client` is installed) — don't develop against Expo Go once
+  you're touching native modules (SecureStore, blur, later Sentry).
+- Environment config via `app.config.ts` reading `process.env` (currently just
+  `EXPO_PUBLIC_API_URL`), with EAS secrets for build-time values in non-local environments. Never
+  commit real secrets — `.env` is git-ignored, `.env.example` documents required keys.
 
-## 7. Error handling & observability (designed for, not wired up yet)
+## 7. Error handling & observability (designed for, not fully wired up yet)
 
-- Centralize error boundaries: one at the root layout, optionally one per major route group.
-- All thrown/caught errors flow through a single `reportError()` seam in `shared/lib` — today it
-  can just log; when Sentry is added (deferred, see `AGENTS.md` §7) it's a one-file change.
-- Query/mutation errors surface through the normalized `ApiError` shape, not raw
-  axios/fetch errors, so UI and future crash reporting see consistent data.
+- Centralize error boundaries: one at the root layout, optionally one per major route group —
+  not yet added.
+- `shared/api/errors.ts`'s `ApiError` is the normalized shape all query/mutation errors surface
+  through today. A single `reportError()` seam (still to add, in `shared/lib`) will be the one
+  file that changes when Sentry lands (deferred, see `AGENTS.md` §7).
 
 ## 8. Release pipeline (EAS) — overview
 
-Configured once the app is scaffolded; noted here so features are built compatibly:
+Not yet configured (`eas.json` doesn't exist yet — separate task from app scaffolding); noted
+here so features are built compatibly with the intended pipeline:
 
 - **Build**: `development`, `preview`, `production` profiles in `eas.json`.
 - **Update**: EAS Update for JS-only hotfixes on top of a build.

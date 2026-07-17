@@ -21,9 +21,12 @@ Before creating files, answer these in order:
    `profile`, `onboarding`), it goes in `src/features/<that>/`. If it's genuinely needed by 2+
    features already, it goes in `src/shared/`. Don't pre-emptively shared-ify something only one
    feature currently uses.
-2. **Is this a route or a screen?** Route wiring (params, layout, redirects) → `app/`. Actual UI
-   and logic → `src/features/<feature>/screens/`, imported by the route file. The route file
-   should be nearly empty of logic.
+2. **Is this a route or a screen?** Route wiring (params, layout, redirects) → `src/app/`. Actual
+   UI and logic → `src/features/<feature>/` (a `screens/` subfolder once a feature has more than
+   1-2 screens; not required for a single simple one). The route file should be nearly empty of
+   logic — it imports and renders the feature's screen component. (The scaffolded `login.tsx` and
+   `(app)/index.tsx` are the one exception: they're throwaway proof-of-wiring placeholders, not
+   real screens yet — extract them into `src/features/auth/` once the real screen is built.)
 3. **What kind of state is involved?** Use the table in `docs/architecture.md` §3:
    - Comes from an API → TanStack Query hook in `features/<feature>/api`.
    - Small, global, client-only → Zustand slice (one store per concern).
@@ -44,6 +47,6 @@ Before creating files, answer these in order:
 
 - A giant `src/components/` folder holding whole screens — screens live in their feature.
 - A single mega Zustand store for "app state" — split by concern.
-- Business logic inside `app/` route files.
+- Business logic inside `src/app/` route files.
 - A second HTTP client instance instead of using `shared/api/client.ts`.
 - Hardcoding a query key at the call site instead of using the feature's key factory.
