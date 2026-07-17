@@ -244,25 +244,27 @@ the `data-screen-label` text shown).
 | `EmptyOrErrorState` | Icon (muted, in a small rounded frame) + short headline + one-line subcopy + one primary recovery action + a lighter-weight fallback link + a quiet footer note ("Nothing was logged yet") — **never a scary/red error screen** | 25A/25B/25C honest failure states |
 | `PaywallSheet` | Bottom-sheet variant (partial, dismissible) and full-page variant; feature list as icon + two-line description rows; primary dark pill CTA + secondary "Not now" glass pill + a small trust-note footer | 26A/26B "Coreo Plus" — **flagged, see §9** |
 
-## 8. Navigation — open decision, not yet finalized
+## 8. Navigation — decided
 
-The design source explores **four different concepts** for primary (pillar) navigation, not one
-finalized pattern. Don't default to any one of these without confirming — this is a real product
-decision (it changes the whole routing/IA approach), not a styling detail:
+The design source explored **four different concepts** for primary (pillar) navigation. Decided:
+**petal cluster is canonical.** The other three remain documented below for context (they may
+resurface for a specific sub-case — e.g. a persistent way to reach a pillar from *inside* another
+pillar's screens, which the petal cluster alone doesn't solve since it's a Home-only centerpiece)
+but should not be built as the primary navigation.
 
-1. **Glass dock (23A)** — persistent bottom tab bar, 4 items (Diet/Fitness/Wellness/Coreo home),
-   closest to a conventional RN tab navigator.
-2. **Pillar strip (23B)** — segmented control at the top of Home ("Today / Diet / Fitness /
-   Wellness"), implies swipeable pages rather than a tab bar.
-3. **Orb bloom (23C)** — a single central FAB that blooms into three orbiting pillar buttons
-   around a center "Coreo" button on tap; hold to talk.
-4. **Petal cluster (24B, the current "Sky" home)** — static 2×2 flower-grid centerpiece on the
-   Home screen itself (not a persistent nav element); tapping a petal navigates into that pillar.
-
-**Action:** confirm with the product/design owner which pattern is canonical before building
-navigation. Until confirmed, default assumption for scaffolding purposes only: implement Home
-with the petal cluster as the centerpiece (matches the most recent "Sky" study) and hold off on
-committing to a persistent tab bar vs. FAB pattern for cross-pillar navigation.
+1. **Petal cluster (24B, the current "Sky" home) — canonical.** Static 2×2 flower-grid
+   centerpiece on the Home screen itself; tapping a petal navigates into that pillar. Because
+   this is a Home-only element, still decide (when building navigation) how a user gets back to
+   another pillar or Home while already inside a pillar's screens — e.g. a header
+   back-to-home affordance, or Expo Router's tab/stack structure underneath the visual
+   centerpiece. That's an implementation detail for the `react-native-architecture` skill/§2 of
+   `architecture.md` to resolve, not a re-opening of this decision.
+2. **Glass dock (23A)** — persistent bottom tab bar, 4 items (Diet/Fitness/Wellness/Coreo home).
+   Not canonical; kept as reference for the "how do I get back to a pillar" sub-case above.
+3. **Pillar strip (23B)** — segmented control at the top of Home ("Today / Diet / Fitness /
+   Wellness"), implies swipeable pages. Not canonical.
+4. **Orb bloom (23C)** — a single central FAB that blooms into three orbiting pillar buttons
+   around a center "Coreo" button on tap; hold to talk. Not canonical.
 
 ## 9. Flags: design/product-scope mismatches
 
