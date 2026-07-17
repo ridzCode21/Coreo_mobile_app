@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>coreobook — Coreo Brand & Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#17191D;
+    --ink-60:rgba(23,25,29,.62);
+    --ink-40:rgba(23,25,29,.42);
+    --line:rgba(255,255,255,.55);
+    --zenith:#EDF4FB; --day:#D3E6F8; --air:#9EC3E8; --sky:#7FA0C6; --dusk:#5D80A9; --horizon:#466687;
+    --evening:#48678C; --night:#2E4666; --midnight:#152741;
+    --coreblue:#35689E; --coreblue-deep:#16395E;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;scroll-padding-top:86px;}
+  body{
+    font-family:'Poppins',sans-serif;color:var(--ink);
+    background:
+      radial-gradient(1200px 800px at 12% -5%, #EFF6FC 0%, transparent 55%),
+      radial-gradient(1000px 800px at 95% 105%, var(--sky) 0%, transparent 55%),
+      linear-gradient(165deg, var(--zenith) 0%, #C3D6E9 45%, var(--air) 100%);
+    background-attachment:fixed;min-height:100vh;
+  }
+  .glass{
+    background:linear-gradient(135deg,rgba(255,255,255,.62),rgba(255,255,255,.2));
+    backdrop-filter:blur(26px) saturate(1.35);-webkit-backdrop-filter:blur(26px) saturate(1.35);
+    border:1px solid var(--line);border-radius:28px;
+    box-shadow:0 22px 44px rgba(21,39,65,.16), inset 0 1px 0 rgba(255,255,255,.65);
+  }
+  .glass.night{
+    background:linear-gradient(160deg,rgba(46,70,102,.72),rgba(21,39,65,.84));
+    border-color:rgba(255,255,255,.2);color:#EFF4F9;
+    box-shadow:0 24px 48px rgba(8,18,34,.4), inset 0 1px 0 rgba(255,255,255,.2);
+  }
+  /* ===== NAV ===== */
+  nav.top{
+    position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:100;
+    display:flex;align-items:center;gap:4px;padding:8px 10px;border-radius:100px;
+    background:linear-gradient(135deg,rgba(255,255,255,.7),rgba(255,255,255,.35));
+    backdrop-filter:blur(24px) saturate(1.4);border:1px solid rgba(255,255,255,.6);
+    box-shadow:0 18px 40px rgba(21,39,65,.2);white-space:nowrap;max-width:94vw;overflow-x:auto;scrollbar-width:none;
+  }
+  nav.top::-webkit-scrollbar{display:none;}
+  nav.top .wordmark{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;letter-spacing:1.5px;padding:0 12px 0 6px;}
+  nav.top .wordmark .o{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 32% 28%, #6F9CCE, var(--coreblue-deep) 72%);}
+  nav.top a{font-size:11px;font-weight:400;color:var(--ink-60);text-decoration:none;padding:8px 13px;border-radius:100px;transition:all .15s;}
+  nav.top a:hover{background:#fff;color:var(--ink);}
+  .wrap{max-width:1020px;margin:0 auto;padding:110px 26px 100px;}
+
+  .eyebrow{font-size:10.5px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--ink-40);}
+  .glass.night .eyebrow{color:rgba(239,244,249,.5);}
+  h1{font-size:clamp(36px,6vw,64px);font-weight:200;letter-spacing:-2px;line-height:1.06;}
+  h1 b{font-weight:500;}
+  h2{font-size:22px;font-weight:300;letter-spacing:-0.4px;}
+  h2 b{font-weight:500;}
+  h3{font-size:14px;font-weight:500;margin-bottom:8px;}
+  p{font-size:12.5px;font-weight:300;line-height:1.85;color:var(--ink-60);}
+  p b, td b{font-weight:500;color:var(--ink);}
+  .glass.night p{color:rgba(239,244,249,.66);}
+  .glass.night p b, .glass.night td b{color:#EFF4F9;}
+  section{margin-top:56px;}
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:18px;padding:0 6px;}
+  .sec-head .no{font-size:11px;font-weight:400;color:var(--ink-40);letter-spacing:2px;}
+  .card{padding:30px 34px;}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px;}
+  .mini{padding:22px 24px;border-radius:24px;}
+  .mini h4{font-size:13px;font-weight:500;margin-bottom:8px;}
+  .mini p{font-size:11.5px;line-height:1.75;}
+  table{width:100%;border-collapse:collapse;font-size:12px;font-weight:300;color:var(--ink-60);}
+  th{font-size:9.5px;font-weight:500;letter-spacing:1.6px;text-transform:uppercase;color:var(--ink-40);text-align:left;padding:10px 12px;border-bottom:1px solid rgba(23,25,29,.14);}
+  td{padding:11px 12px;border-bottom:1px solid rgba(23,25,29,.07);vertical-align:top;line-height:1.65;}
+  tr:last-child td{border:none;}
+  .ok{color:#2F5D3A;font-weight:500;}
+  .warn{color:#7A5220;font-weight:500;}
+
+  /* hero */
+  .hero{padding:52px 48px;position:relative;overflow:hidden;}
+  .hero .ver{display:inline-flex;align-items:center;gap:10px;font-size:10.5px;font-weight:500;letter-spacing:1.5px;padding:7px 14px;border-radius:100px;background:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.7);margin-bottom:22px;}
+  .hero .ver i{width:7px;height:7px;border-radius:50%;background:#5F9E6E;display:block;}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:30px;}
+  .stat{padding:16px 18px;border-radius:20px;background:linear-gradient(135deg,rgba(255,255,255,.6),rgba(255,255,255,.3));border:1px solid rgba(255,255,255,.6);}
+  .stat b{font-size:22px;font-weight:300;letter-spacing:-.5px;display:block;}
+  .stat span{font-size:10px;font-weight:400;letter-spacing:1px;text-transform:uppercase;color:var(--ink-40);}
+
+  /* palette chips */
+  .chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:16px;}
+  .chip{border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.55);box-shadow:0 12px 26px rgba(21,39,65,.14);cursor:pointer;transition:transform .12s;}
+  .chip:active{transform:scale(.97);}
+  .chip .c{height:74px;position:relative;}
+  .chip .c .copy{position:absolute;top:8px;right:10px;font-size:8.5px;font-weight:500;letter-spacing:1px;padding:4px 8px;border-radius:100px;background:rgba(255,255,255,.85);color:var(--ink);opacity:0;transition:opacity .15s;}
+  .chip:hover .c .copy{opacity:1;}
+  .chip .i{padding:11px 13px;background:linear-gradient(135deg,rgba(255,255,255,.78),rgba(255,255,255,.5));backdrop-filter:blur(12px);}
+  .chip .i h5{font-size:11.5px;font-weight:500;}
+  .chip .i .hex{font-size:9.5px;color:var(--ink-60);letter-spacing:.5px;margin-top:1px;}
+  .chip .i .role{font-size:9px;color:var(--ink-40);margin-top:3px;letter-spacing:.4px;}
+  .ramp{display:flex;height:44px;border-radius:100px;overflow:hidden;margin-top:16px;border:1px solid rgba(255,255,255,.55);}
+  .ramp i{flex:1;display:block;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;font-size:11.5px;font-weight:400;letter-spacing:.5px;padding:11px 20px;border-radius:100px;transition:transform .25s ease;z-index:200;box-shadow:0 14px 30px rgba(8,18,34,.4);}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+
+  /* logo section */
+  .logostage{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:6px;}
+  .lstage{height:170px;border-radius:24px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.5);}
+  .lstage.light{background:linear-gradient(165deg,var(--zenith),var(--day));}
+  .lstage.mid{background:linear-gradient(165deg,var(--sky),var(--dusk));}
+  .lstage.dark{background:linear-gradient(165deg,var(--night),var(--midnight));}
+  .wm{display:flex;align-items:center;font-size:32px;font-weight:300;letter-spacing:1px;color:var(--ink);}
+  .lstage.mid .wm,.lstage.dark .wm{color:#EFF4F9;}
+  .wm .o{width:26px;height:26px;border-radius:50%;margin:0 2px;background:radial-gradient(circle at 32% 28%, #6F9CCE, var(--coreblue-deep) 72%);box-shadow:inset 0 1px 1px rgba(255,255,255,.4), 0 6px 14px rgba(14,36,60,.35);}
+
+  /* type specimens */
+  .spec{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding:18px 0;border-bottom:1px solid rgba(23,25,29,.09);flex-wrap:wrap;}
+  .spec:last-child{border:none;}
+  .spec .m{font-size:9.5px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-40);white-space:nowrap;}
+  .t-data{font-size:58px;font-weight:200;letter-spacing:-2.5px;line-height:1;}
+  .t-data small{font-size:15px;font-weight:400;letter-spacing:2px;text-transform:uppercase;opacity:.45;margin-left:6px;}
+  .t-h{font-size:24px;font-weight:300;letter-spacing:-.4px;}
+  .t-h b{font-weight:500;}
+  .t-body{font-size:12.5px;font-weight:300;line-height:1.85;max-width:460px;color:var(--ink-60);}
+  .t-label{font-size:10px;font-weight:500;letter-spacing:2.6px;text-transform:uppercase;}
+
+  /* material samples */
+  .matstage{position:relative;border-radius:26px;overflow:hidden;padding:30px;background:linear-gradient(165deg,var(--day),var(--air) 55%,var(--sky));border:1px solid rgba(255,255,255,.5);}
+  .matstage .blob{position:absolute;border-radius:50%;filter:blur(40px);opacity:.55;}
+  .matgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;position:relative;z-index:2;}
+  code{font-family:inherit;font-size:10.5px;font-weight:300;line-height:1.95;color:var(--ink-60);display:block;}
+  .glass.night code{color:rgba(239,244,249,.6);}
+
+  /* signature live */
+  .wavebox{border-radius:22px;padding:20px 20px 12px;background:linear-gradient(160deg,rgba(46,70,102,.75),rgba(21,39,65,.85));border:1px solid rgba(255,255,255,.2);color:#EFF4F9;}
+  .wavebox .r{display:flex;justify-content:space-between;align-items:center;font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;color:rgba(239,244,249,.5);}
+  .wavebox .r .n{font-size:24px;font-weight:200;letter-spacing:-1px;color:#fff;text-transform:none;}
+  .orbrow{display:flex;align-items:center;gap:22px;}
+  .orb{width:58px;height:58px;border-radius:50%;position:relative;background:radial-gradient(circle at 32% 28%, #6F9CCE, var(--coreblue-deep) 72%);box-shadow:0 14px 30px rgba(14,36,60,.4), inset 0 1px 1px rgba(255,255,255,.4);flex-shrink:0;}
+  .orb::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(255,255,255,.6);opacity:.6;animation:pulse 3s ease-out infinite;}
+  @keyframes pulse{0%{transform:scale(.9);opacity:.7;}100%{transform:scale(1.3);opacity:0;}}
+  @media (prefers-reduced-motion: reduce){.orb::before{animation:none !important;}}
+
+  /* voice */
+  .say{display:block;margin:12px 0 4px;font-size:12.5px;font-weight:300;line-height:1.75;color:var(--ink);
+    background:linear-gradient(135deg,rgba(255,255,255,.78),rgba(255,255,255,.48));
+    border:1px solid rgba(255,255,255,.7);border-radius:18px;border-bottom-left-radius:6px;
+    padding:13px 17px;box-shadow:0 10px 22px rgba(21,39,65,.1);}
+  .say::before{content:"the core";font-size:8.5px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--ink-40);display:block;margin-bottom:4px;}
+  .say.no{opacity:.5;text-decoration:line-through;}
+  .vs{font-size:9.5px;font-weight:500;letter-spacing:1.8px;text-transform:uppercase;display:inline-block;padding:5px 11px;border-radius:100px;margin-bottom:4px;}
+  .vs.yes{background:var(--ink);color:#fff;}
+  .vs.non{background:rgba(23,25,29,.12);color:var(--ink-60);}
+
+  /* usage do/dont */
+  .dd{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:13px;}
+  .dd .item{padding:18px 20px;border-radius:22px;}
+  .dd .tag{font-size:9px;font-weight:500;letter-spacing:1.8px;text-transform:uppercase;display:inline-block;padding:4px 10px;border-radius:100px;margin-bottom:9px;}
+  .dd .do .tag{background:#2F5D3A;color:#fff;}
+  .dd .dont .tag{background:rgba(23,25,29,.14);color:var(--ink-60);}
+  .dd p{font-size:11.5px;}
+
+  /* changelog */
+  .log .entry{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.12);}
+  .log .entry:last-child{border:none;}
+  .log .v{font-size:10.5px;font-weight:500;letter-spacing:1px;white-space:nowrap;padding-top:2px;}
+  .log p{font-size:12px;}
+  footer{margin-top:70px;text-align:center;font-size:11px;font-weight:300;letter-spacing:1.6px;text-transform:uppercase;color:var(--ink-40);line-height:2;}
+  @media (max-width:640px){.card{padding:24px 22px;}.hero{padding:34px 28px;}}
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <span class="wordmark"><svg width="22" height="13" viewBox="8 30 104 60" fill="none" stroke="#17191D" stroke-width="12" stroke-linecap="round"><path d="M 16 60 C 32 36, 48 36, 60 60 S 92 84, 104 60"/></svg>coreobook</span>
+  <a href="#brand">Brand</a>
+  <a href="#color">Color</a>
+  <a href="#type">Type</a>
+  <a href="#material">Material</a>
+  <a href="#signature">Signature</a>
+  <a href="#voice">Voice</a>
+  <a href="#usage">Usage</a>
+  <a href="#changelog">Changelog</a>
+</nav>
+
+<div class="wrap">
+
+  <!-- ============ HERO ============ -->
+  <div class="glass hero">
+    <span class="ver"><i></i>v2.0 &middot; Sky &middot; current</span>
+    <h1>brand &amp; design system<br>for <b>coreo</b></h1>
+    <p style="margin-top:18px;max-width:560px;font-size:13.5px;">The wordmark, the sky, the glass, the waves, and the voice. One source of truth for everyone building Coreo. Every preview on this page renders live from the same tokens the product uses. If the system breaks, this page visibly breaks.</p>
+    <div class="stats">
+      <div class="stat"><b>57</b><span>production screens</span></div>
+      <div class="stat"><b>11</b><span>color tokens</span></div>
+      <div class="stat"><b>1</b><span>typeface &middot; Poppins</span></div>
+      <div class="stat"><b>4</b><span>signature elements</span></div>
+    </div>
+  </div>
+
+  <!-- ============ BRAND / LOGO ============ -->
+  <section id="brand">
+    <div class="sec-head"><span class="no">01</span><h2>Brand — <b>the wave and the word</b></h2></div>
+    <div class="glass card">
+      <p>The mark is <b>the wave</b>: one continuous line, rising and falling, drawn at a 1:10 stroke ratio (12 stroke on a 120 grid) with round caps. It is the same wave the product uses to read the body, which makes the logo a promise, not a decoration. The wordmark is lowercase Poppins Light, tracked wide (+6px at 38px reference). Together they carry the line: <b>a health app with a core.</b> Clearspace equals one wave height on all sides. Below 90px of width the wave stands alone; it is also the app icon.</p>
+      <div class="logostage">
+        <div class="lstage light">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+            <div style="position:relative;width:96px;height:96px;display:flex;align-items:center;justify-content:center;">
+              <div style="position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.35),rgba(255,255,255,0) 70%);"></div>
+              <svg width="58" height="58" viewBox="0 0 120 120" fill="none" stroke="#17191D" stroke-width="12" stroke-linecap="round" style="position:relative;filter:drop-shadow(0 8px 16px rgba(8,24,44,.22));"><path d="M 16 60 C 32 36, 48 36, 60 60 S 92 84, 104 60"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="lstage mid">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <svg width="44" height="44" viewBox="0 0 120 120" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" style="filter:drop-shadow(0 8px 16px rgba(8,24,44,.3));"><path d="M 16 60 C 32 36, 48 36, 60 60 S 92 84, 104 60"/></svg>
+            <span style="font-size:26px;font-weight:300;letter-spacing:6px;margin-right:-6px;color:#EFF4F9;">coreo</span>
+          </div>
+        </div>
+        <div class="lstage dark">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <svg width="44" height="44" viewBox="0 0 120 120" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" style="filter:drop-shadow(0 8px 16px rgba(0,0,0,.35));"><path d="M 16 60 C 32 36, 48 36, 60 60 S 92 84, 104 60"/></svg>
+            <span style="font-size:26px;font-weight:300;letter-spacing:6px;margin-right:-6px;color:#EFF4F9;">coreo</span>
+          </div>
+        </div>
+      </div>
+      <p style="margin-top:16px;"><b>The geometry is law:</b> path M 16 60 C 32 36, 48 36, 60 60 S 92 84, 104 60 on a 120 grid, stroke 12, round caps, no fill. <b>Never:</b> fill the wave, change the stroke ratio, add a second crest, put the orb inside the logotype, use gradients on the letterforms, or set the wordmark on mid-ramp atmosphere without a scrim. Ink on light stages, white on mid and night.</p>
+    </div>
+  </section>
+
+  <!-- ============ COLOR ============ -->
+  <section id="color">
+    <div class="sec-head"><span class="no">02</span><h2>Color — <b>the sky system</b> <span style="font-size:10px;font-weight:400;color:var(--ink-40);letter-spacing:1px;">(click any chip to copy)</span></h2></div>
+    <div class="glass card">
+      <h3>Ink &amp; the day ramp</h3>
+      <div class="chips">
+        <div class="chip" data-hex="#17191D"><div class="c" style="background:#17191D;"><span class="copy">copy</span></div><div class="i"><h5>Core Ink</h5><div class="hex">#17191D</div><div class="role">Text &middot; anchor</div></div></div>
+        <div class="chip" data-hex="#EDF4FB"><div class="c" style="background:#EDF4FB;"><span class="copy">copy</span></div><div class="i"><h5>Zenith</h5><div class="hex">#EDF4FB</div><div class="role">Atmosphere &middot; high</div></div></div>
+        <div class="chip" data-hex="#D3E6F8"><div class="c" style="background:#D3E6F8;"><span class="copy">copy</span></div><div class="i"><h5>Day</h5><div class="hex">#D3E6F8</div><div class="role">Atmosphere &middot; high</div></div></div>
+        <div class="chip" data-hex="#9EC3E8"><div class="c" style="background:#9EC3E8;"><span class="copy">copy</span></div><div class="i"><h5>Air</h5><div class="hex">#9EC3E8</div><div class="role">Atmosphere &middot; mid</div></div></div>
+        <div class="chip" data-hex="#7FA0C6"><div class="c" style="background:#7FA0C6;"><span class="copy">copy</span></div><div class="i"><h5>Sky</h5><div class="hex">#7FA0C6</div><div class="role">Atmosphere &middot; mid</div></div></div>
+        <div class="chip" data-hex="#5D80A9"><div class="c" style="background:#5D80A9;"><span class="copy">copy</span></div><div class="i"><h5>Dusk</h5><div class="hex">#5D80A9</div><div class="role">Atmosphere &middot; low</div></div></div>
+        <div class="chip" data-hex="#466687"><div class="c" style="background:#466687;"><span class="copy">copy</span></div><div class="i"><h5>Horizon</h5><div class="hex">#466687</div><div class="role">Atmosphere &middot; low</div></div></div>
+      </div>
+      <h3 style="margin-top:26px;">The night ramp &amp; Core Blue</h3>
+      <div class="chips">
+        <div class="chip" data-hex="#48678C"><div class="c" style="background:#48678C;"><span class="copy">copy</span></div><div class="i"><h5>Evening</h5><div class="hex">#48678C</div><div class="role">Night ramp</div></div></div>
+        <div class="chip" data-hex="#2E4666"><div class="c" style="background:#2E4666;"><span class="copy">copy</span></div><div class="i"><h5>Night</h5><div class="hex">#2E4666</div><div class="role">Night ramp &middot; dark glass</div></div></div>
+        <div class="chip" data-hex="#152741"><div class="c" style="background:#152741;"><span class="copy">copy</span></div><div class="i"><h5>Midnight</h5><div class="hex">#152741</div><div class="role">Night ramp &middot; deepest</div></div></div>
+        <div class="chip" data-hex="#35689E"><div class="c" style="background:linear-gradient(160deg,#35689E,#16395E);"><span class="copy">copy</span></div><div class="i"><h5>Core Blue</h5><div class="hex">#35689E &rarr; #16395E</div><div class="role">Primary action &middot; one per screen</div></div></div>
+        <div class="chip" data-hex="#FFFFFF"><div class="c" style="background:#FFFFFF;"><span class="copy">copy</span></div><div class="i"><h5>Pure White</h5><div class="hex">#FFFFFF</div><div class="role">Interactive glass &middot; highlights</div></div></div>
+      </div>
+      <div class="ramp">
+        <i style="background:#EDF4FB;"></i><i style="background:#D3E6F8;"></i><i style="background:#9EC3E8;"></i><i style="background:#7FA0C6;"></i><i style="background:#5D80A9;"></i><i style="background:#466687;"></i><i style="background:#48678C;"></i><i style="background:#2E4666;"></i><i style="background:#152741;"></i>
+      </div>
+      <p style="margin-top:16px;"><b>The four laws of color.</b> One: the atmosphere knows what time it is — morning screens live high in the ramp, evening screens deep, lock screens on night. Two: sky is neutral; color as meaning is reserved for status tints (amber attention, green on track), always paired with a word. Three: interactive surfaces are white glass. Four: Core Blue is the primary action — the one door on a screen, a circular button with a white arrow — and nothing else. Never on charts, tints, text or decoration. One per screen, maximum.</p>
+      <table style="margin-top:18px;">
+        <tr><th>Contrast pair</th><th>Ratio</th><th>Verdict</th></tr>
+        <tr><td>Core Ink on Zenith / light glass</td><td>~14 : 1</td><td class="ok">AAA</td></tr>
+        <tr><td>#EFF4F9 on Midnight</td><td>~14 : 1</td><td class="ok">AAA</td></tr>
+        <tr><td>White on Dusk</td><td>~4.1 : 1</td><td class="warn">Large text only</td></tr>
+        <tr><td>White on Sky</td><td>~2.7 : 1</td><td class="warn">Large text only &middot; sub-18px always on scrim</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ TYPOGRAPHY ============ -->
+  <section id="type">
+    <div class="sec-head"><span class="no">03</span><h2>Typography — <b>one family, weights 200–500</b></h2></div>
+    <div class="glass card">
+      <div class="spec"><div class="t-data">78<small>today</small></div><div class="m">Data &middot; 200 &middot; tight tracking</div></div>
+      <div class="spec"><div class="t-h">Morning, <b>Shubham.</b></div><div class="m">Heading &middot; 300 + 500 pairing</div></div>
+      <div class="spec"><div class="t-body">You slept 7 hours 42. Deep sleep is up 18 percent and your resting heart rate is down. Your body is ready for strength work today.</div><div class="m">Body &middot; 300 &middot; 1.85 line height</div></div>
+      <div class="spec"><div class="t-label">Smart Core Insight</div><div class="m">Label &middot; 500 &middot; wide &middot; uppercase</div></div>
+      <p style="margin-top:16px;"><b>Rules:</b> numbers are the heroes, always weight 200 and oversized with tiny quiet units. Hierarchy comes from weight contrast inside one size, not from more sizes. Nothing heavier than 500, ever. Type scales with system settings up to 135% without truncating data.</p>
+    </div>
+  </section>
+
+  <!-- ============ MATERIAL ============ -->
+  <section id="material">
+    <div class="sec-head"><span class="no">04</span><h2>Material — <b>the glass, on sky</b></h2></div>
+    <div class="matstage">
+      <div class="blob" style="width:260px;height:300px;background:linear-gradient(180deg,#2E4666,#35689E);top:-70px;left:-70px;"></div>
+      <div class="blob" style="width:220px;height:260px;background:linear-gradient(180deg,#16395E,#5D80A9);bottom:-60px;right:-60px;"></div>
+      <div class="matgrid">
+        <div class="glass" style="padding:20px;border-radius:24px;">
+          <h3>Light glass</h3>
+          <code>fill &nbsp;&nbsp;linear 135&deg; white 62% &rarr; 20%<br>blur &nbsp;&nbsp;26px &middot; saturate 1.35<br>stroke 1px white 55%<br>radius 26 to 34px<br>inset &nbsp;top highlight white 65%</code>
+        </div>
+        <div class="glass night" style="padding:20px;border-radius:24px;">
+          <h3>Night glass</h3>
+          <code>fill &nbsp;&nbsp;linear 160&deg; Night 72% &rarr; Midnight 84%<br>stroke 1px white 20%<br>text &nbsp;&nbsp;#EFF4F9<br>use &nbsp;&nbsp;&nbsp;one hero card per screen, max</code>
+        </div>
+        <div class="glass" style="padding:20px;border-radius:24px;">
+          <h3>Laws of the material</h3>
+          <code>&middot; glass floats on atmosphere, never flat color<br>&middot; light passes through; no opaque fills inside<br>&middot; drifting blobs behind, blurred 40px+, slow<br>&middot; reduced-motion always respected</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SIGNATURE ============ -->
+  <section id="signature">
+    <div class="sec-head"><span class="no">05</span><h2>Signature elements — <b>rendered live</b></h2></div>
+    <div class="grid2">
+      <div class="glass card">
+        <h3>The wave</h3>
+        <p style="margin-bottom:14px;">Every reading is a wave: solid past, dashed future, glowing now. Amplitude scales to the user's own last thirty days. Dials are banned.</p>
+        <div class="wavebox">
+          <div class="r"><span>Stress &middot; today</span><span class="n">32</span></div>
+          <svg id="bookWave" width="100%" height="90" viewBox="0 0 520 90" preserveAspectRatio="none"></svg>
+          <div class="r" style="font-size:8.5px;"><span>9 AM</span><span>3 PM</span><span>9 PM</span></div>
+        </div>
+      </div>
+      <div class="glass card">
+        <h3>Dot-matrix numerals</h3>
+        <p style="margin-bottom:14px;">Hero scores render as lit dots over a faint unlit grid. Data as a display, not a font.</p>
+        <div class="wavebox" style="display:flex;align-items:center;justify-content:center;padding:26px;">
+          <svg id="bookDots" aria-label="78 in dot matrix"></svg>
+        </div>
+      </div>
+      <div class="glass card">
+        <h3>The petal cluster</h3>
+        <p style="margin-bottom:14px;">The home centerpiece: the four pillars as one rounded cluster inside a soft halo, each petal's outer corner swept to 125px. One self, four sections, one shape.</p>
+        <div style="display:flex;justify-content:center;padding:8px 0;">
+          <div style="position:relative;width:216px;height:216px;">
+            <div style="position:absolute;left:-26px;top:-26px;right:-26px;bottom:-26px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.3),rgba(255,255,255,0) 72%);pointer-events:none;"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:8px;width:100%;height:100%;">
+              <div style="border-radius:125px 30px 30px 30px;background:linear-gradient(135deg,rgba(255,255,255,.5),rgba(255,255,255,.14));backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.55);box-shadow:0 16px 32px rgba(18,42,70,.14);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:400;">Diet</div>
+              <div style="border-radius:30px 125px 30px 30px;background:linear-gradient(135deg,rgba(255,255,255,.5),rgba(255,255,255,.14));backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.55);box-shadow:0 16px 32px rgba(18,42,70,.14);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:400;">Fitness</div>
+              <div style="border-radius:30px 30px 30px 125px;background:linear-gradient(135deg,rgba(255,255,255,.5),rgba(255,255,255,.14));backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.55);box-shadow:0 16px 32px rgba(18,42,70,.14);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:400;">Wellness</div>
+              <div style="border-radius:30px 30px 125px 30px;background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(255,255,255,.6));backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.7);box-shadow:0 16px 32px rgba(18,42,70,.18);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;">Core</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="glass card">
+        <h3>The presence</h3>
+        <p style="margin-bottom:14px;">The core in conversation: a white luminous center inside concentric listening rings and a halo. White, not blue. It brightens as it listens and softens as it speaks.</p>
+        <div style="display:flex;justify-content:center;padding:6px 0;">
+          <div style="position:relative;width:190px;height:190px;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#48678C,#2E4666);border-radius:26px;overflow:hidden;">
+            <div style="position:absolute;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),rgba(255,255,255,0) 70%);"></div>
+            <div style="position:absolute;width:120px;height:120px;border-radius:50%;border:1px solid rgba(255,255,255,.28);"></div>
+            <div style="position:absolute;width:78px;height:78px;border-radius:50%;border:1px solid rgba(255,255,255,.4);"></div>
+            <div style="position:absolute;width:40px;height:40px;border-radius:50%;background:linear-gradient(150deg,rgba(255,255,255,.92),rgba(255,255,255,.6));box-shadow:0 0 50px rgba(255,255,255,.55);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VOICE ============ -->
+  <section id="voice">
+    <div class="sec-head"><span class="no">06</span><h2>Voice — <b>how the core speaks</b></h2></div>
+    <div class="grid2">
+      <div class="glass card">
+        <span class="vs yes">Always</span>
+        <span class="say">You slept 7 hours 42. Deep sleep up 18 percent. Eat carbs around 4:30 and tonight's session will feel easy.</span>
+        <span class="say">Went over yesterday? Nothing turns red here. I adjust, we move on.</span>
+        <p style="margin-top:12px;">First person. Two to four sentences. Cites the user's own numbers. One next step. Never shames, never lectures, never pretends to know what it does not. Estimates are called estimates.</p>
+      </div>
+      <div class="glass card">
+        <span class="vs non">Never</span>
+        <span class="say no">AMAZING! You CRUSHED your sleep goal! Time to SMASH that workout!</span>
+        <span class="say no">As an AI language model, I cannot provide medical advice, however...</span>
+        <p style="margin-top:12px;">No exclamation marks, no emojis, no pep-talk clich&eacute;s, no hedging boilerplate. And the hard lines: the core observes and suggests; it never diagnoses, never prescribes, and hands acute situations to real care immediately and clearly.</p>
+        <p style="margin-top:10px;"><b>Locked vocabulary:</b> "your core" &middot; "Core Index" &middot; "pillars" &middot; "Smart Insight" &middot; "the notebook" &middot; "the check-in".</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ USAGE ============ -->
+  <section id="usage">
+    <div class="sec-head"><span class="no">07</span><h2>Usage — <b>do and don't</b></h2></div>
+    <div class="dd">
+      <div class="glass item do"><span class="tag">Do</span><p>Map every screen's atmosphere to its time band. Morning high, evening deep, lock screens on night.</p></div>
+      <div class="glass item do"><span class="tag">Do</span><p>Put every sub-18px text on a scrim or chip when it sits on atmosphere. The mid-ramp is the danger zone.</p></div>
+      <div class="glass item do"><span class="tag">Do</span><p>Show honest states: calibrating, stale labeled stale, estimates named. Trust is the product.</p></div>
+      <div class="glass item dont"><span class="tag">Don't</span><p>Use dials, gauges or rings. Highs and lows are waves, always.</p></div>
+      <div class="glass item dont"><span class="tag">Don't</span><p>Use Core Blue anywhere except the single primary action. Never on charts, tints, text or decoration.</p></div>
+      <div class="glass item dont"><span class="tag">Don't</span><p>Introduce saturated accents, red error states, weights above 500, or a second typeface. If hierarchy is unclear, use white and scale.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ CHANGELOG ============ -->
+  <section id="changelog">
+    <div class="sec-head"><span class="no">08</span><h2><b>Changelog</b></h2></div>
+    <div class="glass night card log">
+      <div class="entry"><span class="v">v2.1 &middot; The wave</span><p>Full re-audit against the standalone export. The wave adopted as the brand mark, geometry locked (1:10 stroke on the 120 grid, round caps), present in 36 of 57 screens. Wordmark set plain and wide-tracked. The orb retired entirely: the conversation presence is a white luminous core with listening rings; the home centerpiece is the four-petal cluster; Core Blue is the primary action button. Core Ink corrected to #17191D.</p></div>
+      <div class="entry"><span class="v">v2.0 &middot; Sky</span><p>The sky system adopted as the neutral atmosphere: day and night ramps tokenized, time-of-day rule, contrast table recomputed, 57-screen migration spec issued. Steel retired.</p></div>
+      <div class="entry"><span class="v">v1.2</span><p>Production screen set complete at 58: Plus moment, Plus page, and three lock-screen notification designs pass audit. Dark-pattern scan clean.</p></div>
+      <div class="entry"><span class="v">v1.1</span><p>The missing six shipped: save your core, calibrating home, evening check-in (two states), and three honest failure states. Wave temperament and glass dock navigation locked.</p></div>
+      <div class="entry"><span class="v">v1.0</span><p>Founding system: liquid glass material, Poppins 200–500, waves not dials, dot-matrix numerals, the four pebbles, the core's voice, and the promises.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    coreobook &middot; the public source of truth for coreo's brand<br>
+    every preview on this page renders live from the system it documents
+  </footer>
+</div>
+
+<div class="toast" id="toast">copied</div>
+
+<script>
+  /* click-to-copy chips */
+  const toast = document.getElementById('toast');
+  let toastTimer;
+  document.querySelectorAll('.chip').forEach(ch => {
+    ch.addEventListener('click', async () => {
+      const hex = ch.dataset.hex;
+      try{ await navigator.clipboard.writeText(hex); }catch(e){}
+      toast.textContent = hex + ' copied';
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(()=>toast.classList.remove('show'), 1600);
+    });
+  });
+
+  /* live wave */
+  (function(){
+    const svg = document.getElementById('bookWave'); if(!svg) return;
+    const NS='http://www.w3.org/2000/svg', W=520, H=90, NOWX=.62;
+    const el=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+    const pts=[.6,.68,.78,.7,.62,.5,.42,.36,.3,.26,.24,.22];
+    const xy=pts.map((v,k)=>[k/(pts.length-1)*W, 12+v*(H-24)]);
+    let d=`M ${xy[0][0]} ${xy[0][1]}`;
+    for(let k=1;k<xy.length;k++){const [x0,y0]=xy[k-1],[x1,y1]=xy[k];d+=` Q ${x0} ${y0} ${(x0+x1)/2} ${(y0+y1)/2}`;}
+    d+=` L ${xy[xy.length-1][0]} ${xy[xy.length-1][1]}`;
+    const defs=el('defs',{}); 
+    const g=el('linearGradient',{id:'bg1',x1:0,y1:0,x2:0,y2:1});
+    g.appendChild(el('stop',{offset:0,'stop-color':'#FFFFFF','stop-opacity':.18}));
+    g.appendChild(el('stop',{offset:1,'stop-color':'#FFFFFF','stop-opacity':0}));
+    defs.appendChild(g); svg.appendChild(defs);
+    const area=el('path',{d:d+` L ${W} ${H} L 0 ${H} Z`,fill:'url(#bg1)'}); svg.appendChild(area);
+    svg.appendChild(el('path',{d,stroke:'#FFF','stroke-width':2,fill:'none','stroke-linecap':'round'}));
+    const cx=W*NOWX;
+    svg.appendChild(el('rect',{x:cx,y:0,width:W-cx,height:H,fill:'rgba(15,28,48,.5)'}));
+    const clip=el('clipPath',{id:'fut1'}); clip.appendChild(el('rect',{x:cx,y:0,width:W-cx,height:H})); defs.appendChild(clip);
+    svg.appendChild(el('path',{d,stroke:'rgba(255,255,255,.32)','stroke-width':2,'stroke-dasharray':'3 7',fill:'none','stroke-linecap':'round','clip-path':'url(#fut1)'}));
+    const idx=NOWX*(pts.length-1),i0=Math.floor(idx),fr=idx-i0;
+    const yN=xy[i0][1]+(xy[Math.min(i0+1,xy.length-1)][1]-xy[i0][1])*fr;
+    svg.appendChild(el('circle',{cx:cx,cy:yN,r:9,fill:'rgba(255,255,255,.2)'}));
+    svg.appendChild(el('circle',{cx:cx,cy:yN,r:4.5,fill:'#FFF'}));
+  })();
+
+  /* live dot-matrix "78" with unlit grid */
+  (function(){
+    const svg = document.getElementById('bookDots'); if(!svg) return;
+    const NS='http://www.w3.org/2000/svg';
+    const F={"7":["11111","00001","00010","00100","01000","01000","01000"],
+             "8":["01110","10001","10001","01110","10001","10001","01110"]};
+    const str="78", gap=11, r=3.4, chW=5*gap, chGap=gap*1.6;
+    const W=str.length*chW+(str.length-1)*chGap, H=7*gap;
+    svg.setAttribute('width',W); svg.setAttribute('height',H); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    let x0=0;
+    for(const ch of str){
+      const rows=F[ch];
+      rows.forEach((row,ri)=>{[...row].forEach((bit,ci)=>{
+        const c=document.createElementNS(NS,'circle');
+        c.setAttribute('cx',x0+ci*gap+gap/2); c.setAttribute('cy',ri*gap+gap/2);
+        c.setAttribute('r', bit==="1"? r : r*0.55);
+        c.setAttribute('fill','#FFFFFF');
+        c.setAttribute('opacity', bit==="1"? '1' : '0.1');
+        svg.appendChild(c);
+      });});
+      x0+=chW+chGap;
+    }
+  })();
+</script>
+</body>
+</html>

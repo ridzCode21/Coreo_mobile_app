@@ -124,19 +124,19 @@ Architecture should still keep things testable (pure functions, isolated hooks, 
 in components) and observable (centralized error handling points where Sentry will later hook
 in), so adding these later is low-friction.
 
-## 8. Working with incomplete docs
+## 8. Working with the docs
 
-`docs/product-context.md` and `docs/design-system.md` are intentionally skeletons right now —
-product context and the visual design are being finalized separately. When a task needs
-information from either:
+`docs/product-context.md` and `docs/design-system.md` are both populated now (product brief and
+design system respectively — see `docs/design-system.md` §8–9 for two open items: an
+unconfirmed navigation pattern, and screens that exist in the design but are ahead of current MVU
+scope). When a task needs information from either:
 
-1. Check if it's already there.
+1. Check if it's already there — it usually is.
 2. If not, make the smallest reasonable assumption needed to keep moving, label it clearly as an
    assumption in your response, and suggest the doc be updated.
-3. For visual/design specifics (exact colors, spacing scale, component look) — don't invent a
-   design system from scratch; use sensible temporary/neutral values behind the token
-   architecture described in `docs/design-system.md` so real values can be dropped in later
-   without refactoring.
+3. Never invent visual values (colors, spacing, radii, type sizes) that aren't in
+   `docs/design-system.md` — if a component's design isn't covered there, extend the doc first
+   (or ask), don't freelance a one-off style in the component.
 
 ## 9. Definition of done
 
