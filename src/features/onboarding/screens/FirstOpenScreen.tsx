@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
@@ -18,6 +19,7 @@ import { useOrientationLock } from '@/shared/hooks/useOrientationLock';
 export default function FirstOpenScreen() {
   const router = useRouter();
   const markFirstOpenSeen = useAppFlagsStore((state) => state.markFirstOpenSeen);
+  const insets = useSafeAreaInsets();
 
   useOrientationLock('portrait');
 
@@ -34,7 +36,17 @@ export default function FirstOpenScreen() {
       end={{ x: 0.6, y: 1 }}
       style={styles.fill}
     >
-      <View style={styles.content}>
+      <View
+        style={[
+          styles.content,
+          // Safe-area insets are additive to the screen-padding tokens, not a replacement for
+          // them — docs/design-system.md §3.
+          {
+            paddingTop: insets.top + spacing.screenPadTop,
+            paddingBottom: insets.bottom + spacing.screenPadBottom,
+          },
+        ]}
+      >
         <View style={styles.brand}>
           <WaveMark size={64} showWordmark color={colors.ink} wordmarkColor={colors.ink} />
           <Text style={styles.tagline}>A health app with a core.</Text>
@@ -57,8 +69,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.screenPadX,
-    paddingTop: spacing.screenPadTop,
-    paddingBottom: spacing.screenPadBottom,
   },
   brand: {
     flex: 1,
