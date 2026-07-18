@@ -14,25 +14,37 @@ is not a prototype or a learning project — every decision should be made as if
 real users on the App Store / Play Store and needs to survive updates, scale, and review.
 
 The full product vision, target users, and feature scope live in
-[`docs/product-context.md`](docs/product-context.md). That file is a living document and is
-currently a skeleton — see §5 for how to behave while it's incomplete.
+[`docs/product-context.md`](docs/product-context.md). That file is a living document — see §8 for
+how to work with it and `docs/design-system.md`.
 
 ## 2. Repository map
 
 ```
 AGENTS.md                  # you are here — the operating manual
 CLAUDE.md                  # stub that points Claude Code back to this file
+app.config.ts              # Expo app config (env-aware — see docs/architecture.md §6)
 docs/
   product-context.md       # product vision, users, market context, feature scope
   architecture.md           # technical architecture — folder structure, data flow, state
-  design-system.md          # design tokens/components (populated once Figma design lands)
+  design-system.md          # design tokens/components
   coding-standards.md       # TypeScript/React Native conventions, lint/format rules
 .agent/skills/              # task-specific playbooks the agent must consult (see §4)
+designs/                    # source design exports — see designs/README.md
+src/
+  app/                      # Expo Router routes (file-based, incl. (auth)/(app) groups)
+  features/                 # feature modules (screens delegate to these)
+  shared/                   # theme tokens, api client, GlassCard, hooks, etc.
 ```
 
-As the app is scaffolded, code will live under `app/` (Expo Router routes) and `src/` (feature
-modules, shared code) per [`docs/architecture.md`](docs/architecture.md). Do not invent a
-different top-level layout without updating that doc first.
+The app is scaffolded (Expo SDK 57, RN 0.86, TypeScript) per
+[`docs/architecture.md`](docs/architecture.md). Note routes live under `src/app/`, not a
+root-level `app/` — Expo Router's own current convention — do not invent a different top-level
+layout without updating that doc first.
+
+**Expo/RN APIs change fast.** This project pins `expo` ~57.0.7. Before writing any code against an
+Expo or React Native API you're not certain is current, check the versioned docs for the
+installed SDK (`https://docs.expo.dev/versions/v57.0.0/`) rather than relying on training data —
+API surfaces (especially New Architecture-only packages) shift between SDK releases.
 
 ## 3. Tech stack (non-negotiable defaults)
 
@@ -43,7 +55,7 @@ introduce alternative libraries that overlap with something already on this list
 |---|---|
 | Framework | Expo + React Native + TypeScript (strict mode) |
 | Dev workflow | Expo **development builds** (`expo-dev-client`) — never Expo Go for real feature work |
-| Native layer | React Native **New Architecture** enabled |
+| Native layer | React Native **New Architecture** — the only architecture as of RN 0.86; no config flag needed |
 | Routing | Expo Router, with **typed routes** enabled |
 | Server/API state | TanStack Query (queries, mutations, cache, retries, pagination) |
 | Client/UI state | Zustand — small, global, non-server state only (auth session flags, theme, onboarding, feature flags) |
