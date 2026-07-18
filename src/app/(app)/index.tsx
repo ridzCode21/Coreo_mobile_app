@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { Screen } from '@/shared/components/Screen';
 import { GlassCard } from '@/shared/components/GlassCard';
-import { colors, spacing, typography } from '@/shared/theme/tokens';
+import { colors, spacing, textStyle } from '@/shared/theme/tokens';
 import { useSessionStore } from '@/features/auth';
 
 /**
@@ -31,8 +31,7 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   greeting: {
-    fontSize: typography.greeting.fontSize,
-    fontWeight: typography.greeting.fontWeight,
+    ...textStyle('greeting'),
     color: colors.ink,
     marginBottom: spacing.xl,
   },
@@ -40,8 +39,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   cardText: {
-    fontSize: typography.body.fontSize,
-    fontWeight: typography.body.fontWeight,
+    ...textStyle('body'),
     color: colors.onNight,
   },
   signOut: {
@@ -50,7 +48,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   signOutText: {
+    ...textStyle('bodySm'),
     color: colors.label,
-    fontSize: typography.bodySm.fontSize,
   },
 });

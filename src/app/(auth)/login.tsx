@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, TextInput } from 'react-native';
 
 import { Screen } from '@/shared/components/Screen';
 import { GlassCard } from '@/shared/components/GlassCard';
-import { colors, radii, spacing, typography } from '@/shared/theme/tokens';
+import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
 import {
   loginSchema,
   useLoginMutation,
@@ -89,20 +89,19 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: typography.pageTitle.fontSize,
-    fontWeight: typography.pageTitle.fontWeight,
+    ...textStyle('pageTitle'),
     color: colors.ink,
     marginBottom: spacing.xxl,
     textAlign: 'center',
   },
   input: {
-    fontSize: typography.body.fontSize,
+    ...textStyle('body'),
     color: colors.ink,
     paddingVertical: spacing.sm,
     marginBottom: spacing.sm,
   },
   error: {
-    fontSize: typography.caption.fontSize,
+    ...textStyle('caption'),
     color: colors.attention,
     marginBottom: spacing.sm,
   },
@@ -114,8 +113,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   buttonText: {
+    ...textStyle('body'),
     color: colors.white,
-    fontSize: typography.body.fontSize,
-    fontWeight: typography.label.fontWeight,
   },
 });

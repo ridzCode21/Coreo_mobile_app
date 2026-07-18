@@ -16,7 +16,7 @@ user is left doing the cross-pillar reasoning themselves.
 
 **Coreo's bet:** health outcomes improve when diet, fitness, and wellness
 data — plus wearable signals and an AI assistant — reason about the user as
-one person, not three unrelated logs. The product must *behave* unified
+one person, not three unrelated logs. The product must _behave_ unified
 (shared dashboard, shared assistant, cross-pillar signal use), not just be
 three feature sets under one app icon.
 
@@ -25,8 +25,8 @@ three feature sets under one app icon.
 TODO: no named persona/research yet. Working placeholder, to replace once
 real user research or founder intent narrows this down:
 
-| Persona | Goals | Pain points | Notes |
-|---|---|---|---|
+| Persona                          | Goals                                                                                                | Pain points                                                                       | Notes                                                                             |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | "Health optimizer" (placeholder) | Wants one place to see how sleep, training, and eating interact; not just log data but understand it | Juggling 2–4 apps today; none talk to each other; manual mental cross-referencing | Likely early-adopter, comfortable with tracking, moderate-to-high health literacy |
 
 ## 3. Core value proposition
@@ -124,6 +124,23 @@ replace numbers once there's a baseline:
   development phase** since there's no real backend yet to be offline from
 - Accessibility requirements: baseline rules in design-system.md §5 apply
   regardless of final visual design
+
+## 9. Backend integration status
+
+A real backend contract now exists ([`API_REFERENCE.md`](API_REFERENCE.md)) — this supersedes
+the earlier "backend is incomplete" framing in §4 for _shape_, even though no live backend is
+wired up yet. Decision (see [`implementation-plan.md`](implementation-plan.md) §0/§2/§3):
+
+- Screens are built against a **mock API** that implements the real contract exactly (same
+  request/response shapes, both envelope styles, auth token lifecycle) behind one env flag
+  (`EXPO_PUBLIC_API_MODE`) — flipping to `live` should require zero feature-code changes.
+- **Auth is mock-backed but built to the real contract now**, not deferred — register/login/
+  refresh/logout all exist against `/users/*` shapes from day one.
+- Several product-desired features have **no matching backend field/endpoint today** — tracked
+  in [`feature-map.md`](feature-map.md) as flags F2–F5 (fitness/wellness onboarding capture,
+  wellness logging beyond water, cross-pillar assistant, real wearable import). These are
+  mock-only until the backend adds support; don't assume they're production-ready just because
+  the mock makes them work end-to-end in the app.
 
 ## Assumptions
 

@@ -1,8 +1,8 @@
 # Design System — Coreo
 
 **Status: populated from design source (v2.1 "The wave" / v2.0 "Sky").** Distilled from
-[`designs/coreobook (1).html`](../designs/coreobook%20(1).html) (brand system) and
-[`designs/Coreo App Screens (standalone) (1).html`](../designs/Coreo%20App%20Screens%20(standalone)%20(1).html)
+[`designs/coreobook (1).html`](<../designs/coreobook%20(1).html>) (brand system) and
+[`designs/Coreo App Screens (standalone) (1).html`](<../designs/Coreo%20App%20Screens%20(standalone)%20(1).html>)
 (57 production screens). For pixel-level detail beyond what's summarized here, read
 [`designs/reference/screens-source.html`](../designs/reference/screens-source.html) — see
 [`designs/README.md`](../designs/README.md) for how to search it.
@@ -28,27 +28,27 @@ these rules, it's probably the wrong component, not an exception to add.
 
 ## 1. Color tokens
 
-| Token | Hex | Role |
-|---|---|---|
-| `ink` | `#17191D` | Primary text, primary icon stroke |
-| `ink60` | `rgba(23,25,29,.62)` | Secondary text |
-| `ink40` | `rgba(23,25,29,.42)` | Tertiary text, eyebrow labels |
-| `ink45` | `rgba(23,25,29,.45)` | Screen/chip caption labels (very common in practice) |
-| `label` | `#5F6B76` | Muted caption/label color used inside light glass cards (e.g. field labels) |
-| `zenith` | `#EDF4FB` | Atmosphere · highest/lightest (morning) |
-| `day` | `#D3E6F8` | Atmosphere · high |
-| `air` | `#9EC3E8` | Atmosphere · mid |
-| `sky` | `#7FA0C6` | Atmosphere · mid |
-| `dusk` | `#5D80A9` | Atmosphere · low |
-| `horizon` | `#466687` | Atmosphere · low |
-| `evening` | `#48678C` | Night ramp |
-| `night` | `#2E4666` | Night ramp · dark glass base |
-| `midnight` | `#152741` | Night ramp · deepest |
+| Token                       | Hex                   | Role                                                                                                        |
+| --------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `ink`                       | `#17191D`             | Primary text, primary icon stroke                                                                           |
+| `ink60`                     | `rgba(23,25,29,.62)`  | Secondary text                                                                                              |
+| `ink40`                     | `rgba(23,25,29,.42)`  | Tertiary text, eyebrow labels                                                                               |
+| `ink45`                     | `rgba(23,25,29,.45)`  | Screen/chip caption labels (very common in practice)                                                        |
+| `label`                     | `#5F6B76`             | Muted caption/label color used inside light glass cards (e.g. field labels)                                 |
+| `zenith`                    | `#EDF4FB`             | Atmosphere · highest/lightest (morning)                                                                     |
+| `day`                       | `#D3E6F8`             | Atmosphere · high                                                                                           |
+| `air`                       | `#9EC3E8`             | Atmosphere · mid                                                                                            |
+| `sky`                       | `#7FA0C6`             | Atmosphere · mid                                                                                            |
+| `dusk`                      | `#5D80A9`             | Atmosphere · low                                                                                            |
+| `horizon`                   | `#466687`             | Atmosphere · low                                                                                            |
+| `evening`                   | `#48678C`             | Night ramp                                                                                                  |
+| `night`                     | `#2E4666`             | Night ramp · dark glass base                                                                                |
+| `midnight`                  | `#152741`             | Night ramp · deepest                                                                                        |
 | `coreBlue` / `coreBlueDeep` | `#35689E` → `#16395E` | **Primary action only** — one circular button per screen, max. Never on charts, tints, text, or decoration. |
-| `white` | `#FFFFFF` | Interactive glass, highlights, active states |
-| `onNight` | `#EFF4F9` / `#F0F4F8` | Text/icon color on dark glass or night atmosphere |
-| `success` | `#2F5D3A` | Status tint · "on track" — always paired with a word, never used alone |
-| `attention` | `#7A5220` | Status tint · "needs a look" — always paired with a word, never used as a raw error/red |
+| `white`                     | `#FFFFFF`             | Interactive glass, highlights, active states                                                                |
+| `onNight`                   | `#EFF4F9` / `#F0F4F8` | Text/icon color on dark glass or night atmosphere                                                           |
+| `success`                   | `#2F5D3A`             | Status tint · "on track" — always paired with a word, never used alone                                      |
+| `attention`                 | `#7A5220`             | Status tint · "needs a look" — always paired with a word, never used as a raw error/red                     |
 
 **Four laws of color** (from brand system, non-negotiable):
 
@@ -68,22 +68,22 @@ mid-ramp atmosphere must sit on a scrim or glass surface**, never bare on the gr
 **Single typeface: Poppins, weights 200/300/400/500 only — never 600+.** Hierarchy comes from
 weight contrast within a size, not from adding more sizes or going bold.
 
-| Token | Size | Weight | Tracking | Use |
-|---|---|---|---|---|
-| `display` | 78–88px | 200 | tight (−2 to −2.5px) | Hero data numbers (rendered as dot-matrix, see §6), lock-screen clock |
-| `heroMarketing` | 52–64px | 200 | −1.5 to −2px | Marketing/brand moments only |
-| `wordmark` | 38px | 300 | +6px | Logo wordmark exactly — never reuse this size for anything else |
-| `pageTitle` | 34px | 200(+500 accent) | −1px | Section/page headers |
-| `questionTitle` | 30px | 200(+400 accent) | −0.5px | Onboarding question headline |
-| `greeting` | 26–28px | 200(+400 accent) | −0.5px | "Morning, {name}." home greeting |
-| `cardValue` | 22–24px | 300 | normal | Stat values inside cards (age/height/weight, profile name) |
-| `sheetTitle` | 25px | 200 | −0.4px | Bottom-sheet titles (e.g. paywall) |
-| `bodyLg` | 14–15px | 300 | normal | Assistant responses, emphasized body text |
-| `body` | 13–13.5px | 300 | normal, line-height 1.85 | Default body copy |
-| `bodySm` | 12–12.5px | 300 | normal, line-height ~1.6 | Card descriptions, insight text |
-| `caption` | 11–11.5px | 300–400 | normal | Chip text, secondary metadata |
-| `label` | 10–10.5px | 500 | +1.6 to +2.6px, uppercase | Field labels, section eyebrows, nav captions |
-| `micro` | 8.5–9.5px | 500 | +1 to +1.6px, uppercase | Tiny axis labels, timestamps inside charts |
+| Token           | Size      | Weight           | Tracking                  | Use                                                                   |
+| --------------- | --------- | ---------------- | ------------------------- | --------------------------------------------------------------------- |
+| `display`       | 78–88px   | 200              | tight (−2 to −2.5px)      | Hero data numbers (rendered as dot-matrix, see §6), lock-screen clock |
+| `heroMarketing` | 52–64px   | 200              | −1.5 to −2px              | Marketing/brand moments only                                          |
+| `wordmark`      | 38px      | 300              | +6px                      | Logo wordmark exactly — never reuse this size for anything else       |
+| `pageTitle`     | 34px      | 200(+500 accent) | −1px                      | Section/page headers                                                  |
+| `questionTitle` | 30px      | 200(+400 accent) | −0.5px                    | Onboarding question headline                                          |
+| `greeting`      | 26–28px   | 200(+400 accent) | −0.5px                    | "Morning, {name}." home greeting                                      |
+| `cardValue`     | 22–24px   | 300              | normal                    | Stat values inside cards (age/height/weight, profile name)            |
+| `sheetTitle`    | 25px      | 200              | −0.4px                    | Bottom-sheet titles (e.g. paywall)                                    |
+| `bodyLg`        | 14–15px   | 300              | normal                    | Assistant responses, emphasized body text                             |
+| `body`          | 13–13.5px | 300              | normal, line-height 1.85  | Default body copy                                                     |
+| `bodySm`        | 12–12.5px | 300              | normal, line-height ~1.6  | Card descriptions, insight text                                       |
+| `caption`       | 11–11.5px | 300–400          | normal                    | Chip text, secondary metadata                                         |
+| `label`         | 10–10.5px | 500              | +1.6 to +2.6px, uppercase | Field labels, section eyebrows, nav captions                          |
+| `micro`         | 8.5–9.5px | 500              | +1 to +1.6px, uppercase   | Tiny axis labels, timestamps inside charts                            |
 
 Rules:
 
@@ -101,30 +101,30 @@ plus these as additional padding, not instead of them.
 
 **Spacing scale** (use these, not arbitrary values):
 
-| Token | px |
-|---|---|
-| `space.xs` | 4 |
-| `space.sm` | 8 |
-| `space.md` | 12 |
-| `space.lg` | 16 |
-| `space.xl` | 20 |
-| `space.xxl` | 24 |
-| `space.xxxl` | 32 |
-| `screen.padX` | 26 (22 on compact layouts) |
-| `screen.padTop` | 64–76 |
-| `screen.padBottom` | 30–40 |
+| Token              | px                         |
+| ------------------ | -------------------------- |
+| `space.xs`         | 4                          |
+| `space.sm`         | 8                          |
+| `space.md`         | 12                         |
+| `space.lg`         | 16                         |
+| `space.xl`         | 20                         |
+| `space.xxl`        | 24                         |
+| `space.xxxl`       | 32                         |
+| `screen.padX`      | 26 (22 on compact layouts) |
+| `screen.padTop`    | 64–76                      |
+| `screen.padBottom` | 30–40                      |
 
 **Radius scale:**
 
-| Token | px | Use |
-|---|---|---|
-| `radius.sm` | 14–16 | Small chips/tags |
-| `radius.md` | 20 | Compact rows, small cards |
-| `radius.lg` | 22–24 | Standard glass card (default) |
-| `radius.xl` | 26–30 | Hero/primary glass card, nav dock |
-| `radius.pill` | `height / 2` | Any full pill button/bar — compute from actual height, don't hardcode |
-| `radius.circle` | `50%` | Icon buttons, avatars, orb |
-| `radius.petal` | 125 (outer corner only) | Petal-cluster cells, see §6 |
+| Token           | px                      | Use                                                                   |
+| --------------- | ----------------------- | --------------------------------------------------------------------- |
+| `radius.sm`     | 14–16                   | Small chips/tags                                                      |
+| `radius.md`     | 20                      | Compact rows, small cards                                             |
+| `radius.lg`     | 22–24                   | Standard glass card (default)                                         |
+| `radius.xl`     | 26–30                   | Hero/primary glass card, nav dock                                     |
+| `radius.pill`   | `height / 2`            | Any full pill button/bar — compute from actual height, don't hardcode |
+| `radius.circle` | `50%`                   | Icon buttons, avatars, orb                                            |
+| `radius.petal`  | 125 (outer corner only) | Petal-cluster cells, see §6                                           |
 
 ## 4. Material — "liquid glass on sky"
 
@@ -188,6 +188,11 @@ RN has no `backdrop-filter`. Build the effect from primitives:
   `opacity .7→0`, ~3s, ease-out, looping) — same reduced-motion gate.
 - **Waves animate their "now" point** with a soft glow (see §6); everything to the right of "now"
   is dashed (future/projection), everything left is solid (past/actual).
+- **Splash draw-in** (built — `features/splash/components/AnimatedSplash.tsx`): the wave logo
+  draws itself via animated `strokeDashoffset` (~900ms ease-out), then a soft glow appears at its
+  "now" point and the `coreo` wordmark fades in (~300ms) — Reanimated + `react-native-svg`, gated
+  behind `AccessibilityInfo.isReduceMotionEnabled` (static logo + wordmark, no draw-in, when on).
+  Minimum on-screen time ~1.2s regardless of animation speed. See implementation-plan.md §5.
 
 ## 6. Signature elements
 
@@ -224,31 +229,32 @@ reimplementation. "Source" references the screen codes in
 [`designs/reference/screens-source.html`](../designs/reference/screens-source.html) (search by
 the `data-screen-label` text shown).
 
-| Component | Spec | Source screens |
-|---|---|---|
-| `GlassCard` | Light/night glass container, see §4 | nearly every screen |
-| `PrimaryIconButton` | Circular, 44–64px, `coreBlue` gradient fill, white icon, one per screen max | first-open CTA, onboarding confirm |
-| `VoiceInputBar` | Full-width night-glass pill (~60px tall): placeholder/typed text, circular mic button, circular white confirm/arrow button | onboarding steps 7A1–7A8, chat entry points |
-| `SelectableChip` | Pill, `radius.pill`; **selected** = white fill + shadow + weight 500; **unselected** = translucent glass + border + weight 300, `ink60` text | 7A2 goals, 12A1–12A6 diet interview, 16A/17A setup flows |
-| `ProgressDots` | Row of 8 pill/dot segments; active = 24×4px white pill with glow, inactive = 10×4px `rgba(255,255,255,.45)` | all onboarding step screens |
-| `SliderRow` | Glass card containing: label + value header, track (`rgba(ink,.16)`), filled portion (`rgba(ink,.6)`), 18px white glowing thumb | 7A3 about you (age/height/weight) |
-| `ListRow` | Row with title + muted subtitle on the left, chevron on the right, inside a light-glass card | profile pillar summaries, connected devices |
-| `StatusChip` | Small rounded label chip, translucent white or `rgba(255,255,255,.16)` on dark, `caption` text | assistant action confirmations ("Fitness moved"), check-in preference tags |
-| `SegmentedControl` | Glass track, active segment = white pill w/ shadow, others plain text | "pillar strip" home nav concept (23B) — see §8 for nav status |
-| `BottomDock` | Fixed 72px-tall night-glass bar, 4 icon+label columns, active item = dark filled circle behind icon | "glass dock" home nav concept (23A) |
-| `PetalCluster` | See §6.3 | home centerpiece (24B and others) |
-| `PresenceOrb` | See §6.4 | 18C presence / chat |
-| `WaveChart` | See §6.1 | throughout (home "today" card, week review, lock-screen widget) |
-| `DotMatrixNumeral` | See §6.2 | hero score displays |
-| `NotificationCard` | Compact night-glass card: small icon badge, eyebrow + timestamp, bold headline, body — reusable for in-app banners as well as the lock-screen widget layout | 27A/27B lock-screen designs |
-| `EmptyOrErrorState` | Icon (muted, in a small rounded frame) + short headline + one-line subcopy + one primary recovery action + a lighter-weight fallback link + a quiet footer note ("Nothing was logged yet") — **never a scary/red error screen** | 25A/25B/25C honest failure states |
-| `PaywallSheet` | Bottom-sheet variant (partial, dismissible) and full-page variant; feature list as icon + two-line description rows; primary dark pill CTA + secondary "Not now" glass pill + a small trust-note footer | 26A/26B "Coreo Plus" — **flagged, see §9** |
+| Component           | Spec                                                                                                                                                                                                                            | Source screens                                                             |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `WaveMark`          | The wave logo (`react-native-svg` `Path`, exact path in `shared/components/WaveMark.tsx`), optional `coreo` wordmark alongside it                                                                                               | app icon, splash, first-open, headers, empty states                        |
+| `GlassCard`         | Light/night glass container, see §4                                                                                                                                                                                             | nearly every screen                                                        |
+| `PrimaryIconButton` | Circular, 44–64px, `coreBlue` gradient fill, white icon, one per screen max                                                                                                                                                     | first-open CTA, onboarding confirm                                         |
+| `VoiceInputBar`     | Full-width night-glass pill (~60px tall): placeholder/typed text, circular mic button, circular white confirm/arrow button                                                                                                      | onboarding steps 7A1–7A8, chat entry points                                |
+| `SelectableChip`    | Pill, `radius.pill`; **selected** = white fill + shadow + weight 500; **unselected** = translucent glass + border + weight 300, `ink60` text                                                                                    | 7A2 goals, 12A1–12A6 diet interview, 16A/17A setup flows                   |
+| `ProgressDots`      | Row of 8 pill/dot segments; active = 24×4px white pill with glow, inactive = 10×4px `rgba(255,255,255,.45)`                                                                                                                     | all onboarding step screens                                                |
+| `SliderRow`         | Glass card containing: label + value header, track (`rgba(ink,.16)`), filled portion (`rgba(ink,.6)`), 18px white glowing thumb                                                                                                 | 7A3 about you (age/height/weight)                                          |
+| `ListRow`           | Row with title + muted subtitle on the left, chevron on the right, inside a light-glass card                                                                                                                                    | profile pillar summaries, connected devices                                |
+| `StatusChip`        | Small rounded label chip, translucent white or `rgba(255,255,255,.16)` on dark, `caption` text                                                                                                                                  | assistant action confirmations ("Fitness moved"), check-in preference tags |
+| `SegmentedControl`  | Glass track, active segment = white pill w/ shadow, others plain text                                                                                                                                                           | "pillar strip" home nav concept (23B) — see §8 for nav status              |
+| `BottomDock`        | Fixed 72px-tall night-glass bar, 4 icon+label columns, active item = dark filled circle behind icon                                                                                                                             | "glass dock" home nav concept (23A)                                        |
+| `PetalCluster`      | See §6.3                                                                                                                                                                                                                        | home centerpiece (24B and others)                                          |
+| `PresenceOrb`       | See §6.4                                                                                                                                                                                                                        | 18C presence / chat                                                        |
+| `WaveChart`         | See §6.1                                                                                                                                                                                                                        | throughout (home "today" card, week review, lock-screen widget)            |
+| `DotMatrixNumeral`  | See §6.2                                                                                                                                                                                                                        | hero score displays                                                        |
+| `NotificationCard`  | Compact night-glass card: small icon badge, eyebrow + timestamp, bold headline, body — reusable for in-app banners as well as the lock-screen widget layout                                                                     | 27A/27B lock-screen designs                                                |
+| `EmptyOrErrorState` | Icon (muted, in a small rounded frame) + short headline + one-line subcopy + one primary recovery action + a lighter-weight fallback link + a quiet footer note ("Nothing was logged yet") — **never a scary/red error screen** | 25A/25B/25C honest failure states                                          |
+| `PaywallSheet`      | Bottom-sheet variant (partial, dismissible) and full-page variant; feature list as icon + two-line description rows; primary dark pill CTA + secondary "Not now" glass pill + a small trust-note footer                         | 26A/26B "Coreo Plus" — **flagged, see §9**                                 |
 
 ## 8. Navigation — decided
 
 The design source explored **four different concepts** for primary (pillar) navigation. Decided:
 **petal cluster is canonical.** The other three remain documented below for context (they may
-resurface for a specific sub-case — e.g. a persistent way to reach a pillar from *inside* another
+resurface for a specific sub-case — e.g. a persistent way to reach a pillar from _inside_ another
 pillar's screens, which the petal cluster alone doesn't solve since it's a Home-only centerpiece)
 but should not be built as the primary navigation.
 
@@ -296,12 +302,14 @@ boilerplate. The assistant observes and suggests — it never diagnoses or presc
 acute situations to real care immediately and clearly.
 
 **Do:**
+
 - Map each screen's atmosphere to its time band (morning high in the ramp, evening deep, lock
   screens on night).
 - Put any sub-18px text on a scrim/chip/glass surface when it sits over atmosphere directly.
 - Show honest states: calibrating, stale data labeled stale, estimates named as estimates.
 
 **Don't:**
+
 - Use dials, gauges, or rings for any reading — waves only.
 - Use `coreBlue` anywhere except the single primary action.
 - Introduce saturated accents, red error states, font weights above 500, or a second typeface.
@@ -396,3 +404,7 @@ Centralize this instead of scattering `Dimensions`/`useWindowDimensions` calls t
   Sky-era production export. Added responsiveness/tablet/landscape guidance (not present in the
   design source — implementation guidance to fill that gap). Flagged the open navigation-pattern
   decision (§8) and two design/product-scope mismatches (§9).
+- **v1.1 (Phase 0/1 build):** Added `WaveMark` to the §7 inventory and the splash draw-in to §5
+  motion, both now built. `GlassCard` gained the top-highlight approximation §4 called for.
+  `ProgressDots`/`SelectableChip`/`PrimaryIconButton` built per §7 spec. See
+  `implementation-plan.md` for the build plan these came from.

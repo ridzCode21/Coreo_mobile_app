@@ -28,13 +28,21 @@ docs/
   architecture.md           # technical architecture — folder structure, data flow, state
   design-system.md          # design tokens/components
   coding-standards.md       # TypeScript/React Native conventions, lint/format rules
+  feature-map.md            # feature ↔ API ↔ design-screen mapping + phasing status
+  API_REFERENCE.md          # the real backend contract (frontend reference)
+  implementation-plan.md    # design→screens build plan (mock-API architecture, phasing)
 .agent/skills/              # task-specific playbooks the agent must consult (see §4)
 designs/                    # source design exports — see designs/README.md
 src/
-  app/                      # Expo Router routes (file-based, incl. (auth)/(app) groups)
+  app/                      # Expo Router routes (file-based, incl. (public)/(auth)/(app) groups)
   features/                 # feature modules (screens delegate to these)
-  shared/                   # theme tokens, api client, GlassCard, hooks, etc.
+  shared/                   # theme tokens, api client + mock layer, GlassCard, hooks, etc.
 ```
+
+The mock API layer (no live backend yet, but built to the real `API_REFERENCE.md` contract) lives
+at `src/shared/api/transport/` + `src/shared/api/mock/`, toggled by `EXPO_PUBLIC_API_MODE` — see
+`docs/architecture.md` §4 and `docs/implementation-plan.md` §2 before adding any new endpoint
+integration.
 
 The app is scaffolded (Expo SDK 57, RN 0.86, TypeScript) per
 [`docs/architecture.md`](docs/architecture.md). Note routes live under `src/app/`, not a
@@ -51,19 +59,19 @@ API surfaces (especially New Architecture-only packages) shift between SDK relea
 Unless the user explicitly says otherwise for a specific task, use exactly this stack. Don't
 introduce alternative libraries that overlap with something already on this list.
 
-| Concern | Choice |
-|---|---|
-| Framework | Expo + React Native + TypeScript (strict mode) |
-| Dev workflow | Expo **development builds** (`expo-dev-client`) — never Expo Go for real feature work |
-| Native layer | React Native **New Architecture** — the only architecture as of RN 0.86; no config flag needed |
-| Routing | Expo Router, with **typed routes** enabled |
-| Server/API state | TanStack Query (queries, mutations, cache, retries, pagination) |
-| Client/UI state | Zustand — small, global, non-server state only (auth session flags, theme, onboarding, feature flags) |
-| Forms & validation | React Hook Form + Zod (shared schemas between form validation and API payload typing) |
-| Secrets/tokens | `expo-secure-store` — the only place auth tokens or sensitive small values are persisted |
-| Crash/perf monitoring | Sentry (deferred — see §7) |
-| Testing | Jest + React Native Testing Library + Maestro (deferred — see §7) |
-| Release pipeline | EAS Build, Update, Submit, Workflows |
+| Concern               | Choice                                                                                                |
+| --------------------- | ----------------------------------------------------------------------------------------------------- |
+| Framework             | Expo + React Native + TypeScript (strict mode)                                                        |
+| Dev workflow          | Expo **development builds** (`expo-dev-client`) — never Expo Go for real feature work                 |
+| Native layer          | React Native **New Architecture** — the only architecture as of RN 0.86; no config flag needed        |
+| Routing               | Expo Router, with **typed routes** enabled                                                            |
+| Server/API state      | TanStack Query (queries, mutations, cache, retries, pagination)                                       |
+| Client/UI state       | Zustand — small, global, non-server state only (auth session flags, theme, onboarding, feature flags) |
+| Forms & validation    | React Hook Form + Zod (shared schemas between form validation and API payload typing)                 |
+| Secrets/tokens        | `expo-secure-store` — the only place auth tokens or sensitive small values are persisted              |
+| Crash/perf monitoring | Sentry (deferred — see §7)                                                                            |
+| Testing               | Jest + React Native Testing Library + Maestro (deferred — see §7)                                     |
+| Release pipeline      | EAS Build, Update, Submit, Workflows                                                                  |
 
 Full rationale and how these fit together live in
 [`docs/architecture.md`](docs/architecture.md). Coding conventions (naming, file structure,
@@ -75,15 +83,15 @@ lint rules, component patterns) live in
 These are **not** auto-loaded — proactively open and follow the relevant one at the right point
 in a task. Each is a self-contained `SKILL.md`.
 
-| Skill | Open it when... |
-|---|---|
-| [`product-analysis`](.agent/skills/product-analysis/SKILL.md) | Starting any new feature/request — before writing a plan or code |
-| [`feature-planning`](.agent/skills/feature-planning/SKILL.md) | Turning an analyzed idea into a concrete implementation plan |
-| [`react-native-architecture`](.agent/skills/react-native-architecture/SKILL.md) | Deciding where code lives, which state tool to use, navigation structure |
-| [`responsive-ui`](.agent/skills/responsive-ui/SKILL.md) | Building or modifying any screen/component |
-| [`testing`](.agent/skills/testing/SKILL.md) | Writing or reviewing tests (once test infra exists) |
-| [`security-review`](.agent/skills/security-review/SKILL.md) | Touching auth, tokens, storage, permissions, network calls, or before finishing a feature |
-| [`pr-review`](.agent/skills/pr-review/SKILL.md) | Before declaring any task "done" |
+| Skill                                                                           | Open it when...                                                                           |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| [`product-analysis`](.agent/skills/product-analysis/SKILL.md)                   | Starting any new feature/request — before writing a plan or code                          |
+| [`feature-planning`](.agent/skills/feature-planning/SKILL.md)                   | Turning an analyzed idea into a concrete implementation plan                              |
+| [`react-native-architecture`](.agent/skills/react-native-architecture/SKILL.md) | Deciding where code lives, which state tool to use, navigation structure                  |
+| [`responsive-ui`](.agent/skills/responsive-ui/SKILL.md)                         | Building or modifying any screen/component                                                |
+| [`testing`](.agent/skills/testing/SKILL.md)                                     | Writing or reviewing tests (once test infra exists)                                       |
+| [`security-review`](.agent/skills/security-review/SKILL.md)                     | Touching auth, tokens, storage, permissions, network calls, or before finishing a feature |
+| [`pr-review`](.agent/skills/pr-review/SKILL.md)                                 | Before declaring any task "done"                                                          |
 
 ## 5. How to approach every task (decision framework)
 

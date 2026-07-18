@@ -56,6 +56,25 @@ export const radii = {
   petalInner: 30,
 } as const;
 
+export const fontFamily = {
+  poppins200: 'Poppins_200ExtraLight',
+  poppins300: 'Poppins_300Light',
+  poppins400: 'Poppins_400Regular',
+  poppins500: 'Poppins_500Medium',
+} as const;
+
+type PoppinsWeight = '200' | '300' | '400' | '500';
+
+type TypographySpec = {
+  fontSize: number;
+  fontWeight: PoppinsWeight;
+  letterSpacing: number;
+  /** Line-height *multiplier* (matches how design-system.md §2 specifies it, e.g. 1.75) — RN's
+   * `lineHeight` style wants absolute px, so `textStyle()` below converts fontSize × this. */
+  lineHeight?: number;
+  textTransform?: 'uppercase';
+};
+
 /**
  * Typography — Poppins only, weights 200/300/400/500. Never use a weight above 500 (see
  * docs/design-system.md §2 and §10 "Don't").
@@ -75,16 +94,33 @@ export const typography = {
   caption: { fontSize: 11.5, fontWeight: '400', letterSpacing: 0 },
   label: { fontSize: 10, fontWeight: '500', letterSpacing: 2, textTransform: 'uppercase' },
   micro: { fontSize: 9, fontWeight: '500', letterSpacing: 1.2, textTransform: 'uppercase' },
-} as const;
-
-export const fontFamily = {
-  poppins200: 'Poppins_200ExtraLight',
-  poppins300: 'Poppins_300Light',
-  poppins400: 'Poppins_400Regular',
-  poppins500: 'Poppins_500Medium',
-} as const;
+} as const satisfies Record<string, TypographySpec>;
 
 export type ColorToken = keyof typeof colors;
 export type SpacingToken = keyof typeof spacing;
 export type RadiusToken = keyof typeof radii;
 export type TypographyToken = keyof typeof typography;
+
+const fontFamilyByWeight: Record<PoppinsWeight, string> = {
+  '200': fontFamily.poppins200,
+  '300': fontFamily.poppins300,
+  '400': fontFamily.poppins400,
+  '500': fontFamily.poppins500,
+};
+
+/**
+ * Turns a typography token into a ready-to-spread RN text style: resolves the correct loaded
+ * Poppins font file for the weight (RN ignores `fontWeight` once a specific-weight custom font
+ * is set, so we set `fontFamily` instead of `fontWeight`) and converts the line-height multiplier
+ * to absolute px. Use this instead of pulling `fontSize`/`fontWeight` off `typography` by hand.
+ */
+export function textStyle(token: TypographyToken) {
+  const spec: TypographySpec = typography[token];
+  return {
+    fontFamily: fontFamilyByWeight[spec.fontWeight],
+    fontSize: spec.fontSize,
+    letterSpacing: spec.letterSpacing,
+    ...(spec.lineHeight ? { lineHeight: spec.fontSize * spec.lineHeight } : {}),
+    ...(spec.textTransform ? { textTransform: spec.textTransform } : {}),
+  };
+}

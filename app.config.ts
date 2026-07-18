@@ -49,6 +49,9 @@ const config: ExpoConfig = {
   },
   extra: {
     apiUrl: process.env.EXPO_PUBLIC_API_URL ?? 'https://api.coreo.dev',
+    // 'mock' (default) routes every request through the in-app mock router instead of the
+    // network — see docs/implementation-plan.md §2. Flip to 'live' once a real backend exists.
+    apiMode: process.env.EXPO_PUBLIC_API_MODE ?? 'mock',
   },
 };
 

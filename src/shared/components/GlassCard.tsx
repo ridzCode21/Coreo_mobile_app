@@ -46,6 +46,14 @@ export function GlassCard({
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
+        {/* Approximates the web spec's `inset 0 1px 0 rgba(255,255,255,.65)` top highlight —
+         * RN has no inset shadow, so a thin fading gradient stripe stands in for it. */}
+        <LinearGradient
+          colors={[palette.topHighlight, 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={styles.topHighlight}
+        />
         <View style={padded ? styles.content : undefined}>{children}</View>
       </View>
     </View>
@@ -56,12 +64,14 @@ const lightPalette = {
   gradient: ['rgba(255,255,255,0.62)', 'rgba(255,255,255,0.2)'] as const,
   border: 'rgba(255,255,255,0.6)',
   shadowColor: 'rgba(18,42,70,0.16)',
+  topHighlight: 'rgba(255,255,255,0.65)',
 };
 
 const nightPalette = {
   gradient: ['rgba(34,66,102,0.55)', 'rgba(12,28,48,0.68)'] as const,
   border: 'rgba(255,255,255,0.2)',
   shadowColor: 'rgba(8,24,44,0.34)',
+  topHighlight: 'rgba(255,255,255,0.22)',
 };
 
 const styles = StyleSheet.create({
@@ -76,6 +86,13 @@ const styles = StyleSheet.create({
   clip: {
     overflow: 'hidden',
     borderWidth: 1,
+  },
+  topHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
   },
   content: {
     padding: 20,
