@@ -9,24 +9,28 @@ import { WaveMark } from '@/shared/components/WaveMark';
 import { GlassCard } from '@/shared/components/GlassCard';
 import { useAppFlagsStore } from '@/shared/stores/appFlagsStore';
 import { useOrientationLock } from '@/shared/hooks/useOrientationLock';
+import { useOnboardingStore } from '@/features/onboarding/store/onboardingStore';
 
 /**
  * First-open (20a/24a) — the landing moment for a brand-new user, straight after the splash.
  * Portrait-locked intentionally (design-system.md §11.3 allows this for a short, single-decision
- * screen). Real onboarding questions are Phase 3 — "Begin" just proves the routing/first-run
- * flag for now (docs/implementation-plan.md §5).
+ * screen). "Begin" marks the first-run flag and drops straight into the onboarding flow (7a·1
+ * Name) — the design embeds account creation *inside* onboarding (8a Save your core), rather
+ * than gating it behind a login screen up front, so there's nothing to "log in" to yet.
  */
 export default function FirstOpenScreen() {
   const router = useRouter();
   const markFirstOpenSeen = useAppFlagsStore((state) => state.markFirstOpenSeen);
+  const resetOnboarding = useOnboardingStore((state) => state.reset);
   const insets = useSafeAreaInsets();
 
   useOrientationLock('portrait');
 
   const handleBegin = useCallback(async () => {
     await markFirstOpenSeen();
-    router.replace('/(auth)/login');
-  }, [markFirstOpenSeen, router]);
+    resetOnboarding();
+    router.replace('/(public)/onboarding/name');
+  }, [markFirstOpenSeen, resetOnboarding, router]);
 
   return (
     <LinearGradient

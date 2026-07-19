@@ -31,9 +31,14 @@ src/
       _layout.tsx
       splash.tsx                 # → features/splash — first screen on every cold start
       first-open.tsx              # → features/onboarding — new-user landing (20a/24a)
+      onboarding/                 # → features/onboarding — 7a·1–7a·8 core setup + 8a save/register
+        _layout.tsx                # (register lives inside onboarding at 8a, not behind (auth))
+        name.tsx, goals.tsx, about-you.tsx, pillars.tsx, sources.tsx, reading.tsx, promise.tsx,
+        save.tsx
     (auth)/
       _layout.tsx
-      login.tsx                  # ← real screens/visual design are feature work, see §1.4
+      login.tsx                  # ← unreachable from any flow today (F1, feature-map.md); the
+                                  # design's only sign-up/sign-in moment is 8a inside onboarding
     (app)/                       # authenticated area
       _layout.tsx
       index.tsx                  # Home stub today; will grow (tabs)/ or the petal-cluster
@@ -51,8 +56,12 @@ src/
       components/                # AnimatedSplash (Reanimated + SVG draw-in)
       screens/                   # SplashScreen — decides + navigates to the next destination
       lib/                       # resolveLaunchDestination — pure routing-decision function
-    onboarding/                  # First-open screen built (Phase 1); onboarding questions = Phase 3
-      screens/                   # FirstOpenScreen
+    onboarding/                  # First-open (Phase 1) + 7a·1–7a·7 core setup + 8a save (Phase 3 pt.1)
+      screens/                   # FirstOpenScreen, Name/Goals/AboutYou/Pillars/Sources/Reading/
+                                  # Promise/SaveScreen
+      store/                      # onboardingStore — ephemeral draft state for the in-progress answers
+      lib/                        # steps — step sequence, routes, and next-step branching logic
+      components/                 # OnboardingStepScaffold, NextBar, OnboardingWaveStrip
     workouts/                    # not yet created — added when that feature is planned/built
     nutrition/
     profile/
@@ -167,15 +176,24 @@ plan (mock-backed now, real contract from day one).
 - Expo Router, typed routes enabled (`experiments.typedRoutes` in `app.config.ts`).
 - Three route groups under the root `Stack`:
   - `(public)` — always mounted, never gated. Holds `splash` (the true first screen on every cold
-    start) and `first-open` (new-user landing). Splash reads session + first-run state and calls
-    `router.replace(...)` to the right destination once its animation + minimum display time have
-    both finished (`features/splash/lib/resolveLaunchDestination.ts`) — see
-    `implementation-plan.md` §5.
+    start), `first-open` (new-user *and* returning-signed-out-user landing), and `onboarding/*`
+    (7a·1–7a·8 core setup + 8a save). Splash reads session state and calls `router.replace(...)`
+    to the right destination once its animation + minimum display time have both finished
+    (`features/splash/lib/resolveLaunchDestination.ts`) — see `implementation-plan.md` §5. Every
+    signed-out user (first-time or returning) lands on `first-open`, never `(auth)`: the design
+    has no standalone return-user login screen, and account creation lives *inside* onboarding at
+    8a (see F1, `feature-map.md`). `first-open`'s "Begin" CTA drops straight into
+    `onboarding/name`.
   - `(auth)` / `(app)` — each wrapped in `<Stack.Protected guard={...}>`, gated on session state
     from `useSessionStore` (auth feature) — Expo Router's supported pattern for auth flows, rather
-    than a manual redirect-in-effect. A `(tabs)`/petal-cluster layout inside `(app)` is added when
-    that navigation feature is actually built (see design-system.md §8) — today `(app)` has a
-    single stub screen.
+    than a manual redirect-in-effect. `onboarding/save.tsx` (8a) calls `useSessionStore`'s
+    `signIn(tokens)` directly on successful mock register, which flips the guard and hands off to
+    `(app)` automatically — no explicit navigation to `(app)` is written anywhere. A
+    `(tabs)`/petal-cluster layout inside `(app)` is added when that navigation feature is
+    actually built (see design-system.md §8) — today `(app)` has a single stub screen. `(auth)`'s
+    `login.tsx` is currently unreachable from any navigation path (F1, resolved for now — see
+    `feature-map.md`); it stays in the tree as scaffold for whenever a real login screen is
+    designed.
 - **First-run vs. onboarding-complete are two different facts, don't conflate them:**
   `hasSeenFirstOpen` (`shared/stores/appFlagsStore.ts`, persisted client-side via
   `shared/lib/storage.ts`) only decides pre-auth routing (new vs. returning device). The real

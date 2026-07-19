@@ -1,20 +1,68 @@
 import { useMutation } from '@tanstack/react-query';
 
 import { apiClient } from '@/shared/api/client';
-import type { LoginFormValues } from '@/features/auth/schemas';
+import { ApiError } from '@/shared/api/errors';
+import type { LoginFormValues, RegisterFormValues } from '@/features/auth/schemas';
+import type { SessionTokens } from '@/features/auth/store/sessionStore';
 
 type LoginResponse = {
   token: string;
 };
 
 /**
- * There is no real backend yet (see docs/product-context.md — MVP is mock-API-first). This
- * mutation is wired against the shared client so it's a one-line swap to a real endpoint later;
- * feature/screen code should depend on this hook, not know whether the response is mocked.
+ * There is no real backend yet (see docs/product-context.md — MVP is mock-API-first). Login
+ * itself is still Phase 2 scope (implementation-plan.md §3 — this hasn't been reconciled to
+ * `POST /users/login/` yet); this hook just keeps the placeholder login screen compiling.
  */
 export function useLoginMutation() {
   return useMutation({
     mutationFn: (values: LoginFormValues) =>
       apiClient.post<LoginResponse>('/auth/login', values, { auth: false }),
   });
+}
+
+export type MockPublicUser = {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  full_name: string;
+  [key: string]: unknown;
+};
+
+type RegisterEnvelope = {
+  success: true;
+  data: { user: MockPublicUser; tokens: SessionTokens };
+};
+
+/**
+ * `POST /users/register/` (API_REFERENCE.md §3, Style A envelope) — backs the onboarding "Save
+ * your core" step (8a), for both the email path and the mocked Apple/Google buttons (those just
+ * supply a generated email/name instead of a typed one — see `SaveScreen`). `auth: false` since
+ * there's no session yet to attach a bearer token from.
+ */
+export function useRegisterMutation() {
+  return useMutation({
+    mutationFn: (values: RegisterFormValues) =>
+      apiClient.post<RegisterEnvelope>(
+        '/users/register/',
+        {
+          email: values.email,
+          password: values.password,
+          password_confirm: values.password,
+          first_name: values.firstName,
+          last_name: values.lastName,
+        },
+        { auth: false },
+      ),
+  });
+}
+
+/** Pulls DRF-style field errors out of a Style A validation error body — see API_REFERENCE.md
+ * §2. Returns e.g. `{ email: ["User with this email already exists."] }`, or null if the error
+ * isn't shaped that way (network/server errors, etc.). */
+export function registerFieldErrors(error: unknown): Record<string, string[]> | null {
+  if (!(error instanceof ApiError) || error.kind !== 'validation') return null;
+  const body = error.details as { error?: { details?: Record<string, string[]> } } | undefined;
+  return body?.error?.details ?? null;
 }

@@ -11,8 +11,8 @@ screen codes are searchable in `designs/reference/screens-source.html` by `data-
 | Feature module     | API_REFERENCE sections                                                                     | Design screens (codes)                                                                                            | MVP?                                                      | Status                                                                          |
 | ------------------ | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | `splash`           | none                                                                                       | Custom animated splash                                                                                            | ✅                                                        | ✅ Built (Phase 1)                                                              |
-| `onboarding`       | §5 diet-profile (PUT), §3 register                                                         | First-open (20a/24a); 7a·1–7a·8 core setup; 12a·1–12a·6 diet interview; 16a·1–16a·5 fitness; 17a·1–17a·5 wellness | ✅ (diet fields); ⚠️ fitness/wellness = mock-only, see F2 | 🚧 First-open built (Phase 1); onboarding questions = Phase 3                   |
-| `auth`             | §3 auth (register/login/refresh/logout), §6 verify, §7 password                            | 8a Save your core, (login/return-user — F1)                                                                       | ✅                                                        | 🚧 Placeholder login screen only; reconciliation to the real contract = Phase 2 |
+| `onboarding`       | §5 diet-profile (PUT), §3 register                                                         | First-open (20a/24a); 7a·1–7a·8 core setup; 12a·1–12a·6 diet interview; 16a·1–16a·5 fitness; 17a·1–17a·5 wellness | ✅ (diet fields); ⚠️ fitness/wellness = mock-only, see F2 | 🚧 First-open + 7a·1–7a·7 core setup + 8a Save built (Phase 3, part 1); 7a·8 Arrival + pillar interviews (12a/16a/17a) remain |
+| `auth`             | §3 auth (register/login/refresh/logout), §6 verify, §7 password                            | 8a Save your core, (login/return-user — F1)                                                                       | ✅                                                        | 🚧 Register (mock `POST /users/register/`) wired via 8a; placeholder `login.tsx` unreachable — F1 resolved for now (see below), real login UI deferred |
 | `home` (dashboard) | §10 GET `/daily-summary/`, `/insights/`, §15 `/core/config/`                               | 24b Home · sky glass (petal cluster — **canonical**), 10a composed, 10b calibrating                               | ✅ **USP-critical**                                       | ⬜ Phase 4                                                                      |
 | `nutrition`        | §8 food, §12 meal-plans, §13 meal actions, §14 assistant                                   | 14a Diet home, 14b Log a meal, 15a Check my math, 15b Your usuals, 15c Week in review                             | ✅                                                        | ⬜ Phase 5                                                                      |
 | `fitness`          | §9 exercise                                                                                | 16b Fitness home, 16c Quick loop                                                                                  | ✅                                                        | ⬜ Phase 6                                                                      |
@@ -31,7 +31,11 @@ Carried from `implementation-plan.md` §1 — resolve during the referenced phas
 build around them:
 
 - **F1 — Return-user login screen.** No standalone login screen in the 57-screen export (8a is
-  the register moment). Decide at Phase 2.
+  the register moment). **Resolved for now:** every signed-out user (first-time or returning)
+  lands on first-open → onboarding, not `(auth)/login` — see
+  `features/splash/lib/resolveLaunchDestination.ts`. `(auth)/login.tsx` stays as unreachable
+  scaffold for whenever a real return-user login screen is designed; revisit at Phase 2 if the
+  product decision changes.
 - **F2 — Fitness/wellness onboarding answers have no API home.** Mock-only capture until the
   backend adds fields.
 - **F3 — Wellness logging endpoints missing** beyond `water_ml` PATCH and read-only sleep/hrv.
@@ -39,7 +43,8 @@ build around them:
 - **F4 — Assistant is meal-only.** MVP = meal-plan assistant on the real API + a mock Q&A for the
   presence/chat screen; don't imply cross-pillar reasoning the backend can't do yet.
 - **F5 — Import = deferred wearable scope.** Build the "Sources" UI only; mock the import task
-  lifecycle.
+  lifecycle. ✅ 7a·5 Sources screen built: toggles are local draft state only, no HealthKit
+  permission prompts or real OAuth to Whoop/Oura — see `SourcesScreen.tsx`.
 - **F6 — Two response envelopes** (Style A wrapped vs. Style B bare) — the client + mock handle
   both per-route; see `architecture.md` §4.
 - **F7 — This file.** Was referenced by `product-context.md` before it existed; now it exists.

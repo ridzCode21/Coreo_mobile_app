@@ -238,6 +238,7 @@ the `data-screen-label` text shown).
 | `SelectableChip`    | Pill, `radius.pill`; **selected** = white fill + shadow + weight 500; **unselected** = translucent glass + border + weight 300, `ink60` text                                                                                    | 7A2 goals, 12A1–12A6 diet interview, 16A/17A setup flows                   |
 | `ProgressDots`      | Row of 8 pill/dot segments; active = 24×4px white pill with glow, inactive = 10×4px `rgba(255,255,255,.45)`                                                                                                                     | all onboarding step screens                                                |
 | `SliderRow`         | Glass card containing: label + value header, track (`rgba(ink,.16)`), filled portion (`rgba(ink,.6)`), 18px white glowing thumb                                                                                                 | 7A3 about you (age/height/weight)                                          |
+| `ToggleRow`         | Full-width selectable row (title + optional subtitle, trailing check-circle/empty-circle), gradient fill flips lighter/more-opaque when selected — not in the original spec, promoted to shared after appearing 2×+ (see §12) | 7A4 pillars, 7A5 sources; reusable for future single/multi-select rows     |
 | `ListRow`           | Row with title + muted subtitle on the left, chevron on the right, inside a light-glass card                                                                                                                                    | profile pillar summaries, connected devices                                |
 | `StatusChip`        | Small rounded label chip, translucent white or `rgba(255,255,255,.16)` on dark, `caption` text                                                                                                                                  | assistant action confirmations ("Fitness moved"), check-in preference tags |
 | `SegmentedControl`  | Glass track, active segment = white pill w/ shadow, others plain text                                                                                                                                                           | "pillar strip" home nav concept (23B) — see §8 for nav status              |
@@ -408,3 +409,12 @@ Centralize this instead of scattering `Dimensions`/`useWindowDimensions` calls t
   motion, both now built. `GlassCard` gained the top-highlight approximation §4 called for.
   `ProgressDots`/`SelectableChip`/`PrimaryIconButton` built per §7 spec. See
   `implementation-plan.md` for the build plan these came from.
+- **v1.2 (Phase 3 part 1 — onboarding core setup + save):** Built `VoiceInputBar`, `SliderRow`
+  per §7 spec, plus a new `ToggleRow` (full-width selectable row — appears on 7A4/7A5, promoted to
+  shared rather than reimplemented per-screen). Added `OnboardingStepScaffold` (feature-local
+  chrome: gradient + `ProgressDots` + wave-glyph question header + footer slot) and two
+  feature-local footer variants, `NextBar` and a decorative `OnboardingWaveStrip` (simplified
+  stand-in for the full `WaveChart` in §6.1, used until real daily-summary data exists to drive
+  it). 7A1–7A7 core setup and 8A save-your-core (register, incl. mocked Apple/Google buttons and
+  an "Use email instead" real-schema form) are built; 7A8 Arrival and the 12A/16A/17A pillar
+  interviews remain.

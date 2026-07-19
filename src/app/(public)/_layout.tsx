@@ -10,6 +10,7 @@ export default function PublicLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="splash" />
       <Stack.Screen name="first-open" />
+      <Stack.Screen name="onboarding" />
     </Stack>
   );
 }
