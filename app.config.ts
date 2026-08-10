@@ -2,6 +2,8 @@ import type { ExpoConfig } from 'expo/config';
 
 // Env-aware app config (see docs/architecture.md §6). Real secrets never live here directly —
 // only references to process.env, populated locally via .env and in CI/EAS via EAS secrets.
+const defaultLiveApiUrl = 'https://vesselled-maxton-ringlike.ngrok-free.dev/api/v1';
+
 const config: ExpoConfig = {
   name: 'Coreo',
   slug: 'coreo',
@@ -48,9 +50,9 @@ const config: ExpoConfig = {
     reactCompiler: true,
   },
   extra: {
-    apiUrl: process.env.EXPO_PUBLIC_API_URL ?? 'https://api.coreo.dev',
+    apiUrl: process.env.EXPO_PUBLIC_API_URL ?? defaultLiveApiUrl,
     // 'mock' (default) routes every request through the in-app mock router instead of the
-    // network — see docs/implementation-plan.md §2. Flip to 'live' once a real backend exists.
+    // network — see docs/implementation-plan.md §2. Set to 'live' for the ngrok backend above.
     apiMode: process.env.EXPO_PUBLIC_API_MODE ?? 'mock',
   },
 };

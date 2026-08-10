@@ -32,11 +32,7 @@ export default function LoginScreen() {
 
   const onSubmit = (values: LoginFormValues) => {
     loginMutation.mutate(values, {
-      // Login itself isn't reconciled to the real `/users/login/` contract yet (Phase 2 — see
-      // implementation-plan.md §3); mirroring the token as both access+refresh here is a
-      // temporary placeholder just to keep this screen compiling against the shared session
-      // store, not a real token pair.
-      onSuccess: (data) => signIn({ access: data.token, refresh: data.token }),
+      onSuccess: (envelope) => signIn(envelope.data.tokens),
     });
   };
 

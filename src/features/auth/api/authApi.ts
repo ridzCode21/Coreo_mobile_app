@@ -6,18 +6,19 @@ import type { LoginFormValues, RegisterFormValues } from '@/features/auth/schema
 import type { SessionTokens } from '@/features/auth/store/sessionStore';
 
 type LoginResponse = {
-  token: string;
+  success: true;
+  data: { user: MockPublicUser; tokens: SessionTokens };
 };
 
 /**
- * There is no real backend yet (see docs/product-context.md — MVP is mock-API-first). Login
- * itself is still Phase 2 scope (implementation-plan.md §3 — this hasn't been reconciled to
- * `POST /users/login/` yet); this hook just keeps the placeholder login screen compiling.
+ * `POST /users/login/` (API_REFERENCE.md §3, Style A envelope). The standalone login route is
+ * not part of the designed onboarding path yet, but keeping this hook contract-real means it can
+ * be mounted later without changing the API layer.
  */
 export function useLoginMutation() {
   return useMutation({
     mutationFn: (values: LoginFormValues) =>
-      apiClient.post<LoginResponse>('/auth/login', values, { auth: false }),
+      apiClient.post<LoginResponse>('/users/login/', values, { auth: false }),
   });
 }
 

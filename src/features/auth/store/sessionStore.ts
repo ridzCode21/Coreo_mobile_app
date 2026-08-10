@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { secureStorage, SECURE_STORAGE_KEYS } from '@/shared/lib/secureStorage';
+import { secureAuthTokenStore } from '@/shared/api/authTokenStore';
 
 type SessionStatus = 'checking' | 'signedOut' | 'signedIn';
 
@@ -32,19 +32,17 @@ export const useSessionStore = create<SessionState>((set) => ({
   status: 'checking',
 
   bootstrap: async () => {
-    const token = await secureStorage.getItem(SECURE_STORAGE_KEYS.authToken);
+    const token = await secureAuthTokenStore.getAccessToken();
     set({ status: token ? 'signedIn' : 'signedOut' });
   },
 
   signIn: async ({ access, refresh }: SessionTokens) => {
-    await secureStorage.setItem(SECURE_STORAGE_KEYS.authToken, access);
-    await secureStorage.setItem(SECURE_STORAGE_KEYS.refreshToken, refresh);
+    await secureAuthTokenStore.setTokens({ access, refresh });
     set({ status: 'signedIn' });
   },
 
   signOut: async () => {
-    await secureStorage.deleteItem(SECURE_STORAGE_KEYS.authToken);
-    await secureStorage.deleteItem(SECURE_STORAGE_KEYS.refreshToken);
+    await secureAuthTokenStore.clearTokens();
     set({ status: 'signedOut' });
   },
 }));

@@ -1,5 +1,4 @@
-import Constants from 'expo-constants';
-
+import { getApiRuntimeConfig, type ApiMode } from '@/shared/api/config';
 import { liveTransport } from '@/shared/api/transport/liveTransport';
 import { mockTransport } from '@/shared/api/transport/mockTransport';
 import type { Transport } from '@/shared/api/transport/types';
@@ -7,14 +6,16 @@ import type { Transport } from '@/shared/api/transport/types';
 // is 'live' — the registrations just sit unused instead of adding conditional-import complexity.
 import '@/shared/api/mock/registerAllMocks';
 
-type ApiMode = 'mock' | 'live';
+export function createTransport(mode: ApiMode): Transport {
+  return mode === 'live' ? liveTransport : mockTransport;
+}
 
-const apiMode = ((Constants.expoConfig?.extra?.apiMode as string | undefined) ?? 'mock') as ApiMode;
+export const apiRuntimeConfig = getApiRuntimeConfig();
 
 /**
  * One env flag switches the whole app between mock and live with zero feature-code changes —
  * see docs/implementation-plan.md §2 and `EXPO_PUBLIC_API_MODE` in `.env.example`.
  */
-export const transport: Transport = apiMode === 'live' ? liveTransport : mockTransport;
+export const transport: Transport = createTransport(apiRuntimeConfig.mode);
 
-export { apiMode };
+export const apiMode = apiRuntimeConfig.mode;

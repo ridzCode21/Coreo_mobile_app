@@ -26,13 +26,15 @@ export const mockTransport: Transport = async (request) => {
   if (!match) return notFound();
 
   let body: unknown;
-  if (request.body) {
+  if (typeof request.body === 'string') {
     try {
       body = JSON.parse(request.body);
     } catch {
       body = undefined;
     }
   }
+  // Multipart (FormData) bodies aren't introspected by the mock — handlers that accept uploads
+  // (e.g. POST /food/photo/) return a fixed estimate regardless of the file. See API_REFERENCE §8.
 
   const result = await match.handler({
     method: request.method,

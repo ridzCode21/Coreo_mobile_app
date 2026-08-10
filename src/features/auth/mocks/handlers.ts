@@ -1,7 +1,11 @@
 import { registerMock } from '@/shared/api/mock/router';
 import { mockDb, type MockUser } from '@/shared/api/mock/db';
 import { styleAError, styleAOk } from '@/shared/api/mock/envelope';
-import { issueTokenPair } from '@/shared/api/mock/tokens';
+import {
+  blacklistMockToken,
+  issueTokenPair,
+  verifyMockToken,
+} from '@/shared/api/mock/tokens';
 import { serializeMockUser } from '@/features/auth/mocks/serializeUser';
 
 function randomId(): string {
@@ -74,5 +78,76 @@ registerMock('POST', '/users/register/', (request) => {
     status: 201,
     delayMs: 500,
     body: styleAOk({ user: serializeMockUser(user), tokens }),
+  };
+});
+
+/** Mock `POST /users/login/` — API_REFERENCE.md §3, Style A envelope. */
+registerMock('POST', '/users/login/', (request) => {
+  const body = (request.body ?? {}) as Record<string, unknown>;
+  const email = asString(body.email).trim().toLowerCase();
+  const password = asString(body.password);
+  const user = mockDb.users.find((candidate) => candidate.email === email);
+
+  if (!user || user.password !== password) {
+    return {
+      status: 401,
+      body: styleAError('INVALID_CREDENTIALS', 'Invalid email or password'),
+    };
+  }
+
+  const tokens = issueTokenPair({ id: user.id, email: user.email });
+
+  return {
+    status: 200,
+    delayMs: 350,
+    body: styleAOk({ user: serializeMockUser(user), tokens }),
+  };
+});
+
+/** Mock `POST /users/token/refresh/` — returns a new access token only, per API_REFERENCE.md §3. */
+registerMock('POST', '/users/token/refresh/', (request) => {
+  const body = (request.body ?? {}) as Record<string, unknown>;
+  const refresh = asString(body.refresh);
+  const payload = verifyMockToken(refresh, 'refresh');
+
+  if (!payload) {
+    return {
+      status: 400,
+      body: styleAError('TOKEN_REFRESH_ERROR', 'Invalid refresh token'),
+    };
+  }
+
+  const user = mockDb.users.find((candidate) => candidate.id === payload.user_id);
+  if (!user) {
+    return {
+      status: 400,
+      body: styleAError('TOKEN_REFRESH_ERROR', 'Invalid refresh token'),
+    };
+  }
+
+  const tokens = issueTokenPair({ id: user.id, email: user.email });
+
+  return {
+    status: 200,
+    body: styleAOk({ access: tokens.access }),
+  };
+});
+
+/** Mock `POST /users/logout/` — blacklist the presented access token, matching the real API. */
+registerMock('POST', '/users/logout/', (request) => {
+  const header = request.headers.Authorization ?? request.headers.authorization;
+  const token = header?.startsWith('Bearer ') ? header.slice('Bearer '.length) : undefined;
+  if (!token || !verifyMockToken(token, 'access')) {
+    return {
+      status: 401,
+      body: styleAError('UNAUTHORIZED', 'Authentication credentials were not provided.'),
+    };
+  }
+
+  blacklistMockToken(token);
+
+  return {
+    status: 200,
+    body: styleAOk(undefined, 'Logged out successfully.'),
   };
 });

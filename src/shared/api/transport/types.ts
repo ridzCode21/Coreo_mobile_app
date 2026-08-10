@@ -7,8 +7,13 @@ export type TransportRequest = {
   /** Path only (no origin/query), always set — what `mockTransport` matches routes against. */
   path: string;
   headers: Record<string, string>;
-  /** Already-serialized JSON string, or undefined for bodyless requests. */
-  body?: string;
+  /**
+   * Request body: an already-serialized JSON string, a `FormData` for multipart uploads (e.g.
+   * `POST /food/photo/`, API_REFERENCE.md §8), or undefined for bodyless requests. `mockTransport`
+   * only introspects the string case; `liveTransport` passes it straight to `fetch`, which handles
+   * both (and sets the multipart boundary itself when given a `FormData`).
+   */
+  body?: string | FormData;
 };
 
 export type TransportResponse = {
