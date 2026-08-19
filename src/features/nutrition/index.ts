@@ -6,4 +6,10 @@
 export { default as DietHomeScreen } from '@/features/nutrition/screens/DietHomeScreen';
 export { default as ConfirmMealScreen } from '@/features/nutrition/screens/ConfirmMealScreen';
 export { default as BarcodeScannerScreen } from '@/features/nutrition/screens/BarcodeScannerScreen';
-export { nutritionKeys, todayISO } from '@/features/nutrition/api/nutritionApi';
+export {
+  nutritionKeys,
+  todayISO,
+  useDailySummaryQuery,
+  useUpdateWaterMutation,
+} from '@/features/nutrition/api/nutritionApi';
+export { targetsFromProfile } from '@/features/nutrition/lib/macros';

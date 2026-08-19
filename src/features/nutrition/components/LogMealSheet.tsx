@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 
 import { VoiceInputBar } from '@/shared/components/VoiceInputBar';
 import { ApiError } from '@/shared/api/errors';
@@ -25,11 +25,17 @@ type LogMealSheetProps = {
 const ICON_SIZE = 24;
 const iconStroke = colors.ink;
 const iconStrokeOnNight = colors.onNight;
+const DIET_CONFIRM_ROUTE = '/diet/confirm';
+const DIET_SCAN_ROUTE = '/diet/scan' as Href;
 
 function CameraIcon({ stroke }: { stroke: string }) {
   return (
     <Svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2l1.2-1.8A1 1 0 0 1 8.5 5h7a1 1 0 0 1 .8.4L17.5 7h2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z" stroke={stroke} strokeWidth={1.6} />
+      <Path
+        d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2l1.2-1.8A1 1 0 0 1 8.5 5h7a1 1 0 0 1 .8.4L17.5 7h2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"
+        stroke={stroke}
+        strokeWidth={1.6}
+      />
       <Circle cx={12} cy={13} r={3.2} stroke={stroke} strokeWidth={1.6} />
     </Svg>
   );
@@ -37,7 +43,12 @@ function CameraIcon({ stroke }: { stroke: string }) {
 function BarcodeIcon({ stroke }: { stroke: string }) {
   return (
     <Svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none">
-      <Path d="M4 6v12M8 6v12M12 6v12M16 6v12M20 6v12" stroke={stroke} strokeWidth={1.6} strokeLinecap="round" />
+      <Path
+        d="M4 6v12M8 6v12M12 6v12M16 6v12M20 6v12"
+        stroke={stroke}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -69,7 +80,7 @@ function apiMessage(error: unknown, fallback: string): string {
 /**
  * "What are we logging?" sheet (14b) — the four logging paths plus the describe/search bar. Photo
  * (snap + nutrition label) is wired to §8 `/food/photo/`; barcode opens the live camera scanner
- * (`/nutrition/scan`, Layer 1.1). Each path degrades to manual entry on failure with the API's own
+ * (`/diet/scan`, Layer 1.1). Each path degrades to manual entry on failure with the API's own
  * calm copy (design spec §10). Every successful capture/pick routes to the confirm screen — nothing
  * is committed without a look.
  */
@@ -94,18 +105,14 @@ export function LogMealSheet({ visible, onClose }: LogMealSheetProps) {
 
   const goConfirm = (source: FoodSource, prefill?: ConfirmPrefill) => {
     close();
-    router.push({
-      pathname: '/nutrition/confirm',
-      params: {
-        source,
-        ...(prefill ? { prefill: JSON.stringify(prefill) } : {}),
-      },
-    });
+    const query = new URLSearchParams({ source });
+    if (prefill) query.set('prefill', JSON.stringify(prefill));
+    router.push(`${DIET_CONFIRM_ROUTE}?${query.toString()}` as Href);
   };
 
   const openScanner = () => {
     close();
-    router.push('/nutrition/scan');
+    router.push(DIET_SCAN_ROUTE);
   };
 
   const onPickSearchResult = (item: FoodItem) => {

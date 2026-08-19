@@ -28,7 +28,7 @@ export const manualEntrySchema = confirmMealSchema;
 export type ManualEntryValues = z.infer<typeof manualEntrySchema>;
 
 /**
- * Route params for `(app)/nutrition/confirm` — validated at the navigation boundary rather than
+ * Route params for `(app)/(tabs)/diet/confirm` — validated at the navigation boundary rather than
  * trusted blindly (architecture.md §5). All arrive as strings from the router; `prefill` is an
  * optional JSON blob the caller stringifies.
  */

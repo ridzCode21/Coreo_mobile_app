@@ -7,8 +7,10 @@ import { useRouter } from 'expo-router';
 import { GlassCard } from '@/shared/components/GlassCard';
 import { colors, fontFamily, radii, spacing, textStyle } from '@/shared/theme/tokens';
 import {
+  authErrorMessage,
   registerFieldErrors,
   registerSchema,
+  useLoginMutation,
   useRegisterMutation,
   useSessionStore,
   type RegisterFormValues,
@@ -57,19 +59,14 @@ function ageToApproxDob(ageYears: number): string {
   return `${birthYear}-01-01`;
 }
 
-/** Assembles the one, whole-draft `PUT /users/me/diet-profile/` payload — v2's single commit
- * point (onboarding-v2-flow-plan.md §2), replacing the old per-question PUT. Includes
- * `weight_kg`/`height_cm` from About You so the mock's Mifflin-St Jeor estimate can actually run
- * (it requires both and previously never received either — see estimateDailyTargets.ts). */
+/** Assembles the minimal signed-up starter profile (onboarding-v3-minimal-drip-plan.md §3):
+ * only the core facts asked before account creation. Diet preference, activity, allergies, and
+ * cuisine are collected later from inside the Diet tab via partial `PUT`s. */
 function buildDietProfilePatch(draft: OnboardingDraft): DietProfilePatch {
   return {
-    ...draft.dietProfile,
     goal_type: draft.dietProfile.goal_type ?? resolveGoalType(draft.dietProfile.health_conditions),
     weight_kg: draft.weightKg,
     height_cm: draft.heightCm,
-    // `meal_frequency` is non-nullable on the wire (the server defaults it to 4) — the draft
-    // represents "unanswered" as `null`, so omit the field entirely rather than send `null`.
-    meal_frequency: draft.dietProfile.meal_frequency ?? undefined,
   };
 }
 
@@ -118,12 +115,24 @@ function buildMockSocialIdentity(
 
 type SocialProvider = 'apple' | 'google';
 
+function isExistingEmailError(fieldErrors: Record<string, string[]> | null): boolean {
+  return Boolean(
+    fieldErrors?.email?.some((message) => /already (exists|registered|used)/i.test(message)),
+  );
+}
+
+function registerFormField(field: string): keyof RegisterFormValues | null {
+  if (field === 'email') return 'email';
+  if (field === 'first_name' || field === 'firstName') return 'firstName';
+  if (field === 'last_name' || field === 'lastName') return 'lastName';
+  if (field === 'password' || field === 'password_confirm') return 'password';
+  return null;
+}
+
 /**
- * Save your core — the register moment, and v2's single commit point
- * (onboarding-v2-flow-plan.md §2): register, then exactly one `PUT /users/me/diet-profile/` with
- * the whole interview draft, then hand off to `(app)` home. Per implementation-plan.md's F1, this
- * doubles as the only sign-up surface (no separate return-user login screen exists in the design
- * export yet). No progress dots here — screens-source.html shows this step without a dot rail.
+ * Save your core — the register moment. v3 keeps signup light: register, persist only the core
+ * body/goal facts needed for starter targets, then hand off to the signed-in tab shell where diet
+ * personalization continues as nudges.
  */
 export default function SaveScreen() {
   const router = useRouter();
@@ -131,6 +140,7 @@ export default function SaveScreen() {
   const resetOnboarding = useOnboardingStore((state) => state.reset);
   const signIn = useSessionStore((state) => state.signIn);
   const registerMutation = useRegisterMutation();
+  const loginMutation = useLoginMutation();
   const dietProfileMutation = useUpdateDietProfileMutation();
 
   const [activeProvider, setActiveProvider] = useState<SocialProvider | null>(null);
@@ -175,22 +185,43 @@ export default function SaveScreen() {
       onError: (error) => {
         setActiveProvider(null);
         const fieldErrors = registerFieldErrors(error);
+        if (isExistingEmailError(fieldErrors)) {
+          setBanner('I found that account. Signing you in instead.');
+          loginMutation.mutate(
+            { email: values.email, password: values.password },
+            {
+              onSuccess: async (envelope) => {
+                await signIn(envelope.data.tokens);
+                setRegistered(true);
+                commitDietProfile();
+              },
+              onError: () => {
+                setShowEmailForm(true);
+                setBanner(null);
+                setError('password', {
+                  message: 'That email already exists. Use its password, or choose another email.',
+                });
+              },
+            },
+          );
+          return;
+        }
         if (fieldErrors) {
           let handled = false;
           for (const [field, messages] of Object.entries(fieldErrors)) {
-            if (field === 'email' || field === 'first_name' || field === 'last_name') {
-              const rhfField =
-                field === 'email' ? 'email' : field === 'first_name' ? 'firstName' : 'lastName';
-              setError(rhfField as keyof RegisterFormValues, { message: messages[0] });
-              handled = true;
-            }
+            const rhfField = registerFormField(field);
+            if (!rhfField) continue;
+            setError(rhfField, { message: messages[0] });
+            handled = true;
           }
           if (handled) {
             setShowEmailForm(true);
             return;
           }
         }
-        setBanner("Something went wrong saving your core. Let's try again.");
+        setBanner(
+          authErrorMessage(error, "Something went wrong saving your core. Let's try again."),
+        );
       },
     });
   };
@@ -209,7 +240,8 @@ export default function SaveScreen() {
     commit(buildMockSocialIdentity(provider, draft));
   };
 
-  const isBusy = registerMutation.isPending || dietProfileMutation.isPending;
+  const isBusy =
+    registerMutation.isPending || loginMutation.isPending || dietProfileMutation.isPending;
 
   return (
     <OnboardingStepScaffold

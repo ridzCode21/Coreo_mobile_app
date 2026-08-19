@@ -30,4 +30,6 @@ export const storage = {
 
 export const STORAGE_KEYS = {
   hasSeenFirstOpen: 'coreo.app.hasSeenFirstOpen',
+  dismissedDietQuickSetup: 'coreo.app.dismissedDietQuickSetup',
+  visitedProfileSections: 'coreo.app.visitedProfileSections',
 } as const;

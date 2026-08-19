@@ -13,7 +13,7 @@ import type { Href } from 'expo-router';
  * affects this decision — it's kept as a param/flag for future analytics or a "welcome back"
  * variant of first-open, not for branching the destination.
  *
- * v2 adds one more branch (onboarding-v2-flow-plan.md §3 "Resume rule"): a signed-out user with a
+ * v3 keeps the resume branch: a signed-out user with a
  * persisted, in-progress interview draft skips first-open entirely and resumes exactly where they
  * left off, rather than restarting. `hasOnboardingProgress`/`resumeRoute` are only meaningful once
  * the onboarding store has finished rehydrating from AsyncStorage — callers must gate on that

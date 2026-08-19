@@ -1,53 +1,27 @@
-# Onboarding v3 — Minimal-then-drip + Home/Nav restructuring plan
+# Onboarding v3 — Minimal-then-drip + Home/Nav restructuring plan (rev. 2)
 
-Status: **PROPOSED (plan only, no code yet).** Supersedes `onboarding-v2-flow-plan.md`'s
-signup-last shape for *when* account creation happens and *where* the diet interview lives.
-Written after reviewing the current codebase (`onboardingStore.ts`, `steps.ts`,
-`dietProfileApi.ts`, `SaveScreen.tsx`, `resolveLaunchDestination.ts`, `architecture.md` §5,
-`design-system.md` §8) against `API_REFERENCE.md` — every claim below is checked against what
-those files actually do today, not assumed.
-
-This single doc covers three coupled decisions, because none of them make sense in isolation:
-(1) shrink pre-signup onboarding, (2) give `(app)` a real navigation shell for the first time,
-(3) define what Home/Diet/Fitness/Wellness show on day one vs. once personalized.
+Status: **PROPOSED (plan only for the unbuilt parts — Home/Diet IA needs rework before more gets
+built on top of it).** Rev. 2 folds in a review of the actual implemented Home/Diet screens (four
+screenshots reviewed against `API_REFERENCE.md`) — several things shipped ahead of this doc drifted
+from the intent in rev. 1, and this revision corrects course before the meal-planner phase (Layer 2)
+adds more weight on top. Sections 0–4 (pre-signup flow, signup orchestration, profile-completion
+model) are unchanged from rev. 1 and still stand. Sections 5–9 are substantially rewritten.
 
 ---
 
-## 0. Why now, and what changes
+## 0. Why now, and what changes (unchanged from rev. 1)
 
 `product-context.md` §7 defines activation as "% of new signups who log in at least 2 of the 3
-pillars within 48h" — not "% who finish the diet interview." The current flow (18 `FLOW_STEP_IDS`,
-account created last) puts the longest, most cognitively loaded part of the app *before* the
-metric that matters starts counting. `architecture.md` §5 already flagged this exact fork and
-left it open: *"Revisit if a future path lets a signed-in user reach `(app)` without having
-finished the local draft first (e.g. a future 'skip for now' escape hatch)."* This plan is that
-revisit.
-
-Two things make this tractable on the current backend, verified against the actual code, not
-assumed:
-
-- `PUT /users/me/diet-profile/` is a genuine partial update (`dietProfileApi.ts`'s
-  `useUpdateDietProfileMutation` already sends a `DietProfilePatch`, and the mock's `PUT` handler
-  in `dietProfile.handlers.ts` merges `{...current, ...patch}` and recomputes
-  `daily_calories`/`daily_protein_g`/etc. from whatever's present). Nothing needs the whole
-  interview committed in one shot — that was a v2 design choice (single-commit-at-the-end), not a
-  backend constraint.
-- The mock's `DEFAULT_DIET_PROFILE` already ships sane generic numbers (`daily_calories: 2000`,
-  etc.) for a profile nobody has touched yet. A freshly-registered account is never "no data" —
-  it's "generic, honestly-labeled data" until personalized. Home/Diet don't need an empty state
-  for targets; they need an honest "these are starter numbers" state.
-
-One correction to make up front, to a claim in the plan you pasted: the concern *"stop using
-`onboarding_complete` as a route guard"* doesn't apply to code that exists today —
-`resolveLaunchDestination.ts` never reads `diet-profile.onboarding_complete`; it only checks
-`isSignedIn` and the local `hasOnboardingProgress` flag. There's no gate to remove. But the
-*principle* still matters going forward, because this plan is exactly the "signed-in user reaching
-`(app)` with an incomplete profile" case `architecture.md` flagged as unbuilt — so we do need to
-make sure whatever `(app)` guard we add next doesn't reintroduce that pattern by accident.
+pillars within 48h." The pre-signup interview should be short, and personalization should happen
+progressively after signup — this part of the plan is confirmed correct by the build so far (the
+visual language holds up, minimal-then-drip is the right direction). What needs correcting is what
+happens *after* signup: Home and Diet have started duplicating each other, and the progressive
+personalization checklist has quietly grown back into a full onboarding form, just relocated inside
+the app instead of before it.
 
 ---
 
-## 1. New top-level flow
+## 1. New top-level flow (unchanged from rev. 1)
 
 ```
 APP OPEN
@@ -67,307 +41,305 @@ APP OPEN
         │  PUT  /users/me/diet-profile/  { goal_type, weight_kg, height_cm }
         ↓
      (app) tabs → Coreo/Home  ◄── default tab after signup
-        │
-        ├─ Diet     → first-visit nudge: "3 quick things" (diet_type, activity_level, allergies)
-        ├─ Fitness  → Phase 6, unchanged for now
-        ├─ Wellness → Phase 6, unchanged for now
-        └─ Coreo    → cross-pillar snapshot (this doc §5)
 ```
 
-Six pre-signup screens instead of eighteen. All six already exist as built components — this is a
-`steps.ts` re-sequencing plus deleting entries from `FLOW_STEP_IDS`, not new screens. `promise` and
-`calibrating` are dropped from the pre-signup path (§2 explains where their ideas go instead).
+Six pre-signup screens instead of eighteen (§2 of rev. 1 has the full FLOW_STEP_IDS mapping —
+unchanged).
 
 ---
 
-## 2. What moves out of pre-signup, and where it goes
+## 2–4. Screen relocation, signup orchestration, profile-completion model (unchanged from rev. 1)
 
-| Current `FLOW_STEP_IDS` entry | New home | Why |
+No changes. `steps.ts` shrinks the same way; `SaveScreen.tsx` sends the same minimal patch;
+`ProfileCompletion` stays a pure derived selector, never a navigation gate. One addition to §4's
+selector, needed by §6/§7 below:
+
+```ts
+// features/onboarding/lib/profileCompletion.ts — add alongside the existing booleans
+type TargetQuality = 'unavailable' | 'starter' | 'estimated' | 'confirmed';
+
+function targetQuality(profile: DietProfile): TargetQuality {
+  if (profile.weight_kg == null || profile.height_cm == null) return 'unavailable';
+  if (!profile.diet_type || !profile.activity_level) return 'starter';
+  if (!profile.cuisine_preference) return 'estimated';
+  return 'confirmed';
+}
+```
+
+This is a **frontend-derived label**, same caution as `ProfileCompletion` itself: the API exposes
+`target_source: calculated | manual` but nothing resembling "estimate quality" — don't imply the
+backend computed a confidence tier it didn't. This function is the single place that decision lives,
+so Home's headline, the targets card's badge, and the personalize-card copy all read the same tier
+instead of three screens independently guessing.
+
+---
+
+## 5. Navigation — corrected
+
+Rev. 1's `BottomDock`-as-tab-bar / petal-cluster-as-widget resolution stands. Two corrections found
+during implementation review:
+
+- **No back button on a tab root.** The Diet screen currently shows a back affordance, which is
+  wrong once Diet is a tab rather than a pushed stack screen — there's nothing to go "back" to from
+  a tab, and it visually implies Diet is a step in a sequence rather than a peer of Home/Fitness/
+  Wellness. Back buttons belong only on screens **pushed from within** a tab's own stack — meal
+  confirm, barcode scan, a meal's recipe/detail, a single-field personalization sheet opened from
+  the "Sharpen your plan" checklist (§7.2). Each tab's root (`(tabs)/diet/index.tsx`, etc.) must
+  render with no header-back affordance; only screens nested one level deeper under that tab get one.
+  This is a one-line fix per tab root (`headerShown: false` / omit the back button on the root
+  `Stack.Screen`, consistent with how `(app)/_layout.tsx` already sets `headerShown: false` at the
+  group level today) but worth calling out explicitly since it's easy to reintroduce by copying a
+  screen that used to be a pushed step.
+- **Tab roots never navigate to each other via push.** "Tap Nutrition → Diet" style cross-links from
+  Home (§6) must switch tabs (`router.navigate` to the tab route), not push Diet onto Home's stack —
+  otherwise you'd get exactly the "back button on a tab" problem again one level removed.
+
+---
+
+## 6. Coreo/Home — corrected hierarchy
+
+### 6.1 What's wrong with the current build
+
+- **The "On Track Today" X/4 count implies more than the backend knows.** Calories has a real
+  target to compare against; water, workout, and "meal logged" don't — there's no water target
+  field, no way to know if a rest day was intentional, and "logged a meal" isn't really an
+  on/off-track judgment. Labeling it "transparent count, not a mystery score" doesn't fix this: a
+  user who deliberately rests today will read "0/4, off track" as the app being wrong about them.
+  This is a case of the UI asserting a conclusion (*"on track"*) the API can't actually support yet
+  — same category of problem `product-context.md` §6 warns about for the AI assistant (don't imply
+  authority you don't have), just showing up in a stat card instead of assistant copy.
+- **The macro/target card is fully duplicated between Home ("Starter Targets") and Diet ("Left
+  Today")** — same numbers, same layout, twice. This will only get worse once meal plans, "next
+  meal," and remaining-calories-after-a-planned-meal all need to live somewhere — both screens will
+  keep competing to be the nutrition dashboard unless their jobs are split now.
+- **`0 / 0 kcal` (and the all-"Not tracked yet" Signals grid) reads as broken**, not as an honest
+  empty state. A fresh account should never show a bare zero-over-zero.
+- **The headline is state-blind.** "Today, your core is readable" next to four zeros and four
+  "Not tracked yet"s contradicts itself.
+
+### 6.2 The fix — Home answers exactly two questions
+
+*How is my day going overall, and what's one thing worth my attention?* Nothing else earns a
+permanent card.
+
+```
+{state-aware headline — see 6.4}
+
+TODAY
+─────────────────────────
+Nutrition        0 / 2,023 kcal        (tap → Diet tab)
+Movement         Not logged yet        (tap → Fitness tab)
+Hydration        0 ml                  (tap → Wellness tab, or inline +Add water)
+
+{ the one contextual card — §6.3 }
+
++ Log meal              + Add workout
+```
+
+No `/4` score, no macro-by-macro breakdown (that's Diet's job, §7), no four-way "Not tracked yet"
+grid as a standing fixture. This is a straight edit of the existing `MacroSummaryCard`-style
+component: replace the ring+full-breakdown with a three-row facts list, each row backed directly by
+`daily_log.calories_in`/`workout_sessions`/`water_ml` — no interpretation layer.
+
+### 6.3 The one contextual card — pick the single most useful thing, not five
+
+Priority order (first match wins, only one shown at a time):
+
+1. **Tier-1 diet setup missing** (`!dietQuick`, §7.1) → "Personalize your diet" card (§7's copy).
+2. **A meal plan exists and has an unlogged upcoming meal today** (once Layer 2 ships) → "Next:
+   {meal name} · {time-of-day label}" card, tap → Diet.
+3. **≥30 days logged and a fresh insight exists** (`GET /insights/`) → "Coreo noticed…" card. This
+   is explicitly the best long-term version of this slot — real correlation data, not an invented
+   score — but it's gated on data that won't exist for a month after launch, so it's priority 3, not
+   1, and Home must degrade gracefully to priorities 1/2 until then.
+4. **Nothing pending** → no card at all. An empty slot is fine; a padded, low-value card isn't.
+
+This directly replaces the always-on Signals/Personalize/On-Track stack with exactly one card,
+chosen by what's actually useful right now — which is also a more literal reading of the product's
+own cross-pillar promise than five parallel status cards ever was.
+
+### 6.4 Signals card — conditional, not four empty states
+
+Keep the concept (it's well-grounded in `daily_log`'s `water_ml`/`steps`/`sleep_hours`/`hrv`), fix
+the presentation and the write-affordance mismatch:
+
+- If **any** of the four have real values: show them as a compact row (`1.4 L`, `7,820`, `7h 20m`,
+  `48 ms`), omitting fields still null rather than padding with "Not tracked yet."
+- If **none** have values: one compact card, not four — "No health signals yet. Add water or import
+  health data." with two actions: `[+ Add water]` (the one field with a real write endpoint,
+  `PATCH /daily-summary/water/`) and `[Import data]` (routes to the Sources/import flow, wherever
+  that ends up living post-onboarding). Steps/sleep/HRV get no manual-entry affordance anywhere in
+  this card — they're wearable-import-only per the API, and offering to "enter" them implies a write
+  path that doesn't exist.
+- On a brand-new account specifically, it's fine to omit this card from Home entirely for the first
+  session and let the Wellness tab own it — Home's job is the 30-second glance, not every metric.
+
+### 6.5 State-aware headline
+
+Four literal states, driven by the same facts already computed for §6.2/6.3 — no new data source:
+
+| State | Trigger | Headline |
 | --- | --- | --- |
-| `target` (target weight) | Diet tab, tier 1, conditionally (same `isFlowStepVisible` rule) | goal-specific, cheap, but not needed to create the account |
-| `activity` | Diet tab, tier 1 | materially changes the calorie estimate — highest-value single question to ask early, just not pre-signup |
-| `diet-type` | Diet tab, tier 1 | needed for any real personalization and for `onboarding_complete` |
-| `cuisine` | Diet tab, tier 2 — **special-cased**, see §6 | affects meal-plan quality but the API also folds it into `onboarding_complete`, so it needs care |
-| `off-the-table` (allergies) | Diet tab, tier 1 | safety-adjacent (what not to suggest) — worth front-loading even though it's "tier 1 optional" in spirit |
-| `who-cooks`, `meal-rhythm`, `budget` | Diet tab, tier 2 ("Sharpen your plan") | improves meal plans, doesn't block logging or basic targets |
-| `health` | Diet tab, tier 2 | sensitive; deserves its own unhurried moment, not squeezed into a signup funnel |
-| `weak-moment` | Diet tab, tier 2 (or cut — see open decisions) | mock-only already, no API field |
-| `promise` | Retired as a screen. Its "here's what you get" beat happens implicitly now — the user sees the real Home right after signup instead of a screen promising one. | signup-last no longer needs a pre-reveal hype screen once the reveal *is* signup |
-| `calibrating` (profile-completeness wave) | Re-platformed as a persistent **"Sharpen your plan"** progress meter inside Diet/Profile (§6), not a one-time pre-signup screen | `design-system.md` §7 already documents `WaveChart` as used for "diet-profile completeness" — this reuses the exact same component for an ongoing indicator instead of a single moment, no new visual design needed |
+| Fresh | no entries logged today, no insights | "Today starts here." |
+| Active, no insight yet | ≥1 entry logged today | "Here's where today stands." |
+| Established | `targetQuality` ≥ `estimated` and some logging history | "Today, your core is readable." |
+| Insight available | §6.3 priority 3 card is showing | "A pattern is starting to show." |
 
 ---
 
-## 3. Signup orchestration (concrete change to `SaveScreen.tsx`)
+## 7. Diet tab — corrected
 
-Today `buildDietProfilePatch(draft)` sends the *entire* draft (all diet-interview fields) in one
-`PUT` right after register. Under this plan, at the point `save` is reached, the draft only has
-`goal_type`, `weightKg`, `heightCm`, `gender`/`ageYears` (for the register call itself) — the diet
-interview fields (`diet_type`, `cuisine_preference`, etc.) simply haven't been asked yet, so
-they're `null` in the draft and the patch naturally becomes:
+### 7.1 First visit after signup (unchanged from rev. 1, copy tightened)
 
-```ts
-{ goal_type: draft.dietProfile.goal_type ?? resolveGoalType(...), weight_kg, height_cm }
-```
+Same 3-question tier-1 flow (`diet_type`, `activity_level`, `allergies`), same single `PUT`. Tighten
+the nudge copy to name the fields and the payoff, since "3 quick things are waiting" doesn't tell
+the user what happens if they tap it:
 
-No branching logic needed in `SaveScreen.tsx` beyond removing the now-unreachable diet-interview
-fields from the draft — the same `useUpdateDietProfileMutation` call, same
-`registerMutation → signIn → PUT diet-profile → router.replace('/(app)')` sequence already there.
-`onboarding_complete` will correctly read `false` after this (goal_type set, `diet_type`/
-`cuisine_preference` still null) — that's expected and fine, since nothing gates on it.
+> **Personalize your diet**
+> 3 quick things to improve your targets and future meal plans.
+> Diet type · Activity · Foods to avoid
+> `[ Finish in ~1 min → ]`
 
----
+Use this **one** wording in the **one** place it appears (Diet tab only — remove the duplicate
+Home-level nudge per §6.3's "one contextual card" rule).
 
-## 4. Profile-completion model (replaces any future `onboarding_complete`-as-gate temptation)
+### 7.2 "Sharpen your plan" moves one level deeper — it's the biggest structural fix in this revision
 
-Per `architecture.md` §5's own framing (client-side pre-auth facts vs. server-side profile facts),
-add one small **derived, client-side selector** — not a new store, just a pure function over
-`DietProfile` — used to decide what nudges to show, never to block navigation:
+The flat 10-item checklist recreates the exact pressure the minimal-then-drip rework was meant to
+remove — "4/10, 40%" tells a user they have six forms left, just relabeled as optional. Two concrete
+problems with the current version, beyond the psychology:
 
-```ts
-// features/onboarding/lib/profileCompletion.ts (new, pure — same pattern as steps.ts)
-type ProfileCompletion = {
-  core: boolean;       // goal_type, weight_kg, height_cm all set (true right after signup)
-  dietQuick: boolean;  // diet_type, activity_level set (allergies is a list — see §7 caveat)
-  mealPlanReady: boolean; // dietQuick && cuisine_preference set
-  sharpened: boolean; // cooking_frequency, meal_frequency, budget_tier, health_conditions all answered
-};
-```
+- **The 40% is a fabricated equal-weighting.** `diet_type`/`activity_level` change targets
+  materially; `budget_tier`/`cooking_frequency` are flavor. Treating all ten as one-point-each
+  implies a precision the product doesn't have an opinion on.
+- **At least one item can show a false ✓.** `meal_frequency` defaults to `4` server-side and is
+  never null (`API_REFERENCE.md` §5) — if "answered" is computed as "field is non-null," Meal rhythm
+  will read complete for every user, including one who's never touched it. This needs the same
+  explicit "answered" tracking already flagged in rev. 1 §7.5 for `allergies`/`disliked_foods`
+  (empty-array ambiguity) — extend that local flag to cover every field that ships with a non-null
+  server default, not just the empty-array fields.
 
-`(app)` never redirects on any of these — they only drive which nudge cards render on Home/Diet.
-This directly answers the concern in the plan you pasted, just implemented as a selector instead of
-a new boolean, since the shape of "done" here is genuinely multi-dimensional (diet vs. meal-plan vs.
-"nice to have"), not a single flag.
+**Fix — replace the standing checklist with contextual, trigger-based asks**, and move the full
+editable list to Profile/Personalization (one level deeper, reachable but not a Diet-home fixture):
 
----
+| Trigger | Ask | Why this moment |
+| --- | --- | --- |
+| First Diet visit, `!dietQuick` | diet_type, activity_level, allergies | §7.1 — already the plan |
+| First tap on "Generate today's plan," cuisine unset | cuisine_preference (+ any other still-missing field that blocks generation) | User just asked for food — the API also folds cuisine into `onboarding_complete`, so this is the natural moment, not signup |
+| Tap "Replace meal" | disliked_foods (if unset) | Directly relevant to the action just taken |
+| Regeneration reason = `too_expensive` | budget_tier | The complaint *is* the missing field |
+| Regeneration reason = `too_much_cooking` | cooking_frequency / cooking-time preference | Same pattern |
+| `goal_type == 'manage_condition'` at signup | Prioritize `health_conditions` at the *next* Diet visit, ahead of diet_type/activity in tier-1 ordering | The stated goal makes this field unusually relevant sooner |
 
-## 5. Navigation restructuring — `(app)` becomes a real tab shell
+A user experiences this as "Coreo asked one thing because I just asked it to do something," not
+"my profile is 40% done." This is also a better fit for the meal-plan API specifically —
+`RegenerationReason` already includes `too_expensive`/`too_much_cooking`/`dont_like_foods`/
+`different_cuisine`, which map almost one-to-one onto the profile fields above. The regeneration
+flow effectively *is* a contextual-profiling trigger the backend already half-designed for.
 
-Today `(app)/_layout.tsx` is a bare `Stack` with one stub `index.tsx` re-exporting
-`DietHomeScreen` (explicitly commented as temporary, "until the petal-cluster Home (Phase 4) is
-built"). This plan **is** that Phase 4 trigger, so it's the right moment to build the shell too —
-otherwise Diet/Fitness/Wellness/Coreo would each need their own ad-hoc "how do I get to another
-pillar" affordance, which is exactly the gap `design-system.md` §8 left open.
+Keep one compact, honest indicator instead of the 40%-style card — e.g. a small "2 useful details
+still missing" line inside a lower-priority "Improve recommendations" row (§7.3), not a hero card,
+and drop the equal-weighted percentage entirely.
 
-**Resolving that open gap, not reopening the decision:** §8 says petal cluster is canonical for
-*the Home centerpiece*, and separately documents Glass Dock (23A, the `BottomDock` component
-already specced in §7 — 72px night-glass bar, 4 icon+label columns) as reference material for
-*"a persistent way to reach a pillar from inside another pillar's screens, which the petal cluster
-alone doesn't solve since it's a Home-only centerpiece."* That's precisely this problem. Proposal:
-
-- **`BottomDock` becomes the persistent chrome** — 4 items: Diet / Fitness / Wellness / Coreo.
-  Build it once in `shared/components/BottomDock.tsx` (it's already fully specced, just not built)
-  and wire it as `(app)`'s tab bar (Expo Router `Tabs`, custom `tabBar` render using `BottomDock`
-  rather than the default RN tab bar, matching how `Screen`/`GlassCard` already wrap RN primitives
-  elsewhere in this codebase).
-- **`PetalCluster` stops being the only way to navigate and becomes the Coreo tab's hero
-  widget** — still built exactly per §6.3's spec (2×2 grid, swept corners, halo), still tappable
-  (tapping a petal deep-links to that tab, a nice-to-have shortcut), but no longer load-bearing for
-  navigation. This is a genuine upgrade, not a downgrade: a static nav grid duplicates the tab bar;
-  a *live* petal cluster (see §6 below) gives you information the tab bar can't.
-- Route restructure: `app/(app)/_layout.tsx` becomes a `Tabs` layout with
-  `app/(app)/(tabs)/diet/`, `.../fitness/`, `.../wellness/`, `.../coreo/` (or `home/` — naming call,
-  see Open decisions), each an independent stack so pushed screens (meal confirm, barcode scan,
-  meal recipe) still work per-tab without leaking into other tabs' history. `nutrition/confirm` and
-  `nutrition/scan` move under `(tabs)/diet/` accordingly.
-
----
-
-## 6. Coreo/Home tab
-
-### 6.1 Data orchestration
-
-On tab focus (existing signed-in user, the common case):
+### 7.3 Diet tab layout, once meal plans (Layer 2) exist
 
 ```
-parallel:
-  GET /users/me/diet-profile/   (already have useDietProfileQuery — reuse as-is)
-  GET /daily-summary/?date=today
-  GET /meal-plans/{today}/      — only if one is known to exist; see §7's "don't auto-generate"
+DIET
+─────────────────────────
+TODAY'S NUTRITION                                    (moved here from Home, full detail)
+1,240 / 2,023 kcal  [Estimated]
+Protein  82/112g   Carbs 130/268g   Fat 41/56g
+
+TODAY'S PLAN                                          (new, Layer 2 — the primary object)
+Breakfast · Masala oats · 350 kcal
+Lunch · Chicken rice bowl · 520 kcal
+Dinner · …
+[See full plan]
+
+QUICK ADD
+Search · Photo · Barcode · Manual
+
+IMPROVE RECOMMENDATIONS                               (low-key, not a hero card)
+2 useful details still missing — Cuisine, Cooking preference
+[Personalize →]
 ```
 
-No `GET /users/profile/` needed on every load — `register`/`login` already return `<User>`, and
-`sessionStore`/an auth-scoped user cache can hold it (matches the pasted plan's point 9, and avoids
-an extra round trip on every Home mount).
+Today's Plan is the primary visual object once it exists — not the preference checklist. This
+directly answers your "does this fit the meal-planner phase" question: it does, as long as the
+checklist is demoted now, before Layer 2 adds Today's Plan on top of an already-crowded stack. If
+the checklist stays prominent, Today's Plan will have to fight it for the top of the screen later,
+which means redesigning this screen twice instead of once.
 
-### 6.2 What it shows — honest data only
+### 7.4 Don't auto-generate plans (unchanged from rev. 1)
 
-The screenshot-style "90 score" / intraday trend curve / "Push · 6PM" / "Dinner before 7:30" ideas
-in the plan you pasted are good *taste*, but per that same doc's own audit, none of those have a
-backing endpoint (no time-series API, no exercise-scheduling API, no meal-time field on
-`PlannedMeal`). Per `product-context.md` §6 ("no feature should imply clinical-grade accuracy," and
-generally: don't fabricate authority the backend doesn't have), Home should show:
+Still true, still important: `plan_generate` is quota-limited (2/day free). Always an explicit
+"Generate today's plan" tap, never on mount.
 
-- Today's calories/macros vs. target (from `daily_log` + `diet-profile`'s `daily_*` fields) —
-  using the existing dot-matrix numeral / wave-chart signature elements, not a fake single score.
-- Water, steps, sleep, HRV, workout count — straight from `daily_log`, only rendered if non-null
-  (steps/sleep/HRV are wearable-import-only per `daily_summary`'s payload — if nothing has been
-  imported, show them as "not tracked yet" rather than 0, since 0 sleep hours reads as a health
-  alarm, not an empty state).
-- Next planned meal — only if a plan for today actually exists (`GET /meal-plans/{date}/` 404 is
-  the common case for most users most days; don't show a "Next: Lunch" card built on a plan that
-  hasn't been generated).
+### 7.5 The `[]`/default-value ambiguity (extended from rev. 1)
 
-### 6.3 A real cross-pillar differentiator, without inventing an API
-
-Since you asked for something unique here specifically: rather than a fabricated "Core Index," compute
-a transparent, explainable composite **client-side**, from data that's already real — e.g. "3 of 4
-things on track today" (calories within range, water ≥ target, one workout logged, no missed meal) —
-each contributing factor visible and tappable back to its source. This uses the dot-matrix numeral
-component for the count (not a mysterious 0–100 score), keeps the medical-safety posture honest (§6
-of `product-context.md`), and is the actual cross-pillar reasoning the product's USP promises —
-because it's the one number on the whole screen that *requires* diet + fitness + wellness data
-together to compute. That's a stronger "unique" story than a nicer-looking static score would be,
-and it costs zero new backend work.
-
-### 6.4 First-run state (new account, nothing logged yet)
-
-Not empty — generic-but-real targets already exist (§0). Home shows:
-
-- A one-line welcome + the stated goal ("Gain muscle — we'll tune this as we learn more").
-- The starter macro ring (2000/150/200/60 defaults or whatever the account's actual `daily_*`
-  values are — always real numbers, labeled as starting estimates via a small "estimated" tag, not
-  hidden).
-- One nudge card: "Personalize your Diet — 3 quick things, less than a minute" → tier-1 Diet setup
-  (§7), only shown while `dietQuick` is false.
-- Two quick-action pills: "+ Log meal", "+ Add workout" — both work immediately, zero profile
-  dependency, because `POST /food/entries/` and `POST /exercise/entries/` don't require a diet
-  profile at all (verified against `API_REFERENCE.md` §8/§9 — this is the one part of the plan you
-  pasted that's unambiguously correct and important: logging must never be gated behind
-  personalization).
+Rev. 1 flagged `allergies`/`disliked_foods` (`[]` is ambiguous between "answered: none" and "never
+asked"). This revision adds: **any field with a non-null server default has the same problem in
+reverse** — `meal_frequency` (defaults to `4`) and `cooking_time_max` (defaults to `30`) will read
+as "answered" even when untouched. The fix is the same either way: a small local
+"sections visited" flag (not inferred from the field's value), tracked the same way the onboarding
+draft already persists locally. Still not worth a blocking backend change — file alongside F12 —
+but the checklist/contextual-ask logic must not ship reading either of these two failure modes as
+"done" by accident, since that's a correctness bug users will notice within their first week, not a
+someday-polish item.
 
 ---
 
-## 7. Diet tab — tiered personalization
+## 8. Fitness & Wellness tabs (unchanged from rev. 1)
 
-### 7.1 First visit after signup
+No changes — still Phase 6, still flagged for `?mine=true` on exercises and the water-only write
+endpoint for wellness.
 
-`GET /users/me/diet-profile/` → if `dietQuick` (§4) is false, show a compact 3-question flow
-before the normal Diet home (reusing existing `ToggleRow`/`SelectableChip` components, same visual
-language as the current diet-interview screens — no new component work):
+---
 
-1. "How do you usually eat?" → `diet_type`
-2. "How active are you?" → `activity_level`
-3. "Anything we should avoid?" → `allergies` (chip grid, "No allergies" as an explicit option — see
-   §7.3 on why that specific chip matters)
-
-On submit: one `PUT /users/me/diet-profile/` with just those three fields (partial patch, already
-supported). Then render normal Diet home — `targetsFromProfile` recalculates immediately since the
-mock's `PUT` handler reruns `estimateDailyTargets` whenever `weight_kg`/`height_cm` are present,
-which they already are from signup.
-
-If the user backs out of this without answering, don't force it again on every visit — show it as
-a dismissible card at the top of Diet home instead (same "nudge, don't gate" principle as Home).
-
-### 7.2 "Sharpen your plan" — tier 2, ongoing
-
-A checklist (reachable from Diet home and/or Profile), reusing `WaveChart` for the completeness
-indicator exactly as `calibrating` used it, just persistent instead of one-shot:
+## 9. Updated information architecture
 
 ```
-SHARPEN YOUR PLAN            ●●●○○○○○  (3/8, matches ProgressDots visual language)
-✓ Goal            ✓ Body details       ✓ Diet type
-○ Cuisine         ○ Cooking preferences ○ Budget
-○ Foods you dislike            ○ Health considerations
+COREO     Overall day + at most one next-best-action (§6)
+DIET      Nutrition + food log + (soon) meal plan; "Improve recommendations" lives here, small
+FITNESS   Exercise (Phase 6, unchanged)
+WELLNESS  Water + steps + sleep + HRV + insights once available (Phase 6, unchanged)
+PROFILE   The full personalization editor (all diet-profile fields, freely editable, no urgency
+          framing) — this is where "Sharpen your plan"'s complete list actually lives now
 ```
 
-Each row opens one small edit sheet, calls `PUT /users/me/diet-profile/` with that field alone. No
-blocking, no wizard — this directly is the "Sharpen your plan" idea from the plan you pasted, and
-it's cheap to build since it's N tiny single-field forms around one existing mutation hook.
-
-### 7.3 Cuisine — special-cased (new flag, call it F12 for `feature-map.md`)
-
-`cuisine_preference` is both (a) part of the API's own `onboarding_complete` definition and (b) the
-single field that most affects meal-plan quality. Two options, not mutually exclusive:
-
-- **Now, no backend change:** ask it contextually the first time the user taps "Generate today's
-  plan" if it's still unset — one question, then immediately `POST /meal-plans/`. This is what the
-  plan you pasted proposed and it's the right no-backend-change default.
-- **Flag for backend, longer-term:** ask whoever owns the API whether `onboarding_complete` can
-  become non-blocking metadata (e.g. `profile_completion: { core, diet, meal_plan_ready, ... }`
-  instead of one boolean gated on three specific fields) — this doesn't block shipping the tiered
-  UI, it's a request to file alongside the existing F2/F3 gaps, not a prerequisite.
-
-### 7.4 Don't auto-generate meal plans
-
-`plan_generate` is quota-limited (2/day free tier, `API_REFERENCE.md` §16). Diet home must never
-call `POST /meal-plans/` on mount or on first `dietQuick` completion — always an explicit
-"Generate today's plan" tap, so a user who opens the tab twice doesn't silently burn their daily
-quota. If a plan already exists for today, show it; if not, show the CTA, never auto-fire it.
-
-### 7.5 The `[]`-ambiguity — narrower than it first looks
-
-One correction to the plan you pasted: `health_conditions`'s enum already includes `'none'` and
-`'prefer_not_to_say'` (`shared/types/dietProfile.ts`) — so health conditions *can* distinguish
-"answered: none" from "never asked," as long as the UI always offers an explicit "None of these"
-chip (it already should, per the existing `dietQuestions.ts` config). The real gap is narrower:
-`allergies` and `disliked_foods` are bare `string[]` with no sentinel value, so `[]` is genuinely
-ambiguous for those two only. Cheapest fix that ships today, no backend change: track "has this
-section been visited" as a small local flag (AsyncStorage, alongside the existing onboarding
-persistence pattern) rather than inferring it from the array's contents. File the "real" fix
-(`completed_profile_sections` or similar, as the pasted plan suggested) as a backend request, same
-as F12 above — not blocking.
+This is also why demoting the checklist now matters for the roadmap, not just today's screen: once
+Profile owns the full editable list and Diet only ever asks 1–3 contextual questions at a time, the
+meal-planner build doesn't require touching navigation again — Diet already has a clear home for
+Today's Plan, and Coreo stays the overview it's supposed to be.
 
 ---
 
-## 8. Fitness & Wellness tabs
+## 10. Open decisions (updated)
 
-Out of scope to redesign here (still Phase 6, unchanged data model), but now that they're real tabs
-instead of future placeholders, two small consistency notes for whoever builds them:
+Carried from rev. 1 (tab labels/order, `weak-moment` cut, DOB vs. age slider, backend requests to
+file, analytics gap) plus one new one:
 
-- Fitness: remember `GET /exercise/exercises/` requires `?mine=true` or it silently returns `[]`
-  (documented in `API_REFERENCE.md` §9, easy to miss).
-- Wellness: only `water_ml` has a write endpoint (`PATCH /daily-summary/water/`). Sleep/HRV/steps
-  are read-only (wearable-import shaped, §10), so Wellness's manual-entry UI for those (per F3 in
-  `feature-map.md`) stays mock-only until backend support exists — same flag, not a new one.
-
----
-
-## 9. How this reshuffles the existing phase numbering
-
-`implementation-plan.md` §4's phases assumed signup-last onboarding, then Home, then Nutrition, in
-that order. This plan interleaves them:
-
-- **Phase 3 (Onboarding)** shrinks to the 6-screen minimal flow (§1/§2) — smaller scope than before.
-- **Phase 4 (Home)** now ships *with* the tab shell (§5) as a prerequisite, not after — Home can't
-  be "the Home tab" without tabs existing first. Recommend building §5 (shell) and §6 (Home
-  content) as one slice.
-- **Phase 5 (Nutrition)**'s already-built Layer 1 (Diet home, logging) stays as-is; this plan adds
-  the tier-1/tier-2 personalization screens (§7) as new Layer-1.5 work, and formalizes "don't
-  auto-generate plans" (§7.4) as a hard rule for Layer 2 when meal plans get built.
-- Fitness/Wellness (Phase 6) are unaffected in scope, just now live inside the tab shell from day
-  one instead of being bolted on later.
+6. **Where exactly does "Profile/Personalization" live in the nav?** Options: (a) behind the
+   Profile tab if one gets added later, (b) a settings-gear entry point from Coreo/Home (the gear
+   icon already present in the reviewed screens), or (c) reachable from Diet's "Improve
+   recommendations" row only, with no separate top-level entry. Leaning (b) + (c) together — no new
+   tab needed just for this — but worth confirming before building it.
 
 ---
 
-## 10. Open decisions (need your call before this gets built)
+## 11. Suggested build order (updated)
 
-1. **Tab labels/order** — "Coreo" vs. "Home" as the 4th tab's label, and whether it's the
-   leftmost or rightmost position (the pasted plan's screenshot had it rightmost; `design-system.md`
-   §6.3 describes the petal cluster's "Core" cell as visually brighter than the pillar cells, which
-   might argue for a center or first position instead).
-2. **`weak-moment` (D10)** — cut entirely (it's mock-only, no API field, and was already the
-   lowest-value question) or keep it in tier 2? Leaning cut, but it's your product call.
-3. **DOB vs. age slider** — unchanged from today's approximation (`ageToApproxDob`) unless you want
-   to revisit collecting a real DOB at signup now that signup is earlier in the funnel anyway.
-4. **Filing the two backend requests** (F12 cuisine/`onboarding_complete` rework,
-   `completed_profile_sections` metadata) — do you want these written up as formal asks now, or
-   held until closer to when a real backend team picks this up?
-5. **Analytics gap** (raised last turn, still open) — this plan makes funnel measurement *more*
-   important, not less, since "did the tier-1 nudge get answered" is now a real product question
-   with no telemetry endpoint to answer it. Worth deciding whether to stub client-side event
-   logging now (even just console/log-to-file in mock mode) so the instrumentation habit starts
-   with this rebuild rather than after.
-
----
-
-## 11. Suggested build order (once the above is settled)
-
-1. `steps.ts`/`FLOW_STEP_IDS` shrink + `SaveScreen.tsx` patch simplification (§2/§3) — small,
-   mechanical, low-risk, fully reuses existing screens.
-2. `BottomDock` component (§5) — already fully specified in `design-system.md` §7, just unbuilt.
-3. `(app)` → `Tabs` shell restructuring, moving `nutrition/*` under `(tabs)/diet/` (§5).
-4. Coreo/Home tab (§6) — data orchestration + first-run state before the "live petal cluster"
-   polish, so there's a working Home fast, refined after.
-5. Diet tier-1 nudge + tier-2 checklist (§7) — reuses `useUpdateDietProfileMutation` as-is.
-6. Update `feature-map.md` with F12/F13 and the new phase shape (§9) once built, per that file's
-   own "update this file, not just the plan doc" instruction.
+1. **Immediate, small fixes** — remove the back button from tab-root screens (§5); remove the `/4`
+   On Track card and the duplicate macro card from Home (§6.2); stop the four-way "Not tracked yet"
+   Signals grid (§6.4); fix the state-blind headline (§6.5). These are edits to already-built
+   screens, not new features, and should land before anything else in this doc.
+2. `targetQuality` selector (§4) — small, unblocks the headline and the targets-card badge.
+3. Move the full preference checklist out of Diet-home into Profile/Personalization (§7.2/§9);
+   replace it on Diet with the compact "N useful details missing" row.
+4. Contextual-ask triggers (§7.2 table) — starts with just the "Generate plan → ask cuisine if
+   missing" case, since that's the one Layer 2 needs anyway; the others (replace-meal,
+   regeneration-reason-driven asks) land alongside their respective meal-action features rather than
+   all at once.
+5. Today's Plan on Diet (§7.3) — Layer 2 proper, once the above isn't fighting it for screen space.
+6. Update `feature-map.md` with the new IA (§9) and F12/F13 flags once built, per that file's own
+   "update this file, not just the plan doc" rule.

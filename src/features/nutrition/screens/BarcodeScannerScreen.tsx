@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 
 import { ApiError } from '@/shared/api/errors';
 import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
@@ -8,12 +8,14 @@ import { useBarcodeLookup } from '@/features/nutrition/api/nutritionApi';
 import { scalePer100g } from '@/features/nutrition/lib/macros';
 import { BarcodeScannerView } from '@/features/nutrition/components/BarcodeScannerView';
 
+const DIET_CONFIRM_ROUTE = '/diet/confirm';
+
 /**
  * Live barcode scanning (Layer 1.1). Camera-first: point at a pack, it auto-detects, looks the
  * code up (§8 `/food/lookup/barcode/`), and hands off to the confirm screen prefilled. Manual code
  * entry is the fallback (revealed by "Enter code instead", or when camera permission is denied) and
  * hits the identical endpoint. No red error states — every failure has a calm recovery path
- * (design-system §10). Reached via `(app)/nutrition/scan`.
+ * (design-system §10). Reached via `(app)/(tabs)/diet/scan`.
  */
 export default function BarcodeScannerScreen() {
   const router = useRouter();
@@ -35,13 +37,11 @@ export default function BarcodeScannerScreen() {
       },
       100,
     );
-    router.replace({
-      pathname: '/nutrition/confirm',
-      params: {
-        source: 'barcode',
-        prefill: JSON.stringify({ food_name: foundItem.name, ...scaled }),
-      },
+    const query = new URLSearchParams({
+      source: 'barcode',
+      prefill: JSON.stringify({ food_name: foundItem.name, ...scaled }),
     });
+    router.replace(`${DIET_CONFIRM_ROUTE}?${query.toString()}` as Href);
   }, [foundItem, router]);
 
   const notFound =

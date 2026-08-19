@@ -3,11 +3,13 @@ import { StyleSheet, Text, View } from 'react-native';
 import { GlassCard } from '@/shared/components/GlassCard';
 import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
 import { computeRemaining, macroFillRatio, type MacroTargets } from '@/features/nutrition/lib/macros';
+import type { TargetQuality } from '@/features/onboarding';
 import type { MacroSummary } from '@/shared/types/food';
 
 type MacroSummaryCardProps = {
   targets: MacroTargets;
   consumed: MacroSummary;
+  quality: TargetQuality;
 };
 
 /** Muted variants of `onNight` for labels on the dark hero card (opacity ramp of the same token,
@@ -32,20 +34,29 @@ const MACROS: { key: MacroKey; label: string }[] = [
   { key: 'fat_g', label: 'Fat' },
 ];
 
+const QUALITY_LABEL: Record<TargetQuality, string> = {
+  unavailable: 'Unavailable',
+  starter: 'Starter',
+  estimated: 'Estimated',
+  confirmed: 'Confirmed',
+};
+
 /**
  * The Diet home "Left today" hero — the one night-glass card per screen (design-system §4). Shows
  * remaining calories as an oversized weight-200 number (numbers are the hero, §2) plus three thin
  * macro progress bars. Over-budget shows the number neutrally (can be negative) — never red, per
  * the brand's "nothing turns red here" voice (§10). Bars, never wave charts (§6.1).
  */
-export function MacroSummaryCard({ targets, consumed }: MacroSummaryCardProps) {
+export function MacroSummaryCard({ targets, consumed, quality }: MacroSummaryCardProps) {
   const remaining = computeRemaining(targets, consumed);
 
   return (
     <GlassCard variant="night" radius={radii.xl}>
       <View style={styles.headerRow}>
         <Text style={styles.eyebrow}>Left today</Text>
-        <Text style={styles.adjustNote}>Adjusts as I learn you</Text>
+        <View style={styles.qualityBadge}>
+          <Text style={styles.qualityText}>{QUALITY_LABEL[quality]}</Text>
+        </View>
       </View>
 
       <View style={styles.heroRow}>
@@ -86,9 +97,15 @@ const styles = StyleSheet.create({
     ...textStyle('label'),
     color: ON_NIGHT_FAINT,
   },
-  adjustNote: {
-    ...textStyle('caption'),
-    color: ON_NIGHT_FAINT,
+  qualityBadge: {
+    borderRadius: radii.pill,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  qualityText: {
+    ...textStyle('micro'),
+    color: ON_NIGHT_MUTED,
   },
   heroRow: {
     flexDirection: 'row',

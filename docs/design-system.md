@@ -267,7 +267,9 @@ but should not be built as the primary navigation.
    centerpiece. That's an implementation detail for the `react-native-architecture` skill/§2 of
    `architecture.md` to resolve, not a re-opening of this decision.
 2. **Glass dock (23A)** — persistent bottom tab bar, 4 items (Diet/Fitness/Wellness/Coreo home).
-   Not canonical; kept as reference for the "how do I get back to a pillar" sub-case above.
+   **Built in v3 as the persistent chrome** for `(app)/(tabs)`. Petal cluster remains canonical
+   for the Home/Coreo centerpiece; the dock solves cross-pillar movement once the user is inside a
+   pillar stack.
 3. **Pillar strip (23B)** — segmented control at the top of Home ("Today / Diet / Fitness /
    Wellness"), implies swipeable pages. Not canonical.
 4. **Orb bloom (23C)** — a single central FAB that blooms into three orbiting pillar buttons
@@ -285,7 +287,7 @@ underlying functionality behind the product decisions below rather than wiring t
 - **21A/21B photo- and receipt-based food logging** — **now in MVP scope** as of 2026-07-26
   (`product-context.md` §5 scope-change note; feature-map.md flag F-N1). The nutrition Layer-1
   build wires photo (`/food/photo/`) and barcode (`/food/lookup/barcode/`) as first-class logging
-  paths (14b). Note: 21A/21B's richer *per-ingredient* editable breakdown is **not** built — the
+  paths (14b). Note: 21A/21B's richer _per-ingredient_ editable breakdown is **not** built — the
   photo API returns a single aggregate estimate, so the confirm screen (15a-style) edits the
   aggregate; the itemized treatment needs a backend change (flag F-N2). Receipt-specific OCR (21B)
   is still deferred — only the meal-photo path is built.

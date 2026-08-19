@@ -16,7 +16,7 @@ import type {
   MacroSummary,
   PhotoEstimate,
 } from '@/shared/types/food';
-import type { DailySummary } from '@/shared/types/dailyLog';
+import type { DailyLog, DailySummary } from '@/shared/types/dailyLog';
 import type { ConfirmMealValues } from '@/features/nutrition/schemas';
 
 /** Today as `YYYY-MM-DD` in the device's locale-independent ISO date. */
@@ -48,6 +48,18 @@ export function useDailySummaryQuery(date: string = todayISO()) {
   return useQuery({
     queryKey: nutritionKeys.dailySummary(date),
     queryFn: () => apiClient.get<DailySummary>(`/daily-summary/?date=${date}`),
+  });
+}
+
+/** `PATCH /daily-summary/water/` — update today's water total, then refresh the day summary. */
+export function useUpdateWaterMutation(date: string = todayISO()) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (waterMl: number) =>
+      apiClient.patch<DailyLog>('/daily-summary/water/', { water_ml: waterMl }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: nutritionKeys.dailySummary(date) });
+    },
   });
 }
 

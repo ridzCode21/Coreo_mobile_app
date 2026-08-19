@@ -12,7 +12,7 @@ import { requireMockUser } from '@/shared/api/mock/auth';
 import { styleAError, styleB } from '@/shared/api/mock/envelope';
 import type { FoodEntry, MacroSummary } from '@/shared/types/food';
 import type { DailyLog } from '@/shared/types/dailyLog';
-import { SEED_FOOD_ITEMS, starterDayEntries } from '@/features/nutrition/mocks/fixtures';
+import { SEED_FOOD_ITEMS } from '@/features/nutrition/mocks/fixtures';
 
 const PHOTO_DAILY_LIMIT = 10; // free tier — API_REFERENCE.md §8/§16
 
@@ -72,14 +72,6 @@ function synthesizeFoodItem(barcode: string): (typeof SEED_FOOD_ITEMS)[number] {
   return item;
 }
 
-/** Seed a one-entry starter day the first time a given date is viewed (idempotent). */
-function seedStarterDay(date: string): void {
-  if (mockDb.foodEntries.some((entry) => entry.date === date)) return;
-  const seeded = starterDayEntries(date, mockDb.nextFoodEntryId);
-  mockDb.nextFoodEntryId += seeded.length;
-  mockDb.foodEntries.push(...seeded);
-}
-
 function summarize(entries: FoodEntry[]): MacroSummary {
   return entries.reduce<MacroSummary>(
     (acc, entry) => ({
@@ -124,7 +116,6 @@ registerMock('GET', '/food/entries/', (request) => {
   if (!user) return UNAUTHORIZED;
   ensureFoodDbSeeded();
   const date = request.query.date ?? todayISO();
-  seedStarterDay(date);
   const entries = mockDb.foodEntries.filter((entry) => entry.date === date);
   return {
     status: 200,
@@ -253,7 +244,6 @@ registerMock('GET', '/daily-summary/', (request) => {
   const user = requireMockUser(request);
   if (!user) return UNAUTHORIZED;
   const date = request.query.date ?? todayISO();
-  seedStarterDay(date);
   const log = recomputeDailyLog(user.id, date);
   const foodEntries = mockDb.foodEntries.filter((entry) => entry.date === date);
   return {
@@ -267,4 +257,22 @@ registerMock('GET', '/daily-summary/', (request) => {
       exercise_entries: [],
     }),
   };
+});
+
+// PATCH /daily-summary/water/ — update today's water total (§10).
+registerMock('PATCH', '/daily-summary/water/', (request) => {
+  const user = requireMockUser(request);
+  if (!user) return UNAUTHORIZED;
+
+  const body = (request.body ?? {}) as { water_ml?: unknown };
+  const waterMl = Number(body.water_ml);
+  if (!Number.isInteger(waterMl) || waterMl < 0) {
+    return { status: 400, body: { water_ml: ['A valid integer is required.'] } };
+  }
+
+  const date = todayISO();
+  const log = recomputeDailyLog(user.id, date);
+  const updated: DailyLog = { ...log, water_ml: waterMl };
+  mockDb.dailyLogs[`${user.id}:${date}`] = updated;
+  return { status: 200, delayMs: 200, body: styleB(updated) };
 });

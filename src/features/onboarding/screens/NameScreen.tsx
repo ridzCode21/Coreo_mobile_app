@@ -10,7 +10,7 @@ import {
 import { useOnboardingStore } from '@/features/onboarding/store/onboardingStore';
 import { flowStepProgress, flowStepRoute, nextFlowStep } from '@/features/onboarding/lib/steps';
 
-/** Name — first step of the whole interview (onboarding-v2-flow-plan.md §1 row 2). Design source:
+/** Name — first step of the minimal v3 onboarding flow. Design source:
  * designs/reference/screens-source.html `data-screen-label="7a·1 Name"`. */
 export default function NameScreen() {
   const router = useRouter();

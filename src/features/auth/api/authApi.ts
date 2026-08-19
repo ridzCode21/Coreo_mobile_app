@@ -37,6 +37,21 @@ type RegisterEnvelope = {
   data: { user: MockPublicUser; tokens: SessionTokens };
 };
 
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((entry) => typeof entry === 'string');
+}
+
+function fieldErrorsFromRecord(value: unknown): Record<string, string[]> | null {
+  if (!value || typeof value !== 'object') return null;
+
+  const result: Record<string, string[]> = {};
+  for (const [key, entry] of Object.entries(value)) {
+    if (isStringArray(entry)) result[key] = entry;
+  }
+
+  return Object.keys(result).length > 0 ? result : null;
+}
+
 /** `RegisterFormValues` plus the two optional fields `SaveScreen` derives from the onboarding
  * draft (D3 in onboarding-v2-flow-plan.md) rather than asks the user to type — never user-typed,
  * so they don't go through the Zod form resolver like the rest of `RegisterFormValues` does. */
@@ -74,7 +89,37 @@ export function useRegisterMutation() {
  * §2. Returns e.g. `{ email: ["User with this email already exists."] }`, or null if the error
  * isn't shaped that way (network/server errors, etc.). */
 export function registerFieldErrors(error: unknown): Record<string, string[]> | null {
-  if (!(error instanceof ApiError) || error.kind !== 'validation') return null;
-  const body = error.details as { error?: { details?: Record<string, string[]> } } | undefined;
-  return body?.error?.details ?? null;
+  if (!(error instanceof ApiError)) return null;
+  const body = error.details as
+    | {
+        error?: { details?: unknown };
+        details?: unknown;
+      }
+    | undefined;
+  return (
+    fieldErrorsFromRecord(body?.error?.details) ??
+    fieldErrorsFromRecord(body?.details) ??
+    fieldErrorsFromRecord(body) ??
+    null
+  );
+}
+
+export function authErrorMessage(error: unknown, fallback: string): string {
+  if (!(error instanceof ApiError)) return fallback;
+  const body = error.details as
+    | {
+        detail?: unknown;
+        message?: unknown;
+        error?: { message?: unknown; detail?: unknown };
+      }
+    | undefined;
+
+  const message =
+    (typeof body?.error?.message === 'string' && body.error.message) ||
+    (typeof body?.error?.detail === 'string' && body.error.detail) ||
+    (typeof body?.message === 'string' && body.message) ||
+    (typeof body?.detail === 'string' && body.detail) ||
+    error.message;
+
+  return message || fallback;
 }

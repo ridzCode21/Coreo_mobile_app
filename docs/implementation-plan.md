@@ -202,13 +202,20 @@ section and `onboarding-refinement-plan.md` as point-in-time framing only. F2/F3
 now fully specced** (no longer mock-only); fitness/wellness onboarding capture remains open per
 F2, and wellness logging endpoints remain open per F3 — neither has changed.
 
-**Phase 4 — Home / dashboard (USP).** 24b petal-cluster home + 10a/10b composed/
-calibrating, from `GET /daily-summary/` + `/core/config/`. Resolve the "back to Home from
-inside a pillar" navigation detail (design-system §8: petal cluster is Home-only).
+**v3 update (2026-08-19):** `docs/onboarding-v3-minimal-drip-plan.md` supersedes the v2
+signup-last shape. Pre-signup onboarding is now only name → goal → about-you → gender → pillars →
+save/register. `SaveScreen` commits only `goal_type`, `weight_kg`, and `height_cm`; the remaining
+Diet profile fields are collected later inside the signed-in Diet tab with partial `PUT`s.
+
+**Phase 4 — Home / dashboard (USP).** 24b petal-cluster home + 23a glass dock tab chrome, from
+`GET /daily-summary/` + diet-profile targets. The v3 slice is built as `(app)/(tabs)` with
+Diet/Fitness/Wellness/Coreo; Coreo uses an honest transparent "n of 4" cross-pillar count instead
+of a fabricated score. `/core/config/` and insights remain later.
 
 **Phase 5 — Nutrition.** 14a Diet home, 14b Log a meal (`POST /food/entries/` + search),
-15a/15b/15c; meal plans (§12/§13) + meal assistant (§14). Photo/receipt (21a/21b) deferred
-(F5/design-system §9).
+15a/15b/15c; meal plans (§12/§13) + meal assistant (§14). v3 adds Diet quick setup and the
+"Sharpen your plan" checklist as non-blocking personalization. Photo/barcode are already in MVP;
+receipt OCR remains deferred.
 
 **Phase 6 — Fitness & Wellness.** 16b/16c exercise (§9); 17b/17c wellness (water PATCH +
 mock wellness logs, F3).

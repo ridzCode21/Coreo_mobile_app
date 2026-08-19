@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { Screen } from '@/shared/components/Screen';
 import { colors, fontFamily, radii, spacing, textStyle } from '@/shared/theme/tokens';
-import { useDietProfileQuery } from '@/features/onboarding';
+import { targetQuality, useDietProfileQuery } from '@/features/onboarding';
 import {
   todayISO,
   useDeleteFoodEntryMutation,
@@ -15,6 +15,7 @@ import { groupEntriesByMeal, targetsFromProfile } from '@/features/nutrition/lib
 import { MacroSummaryCard } from '@/features/nutrition/components/MacroSummaryCard';
 import { FoodEntryRow } from '@/features/nutrition/components/FoodEntryRow';
 import { LogMealSheet } from '@/features/nutrition/components/LogMealSheet';
+import { DietPersonalizationCard } from '@/features/nutrition/components/DietPersonalizationCard';
 import type { MealType } from '@/shared/types/food';
 
 const MEAL_LABEL: Record<MealType, string> = {
@@ -42,7 +43,8 @@ export default function DietHomeScreen() {
 
   const isLoading = profileQuery.isLoading || entriesQuery.isLoading;
 
-  const targets = profileQuery.data ? targetsFromProfile(profileQuery.data) : null;
+  const profile = profileQuery.data;
+  const targets = profile ? targetsFromProfile(profile) : null;
   const consumed = entriesQuery.data?.macro_summary ?? EMPTY_SUMMARY;
   const entries = entriesQuery.data?.entries ?? [];
   const sections = groupEntriesByMeal(entries);
@@ -55,15 +57,14 @@ export default function DietHomeScreen() {
         colors={[colors.zenith, colors.day, colors.air]}
         style={StyleSheet.absoluteFill}
       />
-      <Screen background="transparent">
+      <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
         <Text style={styles.eyebrow}>Diet</Text>
         {/* Two-weight headline treatment matching the design (pageTitle: light lead + medium
             accent, design-system §2). NOTE: the copy is a static stand-in — the design's dynamic
             coaching line ("Carbs before 5…") comes from the AI coaching layer (Layer 2); there's no
             engine to compute it yet, so this renders a fixed on-brand line in the right style. */}
         <Text style={styles.headline}>
-          Carbs before 5.{' '}
-          <Text style={styles.headlineAccent}>That&apos;s the whole game today.</Text>
+          Your fuel, <Text style={styles.headlineAccent}>kept honest.</Text>
         </Text>
 
         {isLoading ? (
@@ -72,8 +73,14 @@ export default function DietHomeScreen() {
           </View>
         ) : (
           <>
+            {profile ? <DietPersonalizationCard profile={profile} /> : null}
+
             {targets ? (
-              <MacroSummaryCard targets={targets} consumed={consumed} />
+              <MacroSummaryCard
+                targets={targets}
+                consumed={consumed}
+                quality={profile ? targetQuality(profile) : 'unavailable'}
+              />
             ) : (
               <Text style={styles.softNote}>
                 Couldn&apos;t load your targets just now. Pull to refresh in a moment.
@@ -116,7 +123,12 @@ export default function DietHomeScreen() {
           <Text style={styles.logPillText}>Log a meal</Text>
           <View style={styles.logPlus}>
             <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-              <Path d="M12 5v14M5 12h14" stroke={colors.white} strokeWidth={2} strokeLinecap="round" />
+              <Path
+                d="M12 5v14M5 12h14"
+                stroke={colors.white}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
             </Svg>
           </View>
         </Pressable>
@@ -129,6 +141,9 @@ export default function DietHomeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  scrollContent: {
+    paddingBottom: 112,
+  },
   eyebrow: {
     ...textStyle('label'),
     color: colors.ink45,

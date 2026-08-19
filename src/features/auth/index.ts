@@ -2,6 +2,7 @@ export { useSessionStore, type SessionTokens } from '@/features/auth/store/sessi
 export {
   useLoginMutation,
   useRegisterMutation,
+  authErrorMessage,
   registerFieldErrors,
   type RegisterRequestValues,
 } from '@/features/auth/api/authApi';

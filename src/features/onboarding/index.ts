@@ -8,4 +8,17 @@
  * path; consolidating those behind this surface is a separate cleanup, noted as a smell — not done
  * here to avoid touching unrelated code.)
  */
-export { useDietProfileQuery, dietProfileKeys } from '@/features/onboarding/api/dietProfileApi';
+export {
+  useDietProfileQuery,
+  useUpdateDietProfileMutation,
+  dietProfileKeys,
+} from '@/features/onboarding/api/dietProfileApi';
+export {
+  profileChecklist,
+  profileChecklistProgress,
+  profileCompletion,
+  targetQuality,
+  type ProfileChecklistItem,
+  type ProfileCompletionSection,
+  type TargetQuality,
+} from '@/features/onboarding/lib/profileCompletion';
