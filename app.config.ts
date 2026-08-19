@@ -18,6 +18,13 @@ const config: ExpoConfig = {
   ios: {
     bundleIdentifier: 'com.coreo.app',
     supportsTablet: true,
+    // Photo meal-logging (expo-image-picker, nutrition feature). Set here directly rather than via
+    // the expo-image-picker config plugin so the app still builds before the package is installed
+    // (`npx expo install expo-image-picker`). Calm, first-person copy per design-system.md §10.
+    infoPlist: {
+      NSCameraUsageDescription: 'Coreo uses your camera to read your meal, so you can log it without typing.',
+      NSPhotoLibraryUsageDescription: 'Coreo reads a photo of your meal to estimate its nutrition.',
+    },
   },
   android: {
     package: 'com.coreo.app',
@@ -28,6 +35,8 @@ const config: ExpoConfig = {
       monochromeImage: './assets/images/android-icon-monochrome.png',
     },
     predictiveBackGestureEnabled: false,
+    // Camera for photo meal-logging (see ios.infoPlist note above).
+    permissions: ['android.permission.CAMERA'],
   },
   web: {
     output: 'static',

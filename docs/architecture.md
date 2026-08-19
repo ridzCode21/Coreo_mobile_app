@@ -29,12 +29,21 @@ src/
                                   # auth-gate between (auth) and (app) — see §5
     (public)/                    # pre-auth, ungated — always mounted regardless of session state
       _layout.tsx
-      splash.tsx                 # → features/splash — first screen on every cold start
+      splash.tsx                 # → features/splash — first screen on every cold start; also
+                                  # resumes an in-progress onboarding draft (see §5.1)
       first-open.tsx              # → features/onboarding — new-user landing (20a/24a)
-      onboarding/                 # → features/onboarding — 7a·1–7a·8 core setup + 8a save/register
-        _layout.tsx                # (register lives inside onboarding at 8a, not behind (auth))
-        name.tsx, goals.tsx, about-you.tsx, pillars.tsx, sources.tsx, reading.tsx, promise.tsx,
-        save.tsx
+      onboarding/                 # → features/onboarding — value-first, signup-last interview
+                                  # (onboarding-v2-flow-plan.md): name → goal → about-you → gender
+                                  # → pillars → diet interview → promise → calibrating → save (last)
+        _layout.tsx                # (register/`save.tsx` is the LAST step, not the first — see §5)
+        name.tsx, about-you.tsx, gender.tsx, pillars.tsx, promise.tsx, save.tsx
+        diet/                      # goal + D1–D10 diet interview questions + calibrating — see §5.1
+                                    # (lives in (public) purely for nav continuity — see §5)
+          _layout.tsx
+          [step].tsx                 # one dynamic route → DietQuestionScreen, driven by
+                                    # dietQuestions.ts (config-driven, not one file per question)
+          calibrating.tsx           # → CalibratingScreen (wave-progress completeness screen,
+                                    # computed from the local draft, no API call)
     (auth)/
       _layout.tsx
       login.tsx                  # ← unreachable from any flow today (F1, feature-map.md); the
@@ -56,14 +65,33 @@ src/
       components/                # AnimatedSplash (Reanimated + SVG draw-in)
       screens/                   # SplashScreen — decides + navigates to the next destination
       lib/                       # resolveLaunchDestination — pure routing-decision function
-    onboarding/                  # First-open (Phase 1) + 7a·1–7a·7 core setup + 8a save (Phase 3 pt.1)
-      screens/                   # FirstOpenScreen, Name/Goals/AboutYou/Pillars/Sources/Reading/
-                                  # Promise/SaveScreen
-      store/                      # onboardingStore — ephemeral draft state for the in-progress answers
-      lib/                        # steps — step sequence, routes, and next-step branching logic
-      components/                 # OnboardingStepScaffold, NextBar, OnboardingWaveStrip
+    onboarding/                  # value-first, signup-last interview (v2) — see §5.1
+      screens/                   # FirstOpenScreen, Name/AboutYou/Gender/Pillars/Promise/
+                                  # SaveScreen, DietQuestionScreen (goal + D1–D10), CalibratingScreen
+      store/                      # onboardingStore — the draft, `persist`-backed by AsyncStorage
+                                  # (survives app kill so an interrupted interview can resume —
+                                  # see §5), incl. `dietProfile` sub-draft and `lastCompletedStep`
+      lib/                        # steps (THE unified sequencer — every step, bespoke + diet-config,
+                                  # in one ordered list, §5.1), dietQuestions (diet question config),
+                                  # resolveGoalType (fallback-only, goal_type is now a direct
+                                  # question), estimateDailyTargets, dietProfileCompleteness
+      api/                        # dietProfileApi — useDietProfileQuery/useUpdateDietProfileMutation;
+                                  # the mutation now fires exactly once, from SaveScreen, right after
+                                  # register succeeds (no more per-question PUTs during the interview)
+      mocks/                      # dietProfile.handlers — mock GET/PUT /users/me/diet-profile/
+      schemas.ts                  # Zod dietProfilePatchSchema, freeFoodEntrySchema
+      components/                 # OnboardingStepScaffold, NextBar, SliderRow, ToggleRow, etc.
     workouts/                    # not yet created — added when that feature is planned/built
-    nutrition/
+    nutrition/                   # Layer 1 built: food logging + calorie/macro tracking
+      api/                       # nutritionApi — food entries/search/barcode/photo + daily-summary
+                                  # query/mutation hooks + nutritionKeys factory (§8/§10)
+      screens/                   # DietHomeScreen (14a, temporary (app) landing), ConfirmMealScreen (15a)
+      components/                # MacroSummaryCard, LogMealSheet, LoggingOptionTile, FoodEntryRow, FoodSearchList
+      lib/                       # macros (pure budget/grouping helpers), photoCapture (expo-image-picker, isolated)
+      mocks/                     # handlers (§8 food + §10 daily-summary) + fixtures (seed food DB + starter day)
+      schemas.ts                 # Zod: confirm/manual entry + confirm route params
+      index.ts                   # public surface
+      # Layer 2 (pending): meal plans (§12), meal actions (§13), assistant (§14)
     profile/
 
   shared/
@@ -85,7 +113,11 @@ src/
       GlassCard.tsx               # the liquid-glass material primitive (design-system.md §4)
       Screen.tsx                  # safe-area + scroll + responsive-width screen wrapper
       WaveMark.tsx                # the wave logo/wordmark primitive (design-system.md §7)
-      ProgressDots.tsx             # onboarding step indicator
+      WaveChart.tsx                # signature wave primitive — solid/dashed/glow-dot/area fill,
+                                  # animated (design-system.md §6.1); onboarding Reading/Promise/
+                                  # Save/Calibrating today, home "today" card later
+      ProgressDots.tsx             # onboarding step indicator, now parameterized per flow (§3)
+      ToggleRow.tsx                 # full-width selectable row; selectionMode: radio | check
       SelectableChip.tsx           # goal/diet-interview selection pill
       PrimaryIconButton.tsx        # the one circular primary action per screen
     hooks/
@@ -121,15 +153,16 @@ eas.json                         # EAS build/submit profiles — not yet created
 
 ## 3. State management decision table
 
-| Kind of state                                                                                   | Tool                                                                   | Notes                                                                                                                                                                                          |
-| ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Data from an API (workouts, profile, plans, feed)                                               | **TanStack Query**                                                     | One query-hook per resource in `features/*/api`. Use query key factories per feature. Mutations invalidate the relevant keys.                                                                  |
-| Small global client/UI state (active theme, onboarding step, auth session flags, feature flags) | **Zustand**                                                            | Keep stores small and focused; one store per concern, not one giant app store. Never put server-fetched data here.                                                                             |
-| Form input + validation                                                                         | **React Hook Form + Zod**                                              | Define the Zod schema once per form in `schemas.ts`; reuse it for both `zodResolver` and typing the submit payload.                                                                            |
-| Auth tokens / refresh tokens / small secrets                                                    | **expo-secure-store**                                                  | Never in Zustand, AsyncStorage, or component state. Access only through `shared/lib/secureStorage.ts`.                                                                                         |
-| Small **non-sensitive** persisted flags (first-run, UI preferences)                             | **Zustand store hydrated from `shared/lib/storage.ts` (AsyncStorage)** | e.g. `shared/stores/appFlagsStore.ts`'s `hasSeenFirstOpen`. The store is the read API; `storage.ts` is only touched inside the store's `hydrate`/setter actions, not from components directly. |
-| Ephemeral local UI state (input focus, modal open)                                              | `useState`/`useReducer`                                                | Local to the component, not global.                                                                                                                                                            |
-| Derived data                                                                                    | Plain functions/selectors                                              | Don't duplicate into another store; compute from source of truth.                                                                                                                              |
+| Kind of state                                                                                                             | Tool                                                                   | Notes                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Data from an API (workouts, profile, plans, feed)                                                                         | **TanStack Query**                                                     | One query-hook per resource in `features/*/api`. Use query key factories per feature. Mutations invalidate the relevant keys.                                                                                                                                                                                                                                                                        |
+| Small global client/UI state (active theme, onboarding step, auth session flags, feature flags)                           | **Zustand**                                                            | Keep stores small and focused; one store per concern, not one giant app store. Never put server-fetched data here.                                                                                                                                                                                                                                                                                   |
+| Form input + validation                                                                                                   | **React Hook Form + Zod**                                              | Define the Zod schema once per form in `schemas.ts`; reuse it for both `zodResolver` and typing the submit payload.                                                                                                                                                                                                                                                                                  |
+| Auth tokens / refresh tokens / small secrets                                                                              | **expo-secure-store**                                                  | Never in Zustand, AsyncStorage, or component state. Access only through `shared/lib/secureStorage.ts`.                                                                                                                                                                                                                                                                                               |
+| Small **non-sensitive** persisted flags (first-run, UI preferences)                                                       | **Zustand store hydrated from `shared/lib/storage.ts` (AsyncStorage)** | e.g. `shared/stores/appFlagsStore.ts`'s `hasSeenFirstOpen`. The store is the read API; `storage.ts` is only touched inside the store's `hydrate`/setter actions, not from components directly.                                                                                                                                                                                                       |
+| A multi-screen draft that must survive an app kill before it has a server home (e.g. the pre-signup onboarding interview) | **Zustand `persist` middleware, `AsyncStorage`-backed**                | `features/onboarding/store/onboardingStore.ts` — `partialize`d to just `{draft, lastCompletedStep}`, `onRehydrateStorage` flips a `hasHydrated` flag `SplashScreen` waits on before deciding where to route. Not a general pattern for server data — this exists only because the v2 flow collects a full profiling interview _before_ an account exists to save it to (onboarding-v2-flow-plan.md). |
+| Ephemeral local UI state (input focus, modal open)                                                                        | `useState`/`useReducer`                                                | Local to the component, not global.                                                                                                                                                                                                                                                                                                                                                                  |
+| Derived data                                                                                                              | Plain functions/selectors                                              | Don't duplicate into another store; compute from source of truth.                                                                                                                                                                                                                                                                                                                                    |
 
 If you're unsure which bucket something falls into, default to: is it something the server
 knows about? → Query. Otherwise, is more than one feature/screen going to read it right now? →
@@ -149,8 +182,10 @@ Zustand. Otherwise → local state.
 
 There's no live backend yet, but a real one's contract exists (`API_REFERENCE.md`). Rather than
 write feature code against an imaginary API and rewrite it later, `client.ts` dispatches every
-request through a swappable `transport` (`shared/api/transport/index.ts`), picked once at boot
-from `EXPO_PUBLIC_API_MODE` (`mock` default in dev, `live` = today's real `fetch` path):
+request through a swappable `transport` strategy (`shared/api/transport/index.ts`), picked once at
+boot from `EXPO_PUBLIC_API_MODE` (`mock` default in dev, `live` = the real `fetch` path). The
+exported `apiClient` is built by `createApiClient({ config, transport, tokenStore })`, so tests
+and future app surfaces can inject a different strategy/token store without feature-code changes:
 
 - `mockTransport` matches `method + path` against `shared/api/mock/router.ts`'s registry and
   returns a Response-like object — feature code and `client.ts` can't tell the difference from a
@@ -166,7 +201,12 @@ from `EXPO_PUBLIC_API_MODE` (`mock` default in dev, `live` = today's real `fetch
   tokens with the same claims the real JWT carries, so the 401→refresh→retry flow (once built,
   Phase 2) is exercised against realistic tokens, not a stub string.
 - Flipping to `live` (env var, or later a build profile default) requires zero feature-code
-  changes — that's the point of the seam being at `client.ts`, not scattered per-feature.
+  changes — that's the point of the seam being at `client.ts`, not scattered per-feature. Local
+  live development currently points at `https://vesselled-maxton-ringlike.ngrok-free.dev/api/v1`
+  via `EXPO_PUBLIC_API_URL`.
+- The client owns the auth-token dependency and refresh flow: protected requests attach the
+  SecureStore access token; a single 401 retry calls `/users/token/refresh/`, stores the new
+  access token, and replays the original request once. If refresh fails, both tokens are cleared.
 
 See `implementation-plan.md` §2/§3 for the full rationale and the auth-specific reconciliation
 plan (mock-backed now, real contract from day one).
@@ -176,36 +216,103 @@ plan (mock-backed now, real contract from day one).
 - Expo Router, typed routes enabled (`experiments.typedRoutes` in `app.config.ts`).
 - Three route groups under the root `Stack`:
   - `(public)` — always mounted, never gated. Holds `splash` (the true first screen on every cold
-    start), `first-open` (new-user *and* returning-signed-out-user landing), and `onboarding/*`
-    (7a·1–7a·8 core setup + 8a save). Splash reads session state and calls `router.replace(...)`
-    to the right destination once its animation + minimum display time have both finished
-    (`features/splash/lib/resolveLaunchDestination.ts`) — see `implementation-plan.md` §5. Every
-    signed-out user (first-time or returning) lands on `first-open`, never `(auth)`: the design
-    has no standalone return-user login screen, and account creation lives *inside* onboarding at
-    8a (see F1, `feature-map.md`). `first-open`'s "Begin" CTA drops straight into
-    `onboarding/name`.
+    start), `first-open` (new-user landing), and `onboarding/*` — the **entire** value-first
+    interview (name → goal → about-you → gender → pillars → diet questions → promise →
+    calibrating), with
+    account creation (`save.tsx`, 8a) as the _last_ step, not the first
+    (onboarding-v2-flow-plan.md's "signup-last" shift — previously register happened mid-flow).
+    Splash reads session state _and_ the persisted onboarding draft, then calls
+    `router.replace(...)` to the right destination once its animation + minimum display time have
+    both finished (`features/splash/lib/resolveLaunchDestination.ts`) — see `implementation-plan.md`
+    §5. Every signed-out user (first-time or returning) lands on `first-open` or resumes
+    mid-interview, never `(auth)`: the design has no standalone return-user login screen (see F1,
+    `feature-map.md`). `first-open`'s "Begin" CTA drops straight into `onboarding/name`.
+  - **Resume rule:** if a signed-out user has a persisted draft with `lastCompletedStep` set
+    (they closed the app mid-interview), splash sends them to
+    `firstUnansweredFlowStep(lastCompletedStep, draft)` (`features/onboarding/lib/steps.ts`)
+    instead of `first-open`, so they pick up exactly where they left off rather than restarting.
   - `(auth)` / `(app)` — each wrapped in `<Stack.Protected guard={...}>`, gated on session state
     from `useSessionStore` (auth feature) — Expo Router's supported pattern for auth flows, rather
-    than a manual redirect-in-effect. `onboarding/save.tsx` (8a) calls `useSessionStore`'s
-    `signIn(tokens)` directly on successful mock register, which flips the guard and hands off to
-    `(app)` automatically — no explicit navigation to `(app)` is written anywhere. A
-    `(tabs)`/petal-cluster layout inside `(app)` is added when that navigation feature is
-    actually built (see design-system.md §8) — today `(app)` has a single stub screen. `(auth)`'s
-    `login.tsx` is currently unreachable from any navigation path (F1, resolved for now — see
-    `feature-map.md`); it stays in the tree as scaffold for whenever a real login screen is
-    designed.
-- **First-run vs. onboarding-complete are two different facts, don't conflate them:**
-  `hasSeenFirstOpen` (`shared/stores/appFlagsStore.ts`, persisted client-side via
-  `shared/lib/storage.ts`) only decides pre-auth routing (new vs. returning device). The real
-  onboarding gate — whether an authenticated user still needs to complete the diet-profile
-  questions — is a _server_ fact (`diet-profile.onboarding_complete`, API_REFERENCE.md §5) fetched
-  via TanStack Query once signed in; that gate is added inside `(app)` when Phase 3 is built, not
-  here.
+    than a manual redirect-in-effect. `Stack.Protected`'s guard only controls which group is
+    _mountable_; it doesn't auto-navigate you into a newly unlocked group, so `onboarding/save.tsx`
+    (8a, now the flow's last screen) explicitly drives the handoff: it calls `useSessionStore`'s
+    `signIn(tokens)` on successful register, fires the **single** whole-draft
+    `PUT /users/me/diet-profile/` (built from the entire local draft, not per-question anymore),
+    clears the onboarding draft, and only then `router.replace('/(app)')`s — with a retry affordance
+    if that one PUT fails after the account already exists (account creation isn't rolled back).
+    `(app)` is a plain `Stack.Screen`, not a tab/drawer navigator yet — a `(tabs)`/petal-cluster
+    layout is added when that navigation feature is actually built (see design-system.md §8) —
+    today `(app)` has a single stub screen. `(auth)`'s `login.tsx` is currently unreachable from any
+    navigation path (F1, resolved for now — see `feature-map.md`); it stays in the tree as scaffold
+    for whenever a real login screen is designed.
+  - `(public)` vs. `(app)` is a **navigation** boundary, not an **auth-requirement** boundary —
+    don't assume everything under `(public)` is anonymous. Once `save.tsx` has signed the user in,
+    the tail end of that same screen's work (the diet-profile PUT) makes a real authenticated call
+    while the user is technically still on a `(public)` route (F8, `feature-map.md`) — the bearer
+    token is attached by `shared/api/client.ts` regardless of which route group is currently
+    mounted. If a screen needs actual gating (redirect-if-signed-out), that's still a
+    `Stack.Protected` decision independent of this one.
+- **First-run vs. onboarding-in-progress vs. onboarding-complete are three different facts, don't
+  conflate them:** `hasSeenFirstOpen` (`shared/stores/appFlagsStore.ts`) decides "has this device
+  ever seen the app". The persisted onboarding draft (`onboardingStore`'s `lastCompletedStep`,
+  above) decides "is there an interview in progress on this device, pre-signup". Both are
+  **client-side, pre-auth** facts. Post-signup completeness (whether an authenticated user still
+  has an incomplete diet profile) is a _server_ fact (`diet-profile.onboarding_complete`,
+  API_REFERENCE.md §5) — in the v2 flow this should be unreachable in practice (the whole interview
+  is collected locally before the account, and only one account, exists to be incomplete), so
+  there is deliberately no `(app)`-entry gate built for it yet. Revisit if a future path lets a
+  signed-in user reach `(app)` without having finished the local draft first (e.g. a future "skip
+  for now" escape hatch).
 - Per-screen orientation policy is explicit, not implicit (design-system.md §11.3): `splash` and
   `first-open` lock portrait via `shared/hooks/useOrientationLock.ts`; longer-lived screens
   (Home, chat, lists) must not lock and should be left to rotate freely.
 - Deep links validated at the boundary (don't trust params blindly — parse/validate with Zod
   before use, same as any external input).
+
+### 5.1 Config-driven multi-step flows (pattern)
+
+Two related mechanisms, both under `features/onboarding/lib/`, that together own the **entire**
+onboarding interview as one sequence (onboarding-v2-flow-plan.md's "unified sequencer" — this
+replaced an earlier design with two independent sequencers, one for core setup and one for the
+diet interview, which made "what screen comes after X" a two-places-to-check question):
+
+- **`steps.ts`** — the single source of truth for the whole flow. `FLOW_STEP_IDS` is one ordered
+  array interleaving bespoke screens (`name`, `about-you`, `gender`, `pillars`, `promise`) with every
+  diet-interview question id from `dietQuestions.ts` (including `goal`, now asked directly rather
+  than derived), ending in the two dot-less terminal steps `calibrating` and `save`. Exposes:
+  `flowStepRoute` (step id → `Href`, routing bespoke ids to their own screen and every diet-config
+  id through the one generic `onboarding/diet/[step]` route), `isFlowStepVisible` /
+  `flowStepProgress` (the flow's only conditional skip today — the target-weight slider only shows
+  for weight-related goals — and the resulting progress-dot count/index, both computed against the
+  live draft so a skipped step never reserves a dot), `nextFlowStep` (pure "what comes after this
+  step", skipping anything `isFlowStepVisible` rules out), and `firstUnansweredFlowStep` (resume
+  support — see §5). Every screen calls `completeStep(id)` on the `onboardingStore` and then
+  `nextFlowStep`/`flowStepRoute` to advance; no screen hardcodes what follows it.
+- **`dietQuestions.ts`** — still the config array for the diet-interview portion specifically: an
+  ordered `DietQuestion[]` declaring each question's id, API field, input `kind`
+  (`single | multi | slider | mockOnly`), copy (a string, or a function of the user's name for
+  personalized titles like the `goal` question), and options. One generic screen
+  (`DietQuestionScreen`) reads the current question by route param and renders the right shared
+  input component (`ToggleRow` / `SelectableChip` / `SliderRow`), writing straight to the local
+  draft — no per-question API calls (see below). This file no longer exports its own
+  sequencing/progress helpers; `steps.ts` owns all of that now.
+- **When to use which:** reach for a `dietQuestions.ts`-style config array whenever a run of
+  screens is structurally identical (same scaffold, differing only in copy/options/field) — likely
+  true for the fitness/wellness interviews (F2, `feature-map.md`) when they're built, which should
+  plug their own question ids into `FLOW_STEP_IDS` the same way. Reach for a bespoke screen +
+  `steps.ts` entry when a step genuinely differs in layout/composition (name entry, the age/
+  height/weight sliders on "about you", a dedicated single-question `gender` chip screen,
+  multi-select pillars, the register form — one generic renderer wouldn't fit). Note `gender` is
+  a _separate_ bespoke screen from `about-you` even though both are simple selection/slider
+  inputs — combining a 4th input into `about-you` didn't fit the shared scaffold's "question near
+  the top, answer near the bottom" layout cleanly, so it got its own step instead of being forced
+  into an existing one; see `features/onboarding/lib/steps.ts`'s docblock.
+- **One commit, not one PUT per question:** earlier builds called
+  `useUpdateDietProfileMutation` after every answered question. The v2 flow collects the _entire_
+  interview into the local draft first and fires exactly one `PUT /users/me/diet-profile/` from
+  `SaveScreen`, immediately after registration succeeds — see §5's `save.tsx` description. This is
+  why `DietQuestionScreen` and `CalibratingScreen` no longer call `useDietProfileQuery`/the update
+  mutation at all during the interview; they read/derive everything from `onboardingStore`'s draft.
 
 ## 6. Native/runtime configuration
 

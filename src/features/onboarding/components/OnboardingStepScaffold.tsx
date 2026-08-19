@@ -6,14 +6,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fontFamily, spacing, textStyle } from '@/shared/theme/tokens';
 import { WaveMark } from '@/shared/components/WaveMark';
 import { ProgressDots } from '@/shared/components/ProgressDots';
-import {
-  ONBOARDING_PROGRESS_TOTAL,
-  onboardingProgressIndex,
-  type OnboardingStepId,
-} from '@/features/onboarding/lib/steps';
 
 type OnboardingStepScaffoldProps = PropsWithChildren<{
-  step: OnboardingStepId;
+  /** Explicit per-flow progress dots (`{ index, total }`) — each onboarding flow (core setup,
+   * diet interview, …) owns its own track and total, rather than the scaffold reading one global
+   * constant (design-system.md §7 changelog). `null`/omitted renders no dot rail (e.g. 8a Save,
+   * which the design shows without one). Build with `flowStepProgress` (`lib/steps.ts`), not by
+   * hand. */
+  progress?: { index: number; total: number } | null;
   /** The big display question — pass a `<Text>` tree so callers can mix weights for emphasis
    * (e.g. `<Text style={emphasis}>want to fix.</Text>`), matching the design's inline-emphasis
    * question headlines. */
@@ -31,11 +31,20 @@ type OnboardingStepScaffoldProps = PropsWithChildren<{
  * fitness/wellness pillar interviews) — sky gradient, progress dots, question header with the
  * wave glyph, a flexible body slot, and a footer slot. See docs/design-system.md §7 and
  * implementation-plan.md §5. Scrollable by default per design-system.md §11.3 (short/landscape
- * viewports must never clip) — the `flexGrow`+`space-between` combo keeps the header-top/
- * footer-bottom look on tall viewports while still allowing real scrolling on short ones.
+ * viewports must never clip).
+ *
+ * Layout: progress dots + the question header (wave glyph, title, subtitle) stay pinned near the
+ * *top*, right under the dots — matching the design reference exactly (title sits high, options/
+ * input sit low, with a large empty gap between them, not the two clustered together). A single
+ * flexible spacer sits *between* the header and the body, absorbing the slack so the body+footer
+ * (the actual answer — chips, sliders, free text) anchor towards the bottom of the screen instead.
+ * An earlier version put that spacer *above* the header instead, which dragged the question title
+ * itself down to sit right on top of its answer — visibly wrong against the design, which keeps
+ * the two far apart. The spacer shrinks toward 0 (then the ScrollView takes over) on tall content,
+ * so nothing ever clips.
  */
 export function OnboardingStepScaffold({
-  step,
+  progress = null,
   title,
   subtitle,
   footer,
@@ -43,7 +52,6 @@ export function OnboardingStepScaffold({
   children,
 }: OnboardingStepScaffoldProps) {
   const insets = useSafeAreaInsets();
-  const progressIndex = onboardingProgressIndex(step);
   const paddingX = compactPaddingX ? spacing.screenPadXCompact : spacing.screenPadX;
 
   return (
@@ -64,23 +72,19 @@ export function OnboardingStepScaffold({
           },
         ]}
       >
-        <View>
-          {progressIndex !== null ? (
-            <ProgressDots
-              count={ONBOARDING_PROGRESS_TOTAL}
-              activeIndex={progressIndex}
-              style={styles.dots}
-            />
-          ) : null}
+        {progress !== null ? (
+          <ProgressDots count={progress.total} activeIndex={progress.index} style={styles.dots} />
+        ) : null}
 
-          <View style={styles.header}>
-            <WaveMark size={26} strokeWidth={5} style={styles.waveGlyph} />
-            <View style={styles.titleBlock}>{title}</View>
-            {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
-          </View>
-
-          <View style={styles.body}>{children}</View>
+        <View style={styles.header}>
+          <WaveMark size={26} strokeWidth={5} style={styles.waveGlyph} />
+          <View style={styles.titleBlock}>{title}</View>
+          {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
         </View>
+
+        <View style={styles.spacer} />
+
+        <View style={styles.body}>{children}</View>
 
         <View style={styles.footer}>{footer}</View>
       </ScrollView>
@@ -99,6 +103,16 @@ export const onboardingTitleStyles = StyleSheet.create({
     ...textStyle('questionTitle'),
     color: colors.ink,
   },
+  /** The diet-interview screens (12a·1–12a·6, plus the added cuisine/activity/budget/health
+   * screens) use a smaller, tighter title than core-setup's `questionTitle` — 25px/line-height
+   * 1.5 vs. core-setup's 30px/1.4 in the design source. No named typography token covers this
+   * exact combo, so it's expressed as an override here rather than a new global token. */
+  compact: {
+    ...textStyle('questionTitle'),
+    color: colors.ink,
+    fontSize: 25,
+    lineHeight: 25 * 1.5,
+  },
   emphasis: {
     fontFamily: fontFamily.poppins400,
   },
@@ -108,13 +122,19 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   content: {
     flexGrow: 1,
-    justifyContent: 'space-between',
   },
   dots: {
     alignSelf: 'center',
   },
+  /** Absorbs the slack between the (top-anchored) header and the (bottom-anchored) body+footer.
+   * `minHeight` keeps a little breathing room above the body even when content is tall enough
+   * that `flex: 1` collapses to ~0. */
+  spacer: {
+    flex: 1,
+    minHeight: spacing.lg,
+  },
   header: {
-    marginTop: 30,
+    marginTop: spacing.xl,
   },
   waveGlyph: {
     opacity: 0.55,
@@ -127,9 +147,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     color: 'rgba(23,25,29,0.6)',
   },
-  body: {
-    marginTop: spacing.xxl,
-  },
+  body: {},
   footer: {
     marginTop: spacing.xl,
   },

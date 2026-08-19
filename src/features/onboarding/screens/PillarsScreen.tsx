@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { ToggleRow } from '@/shared/components/ToggleRow';
-import { radii, spacing } from '@/shared/theme/tokens';
+import { spacing } from '@/shared/theme/tokens';
 import {
   OnboardingStepScaffold,
   onboardingTitleStyles,
@@ -12,7 +12,7 @@ import {
   useOnboardingStore,
   type OnboardingPillar,
 } from '@/features/onboarding/store/onboardingStore';
-import { getNextOnboardingStep, onboardingStepRoute } from '@/features/onboarding/lib/steps';
+import { flowStepProgress, flowStepRoute, nextFlowStep } from '@/features/onboarding/lib/steps';
 
 const PILLARS: { key: OnboardingPillar; title: string }[] = [
   { key: 'fitness', title: 'Fitness' },
@@ -20,22 +20,31 @@ const PILLARS: { key: OnboardingPillar; title: string }[] = [
   { key: 'wellness', title: 'Wellness' },
 ];
 
-/** 7a·4 Pillars — pick one, two, or all three. Later phases (12a/16a/17a) will run only the
- * interview for whichever pillars are selected here — see `features/onboarding/lib/steps.ts`. */
+/**
+ * Pillars — a non-gating focus screen (onboarding-v2-flow-plan.md D2/§4): only the nutrition
+ * interview has an API home today (F2, feature-map.md — fitness/wellness interviews aren't built
+ * yet), so *everyone* runs it regardless of what's picked here. This screen exists purely to let
+ * the user say what they care about most for personalization/copy later, not to branch the
+ * interview — a deliberate simplification from the old flow, where picking "Diet" used to be the
+ * only way to reach the nutrition questions at all.
+ */
 export default function PillarsScreen() {
   const router = useRouter();
   const draft = useOnboardingStore((state) => state.draft);
   const togglePillar = useOnboardingStore((state) => state.togglePillar);
+  const completeStep = useOnboardingStore((state) => state.completeStep);
 
   const goNext = () => {
-    router.push(onboardingStepRoute(getNextOnboardingStep('pillars', draft)));
+    completeStep('pillars');
+    const next = nextFlowStep('pillars', draft);
+    if (next) router.push(flowStepRoute(next));
   };
 
   return (
     <OnboardingStepScaffold
-      step="pillars"
+      progress={flowStepProgress('pillars', draft)}
       title={<Text style={onboardingTitleStyles.base}>Where do we start?</Text>}
-      subtitle="Pick one pillar, two, or take all three. I'll ask the right questions once you choose."
+      subtitle="Pick one pillar, two, or take all three. I'll always start with your nutrition core, whatever you choose."
       footer={<NextBar label="Next" onPress={goNext} disabled={draft.pillars.length === 0} />}
     >
       <View style={styles.stack}>
@@ -45,8 +54,6 @@ export default function PillarsScreen() {
             title={pillar.title}
             selected={draft.pillars.includes(pillar.key)}
             onPress={() => togglePillar(pillar.key)}
-            radius={radii.xl}
-            minHeight={76}
           />
         ))}
       </View>

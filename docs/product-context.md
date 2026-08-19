@@ -76,9 +76,18 @@ approved — do not let them creep into MVP task planning:
 - Social login (Apple/Google sign-in) — email auth only for MVP
 - Micro-nutrient tracking granularity (vitamins/minerals) — macro-level only
   for MVP
-- Barcode/photo-based food logging (manual/search entry only for MVP)
 - Social/community features (following, feeds, sharing) — not requested,
   not assumed
+
+> **Scope change (2026-07-26):** barcode + photo-based food logging were
+> **moved into MVP scope** for the nutrition pillar (Layer 1), on the founder's
+> call — the design (14b) offers Snap the plate / Scan barcode / Nutrition
+> label as first-class logging paths and they're backed by real API endpoints
+> (`API_REFERENCE.md` §8: `/food/photo/`, `/food/lookup/barcode/`). They were
+> previously listed here as out-of-scope ("manual/search entry only for MVP");
+> that line is removed. Macro-level tracking still holds (micronutrients remain
+> out of scope). See `docs/superpowers/specs/2026-07-26-nutrition-food-logging-design.md`
+> (flag F-N1).
 
 ## 6. Medical/health safety posture
 

@@ -229,27 +229,27 @@ reimplementation. "Source" references the screen codes in
 [`designs/reference/screens-source.html`](../designs/reference/screens-source.html) (search by
 the `data-screen-label` text shown).
 
-| Component           | Spec                                                                                                                                                                                                                            | Source screens                                                             |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `WaveMark`          | The wave logo (`react-native-svg` `Path`, exact path in `shared/components/WaveMark.tsx`), optional `coreo` wordmark alongside it                                                                                               | app icon, splash, first-open, headers, empty states                        |
-| `GlassCard`         | Light/night glass container, see §4                                                                                                                                                                                             | nearly every screen                                                        |
-| `PrimaryIconButton` | Circular, 44–64px, `coreBlue` gradient fill, white icon, one per screen max                                                                                                                                                     | first-open CTA, onboarding confirm                                         |
-| `VoiceInputBar`     | Full-width night-glass pill (~60px tall): placeholder/typed text, circular mic button, circular white confirm/arrow button                                                                                                      | onboarding steps 7A1–7A8, chat entry points                                |
-| `SelectableChip`    | Pill, `radius.pill`; **selected** = white fill + shadow + weight 500; **unselected** = translucent glass + border + weight 300, `ink60` text                                                                                    | 7A2 goals, 12A1–12A6 diet interview, 16A/17A setup flows                   |
-| `ProgressDots`      | Row of 8 pill/dot segments; active = 24×4px white pill with glow, inactive = 10×4px `rgba(255,255,255,.45)`                                                                                                                     | all onboarding step screens                                                |
-| `SliderRow`         | Glass card containing: label + value header, track (`rgba(ink,.16)`), filled portion (`rgba(ink,.6)`), 18px white glowing thumb                                                                                                 | 7A3 about you (age/height/weight)                                          |
-| `ToggleRow`         | Full-width selectable row (title + optional subtitle, trailing check-circle/empty-circle), gradient fill flips lighter/more-opaque when selected — not in the original spec, promoted to shared after appearing 2×+ (see §12) | 7A4 pillars, 7A5 sources; reusable for future single/multi-select rows     |
-| `ListRow`           | Row with title + muted subtitle on the left, chevron on the right, inside a light-glass card                                                                                                                                    | profile pillar summaries, connected devices                                |
-| `StatusChip`        | Small rounded label chip, translucent white or `rgba(255,255,255,.16)` on dark, `caption` text                                                                                                                                  | assistant action confirmations ("Fitness moved"), check-in preference tags |
-| `SegmentedControl`  | Glass track, active segment = white pill w/ shadow, others plain text                                                                                                                                                           | "pillar strip" home nav concept (23B) — see §8 for nav status              |
-| `BottomDock`        | Fixed 72px-tall night-glass bar, 4 icon+label columns, active item = dark filled circle behind icon                                                                                                                             | "glass dock" home nav concept (23A)                                        |
-| `PetalCluster`      | See §6.3                                                                                                                                                                                                                        | home centerpiece (24B and others)                                          |
-| `PresenceOrb`       | See §6.4                                                                                                                                                                                                                        | 18C presence / chat                                                        |
-| `WaveChart`         | See §6.1                                                                                                                                                                                                                        | throughout (home "today" card, week review, lock-screen widget)            |
-| `DotMatrixNumeral`  | See §6.2                                                                                                                                                                                                                        | hero score displays                                                        |
-| `NotificationCard`  | Compact night-glass card: small icon badge, eyebrow + timestamp, bold headline, body — reusable for in-app banners as well as the lock-screen widget layout                                                                     | 27A/27B lock-screen designs                                                |
-| `EmptyOrErrorState` | Icon (muted, in a small rounded frame) + short headline + one-line subcopy + one primary recovery action + a lighter-weight fallback link + a quiet footer note ("Nothing was logged yet") — **never a scary/red error screen** | 25A/25B/25C honest failure states                                          |
-| `PaywallSheet`      | Bottom-sheet variant (partial, dismissible) and full-page variant; feature list as icon + two-line description rows; primary dark pill CTA + secondary "Not now" glass pill + a small trust-note footer                         | 26A/26B "Coreo Plus" — **flagged, see §9**                                 |
+| Component           | Spec                                                                                                                                                                                                                                                                                                                                                                                              | Source screens                                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `WaveMark`          | The wave logo (`react-native-svg` `Path`, exact path in `shared/components/WaveMark.tsx`), optional `coreo` wordmark alongside it                                                                                                                                                                                                                                                                 | app icon, splash, first-open, headers, empty states                                                                      |
+| `GlassCard`         | Light/night glass container, see §4                                                                                                                                                                                                                                                                                                                                                               | nearly every screen                                                                                                      |
+| `PrimaryIconButton` | Circular, 44–64px, `coreBlue` gradient fill, white icon, one per screen max                                                                                                                                                                                                                                                                                                                       | first-open CTA, onboarding confirm                                                                                       |
+| `VoiceInputBar`     | Full-width night-glass pill (~60px tall): placeholder/typed text, circular mic button, circular white confirm/arrow button                                                                                                                                                                                                                                                                        | onboarding steps 7A1–7A8, chat entry points                                                                              |
+| `SelectableChip`    | Pill, `radius.pill`; **selected** = white fill + shadow + weight 500; **unselected** = translucent glass + border + weight 300, `ink60` text                                                                                                                                                                                                                                                      | 7A2 goals, 12A1–12A6 diet interview, 16A/17A setup flows                                                                 |
+| `ProgressDots`      | Row of 8 pill/dot segments; active = 24×4px white pill with glow, inactive = 10×4px `rgba(255,255,255,.45)`                                                                                                                                                                                                                                                                                       | all onboarding step screens                                                                                              |
+| `SliderRow`         | Glass card containing: label + value header, track (`rgba(ink,.16)`), filled portion (`rgba(ink,.6)`), 18px white glowing thumb                                                                                                                                                                                                                                                                   | 7A3 about you (age/height/weight)                                                                                        |
+| `ToggleRow`         | Full-width selectable row, `radii.xl` corners, ~70px min height, top sheen highlight, `cardValue` (18–20/300) title; `selectionMode: 'radio' \| 'check'` prop picks a dot (single-select) or check (multi-select) trailing mark on the same chassis — not in the original spec, promoted to shared after appearing 2×+ (see §12)                                                                  | 7A4 pillars, 7A5 sources, all 12A diet-interview single/multi cards                                                      |
+| `ListRow`           | Row with title + muted subtitle on the left, chevron on the right, inside a light-glass card                                                                                                                                                                                                                                                                                                      | profile pillar summaries, connected devices                                                                              |
+| `StatusChip`        | Small rounded label chip, translucent white or `rgba(255,255,255,.16)` on dark, `caption` text                                                                                                                                                                                                                                                                                                    | assistant action confirmations ("Fitness moved"), check-in preference tags                                               |
+| `SegmentedControl`  | Glass track, active segment = white pill w/ shadow, others plain text                                                                                                                                                                                                                                                                                                                             | "pillar strip" home nav concept (23B) — see §8 for nav status                                                            |
+| `BottomDock`        | Fixed 72px-tall night-glass bar, 4 icon+label columns, active item = dark filled circle behind icon                                                                                                                                                                                                                                                                                               | "glass dock" home nav concept (23A)                                                                                      |
+| `PetalCluster`      | See §6.3                                                                                                                                                                                                                                                                                                                                                                                          | home centerpiece (24B and others)                                                                                        |
+| `PresenceOrb`       | See §6.4                                                                                                                                                                                                                                                                                                                                                                                          | 18C presence / chat                                                                                                      |
+| `WaveChart`         | See §6.1. Built in `shared/components/WaveChart.tsx`: animated solid (past) → dashed (future) stroke, glowing white "now" dot at the boundary, optional area fill under the solid segment, `reduceMotion`-aware. Promoted from the onboarding-only `OnboardingWaveStrip` (deleted) once a second use case (diet-profile completeness) needed the real signature treatment, not a decorative sine. | throughout (home "today" card, week review, lock-screen widget, onboarding Reading/Promise/Save/**Calibrating** screens) |
+| `DotMatrixNumeral`  | See §6.2                                                                                                                                                                                                                                                                                                                                                                                          | hero score displays                                                                                                      |
+| `NotificationCard`  | Compact night-glass card: small icon badge, eyebrow + timestamp, bold headline, body — reusable for in-app banners as well as the lock-screen widget layout                                                                                                                                                                                                                                       | 27A/27B lock-screen designs                                                                                              |
+| `EmptyOrErrorState` | Icon (muted, in a small rounded frame) + short headline + one-line subcopy + one primary recovery action + a lighter-weight fallback link + a quiet footer note ("Nothing was logged yet") — **never a scary/red error screen**                                                                                                                                                                   | 25A/25B/25C honest failure states                                                                                        |
+| `PaywallSheet`      | Bottom-sheet variant (partial, dismissible) and full-page variant; feature list as icon + two-line description rows; primary dark pill CTA + secondary "Not now" glass pill + a small trust-note footer                                                                                                                                                                                           | 26A/26B "Coreo Plus" — **flagged, see §9**                                                                               |
 
 ## 8. Navigation — decided
 
@@ -282,11 +282,25 @@ underlying functionality behind the product decisions below rather than wiring t
 - **26A/26B "Coreo Plus" paywall** — `product-context.md` §5 lists subscriptions/monetization as
   explicitly out of MVP scope. Treat as a real screen to have ready, but don't integrate real
   billing/entitlements until product scope changes.
-- **21A/21B photo- and receipt-based food logging** — `product-context.md` §5 lists barcode/photo
-  logging as out of MVP scope (manual/search entry only for MVP). Same treatment: design exists,
-  defer the camera/OCR implementation.
-- **25A "couldn't read the plate"** is the error state for the photo-logging flow above — only
-  relevant once/if that flow is built.
+- **21A/21B photo- and receipt-based food logging** — **now in MVP scope** as of 2026-07-26
+  (`product-context.md` §5 scope-change note; feature-map.md flag F-N1). The nutrition Layer-1
+  build wires photo (`/food/photo/`) and barcode (`/food/lookup/barcode/`) as first-class logging
+  paths (14b). Note: 21A/21B's richer *per-ingredient* editable breakdown is **not** built — the
+  photo API returns a single aggregate estimate, so the confirm screen (15a-style) edits the
+  aggregate; the itemized treatment needs a backend change (flag F-N2). Receipt-specific OCR (21B)
+  is still deferred — only the meal-photo path is built.
+- **25A "couldn't read the plate"** is the error state for the photo-logging flow — now relevant
+  (photo logging is built). Layer 1 surfaces the API's own 422/429 copy inline in the log sheet and
+  falls back to manual entry; a dedicated full 25A screen can follow.
+- **Net-new diet-interview screens (no design-source mockup).** Cuisine preference, activity
+  level, budget tier, and health conditions are all real `diet-profile` API fields (§5 of
+  `API_REFERENCE.md`) with no corresponding screen in the 57-screen export. Built in the
+  established glass `ToggleRow`-card style (radio for single-select, check for multi-select) to
+  match the rest of the 12A diet interview rather than inventing a different visual treatment —
+  see `docs/onboarding-refinement-plan.md` Part B1 for the full mapping. Same for the
+  **"calibrating your core"** wave-progress screen after the diet interview (Part C of that
+  plan) — a new screen, not present in the design source, built from the signature `WaveChart`
+  primitive.
 
 ## 10. Voice, content, and usage rules
 
@@ -418,3 +432,138 @@ Centralize this instead of scattering `Dimensions`/`useWindowDimensions` calls t
   it). 7A1–7A7 core setup and 8A save-your-core (register, incl. mocked Apple/Google buttons and
   an "Use email instead" real-schema form) are built; 7A8 Arrival and the 12A/16A/17A pillar
   interviews remain.
+- **v1.3 (Phase 3 part 2 — diet interview + calibrating, `onboarding-refinement-plan.md`):**
+  `ToggleRow` refined to match design exactly (`radii.xl`, ~70px, top sheen, `cardValue` type,
+  `selectionMode: 'radio' | 'check'`); `SelectableChip` unselected state changed from flat fill
+  to glass gradient. `OnboardingWaveStrip` **deleted**, replaced everywhere (Reading, Promise,
+  Save) by the real `WaveChart` primitive built to full §6.1 spec (solid/dashed/glow-dot/area
+  fill/animated). `OnboardingStepScaffold`'s progress dots are now parameterized
+  (`{ index, total }` per flow) instead of hardwired to the 8-step core track, so the diet
+  interview's own dot count renders correctly. Built the full D1–D10 diet interview
+  (config-driven, see `feature-map.md`) and the new "calibrating your core" wave-progress
+  screen — 4 of the 10 diet questions and the calibrating screen have no design-source mockup,
+  flagged in §9.
+- **v1.4 (design re-import audit — screen-by-screen pass against the re-synced source export):**
+  Corrected drift found by comparing every built screen against the design source directly
+  rather than against this doc's own summary of it. `ToggleRow`'s title text was hardcoded to
+  the `cardValue` token (22px) — the real source uses 16px on Pillars (7a·4) rows and 14px on
+  Sources (7a·5) rows, neither matching; added a `titleFontSize` prop (default 16) and set 14 on
+  Sources. Sources rows were also using Pillars' taller/rounder chassis (`radii.xl`/~70px) instead
+  of the source's more compact list-row treatment (`radii.md`/56px) — now passed explicitly.
+  The diet interview's single-choice questions (12a·1 diet-type, 12a·4 who-cooks, 12a·5 meal
+  rhythm, and the added cuisine/activity/budget screens) were rendered as full-width `ToggleRow`
+  radio rows; the source renders all of these as wrapped, centered `SelectableChip` pills instead
+  — corrected, and diet-interview chip grids (single/multi/mock-only) now center-justify to match.
+  Diet-interview question titles were sharing core-setup's 30px `questionTitle` size; the source
+  uses a tighter 25px/1.5-line-height for every 12a screen — added
+  `onboardingTitleStyles.compact` for this. Promise's (7a·7) footer was a full-width night-glass
+  `NextBar` plus a separate underlined "why dashed?" link; the source shows a small two-pill row
+  ("Deal" primary + "Why dashed?" secondary) — rebuilt to match, keeping the inline-expand
+  behavior for the explanation. Save's (8a) privacy note card used `radii.md` (20px); the source
+  is 14px, closer to `radii.sm` — corrected.
+  **Still open, flagged rather than silently changed** (interaction/product calls, not visual
+  polish): (1) the source's 7a·2/7a·3/7a·4/7a·5/7a·6 footers pair a shortcut-chip row with a
+  `VoiceInputBar`-style free-text bar; core setup collapses this to a single `NextBar` everywhere
+  except the primary text-entry steps — a deliberate existing simplification (see `NextBar`'s own
+  docstring) that this pass left in place pending a product decision on whether free-text goal/
+  bio parsing is worth building. (2) 7a·8 Arrival (the petal-cluster "Enter Coreo" screen) is
+  still unbuilt — already flagged inline in `lib/steps.ts`. (3) 12a·3 Target's source mockup has a
+  large hero weight numeral plus a "Gently / Steady / Push me" pace selector with no corresponding
+  `DietProfile` field (like D10's mock-only pattern) — not built; needs a decision on whether pace
+  is worth capturing before adding the UI. (4) The source's "How do you eat?" (12a·1) options
+  (Vegetarian/Vegan/Everything/No beef/Halal/Eggs are fine/Pescatarian/Jain/No pork) don't match
+  the current `DIET_TYPES` enum (adds Keto/Low carb, drops several of the above) — left as-is since
+  that enum is a backend contract (API_REFERENCE.md §5), not a client-only value to relabel.
+- **v1.5 (follow-up, reported from an Android device):** `ToggleRow`'s selected-row text was
+  hardcoded to weight 300 — the source uses weight 500 on selected Pillars/Sources rows, a visible
+  gap between checked and unchecked states. Unselected row text was also using the `ink60` (62%
+  opacity) token where the source uses ~80% opacity — noticeably fainter than intended. Added the
+  design's missing white glow halo behind selected rows (the source has two box-shadows there — a
+  dark drop shadow, already present, plus a soft white halo RN can't express on one view; added as
+  a second outer wrapping view's shadow, iOS-only since Android shadows are always flat gray-black
+  per §4). Root-caused the flat/boxy look reported on Android specifically: `expo-blur`'s
+  `blurMethod` prop **defaults to `'none'` on Android** — no real blur at all, just a flat
+  semi-transparent fallback — which stacked under the gradient overlay reads as a flat double
+  rectangle rather than frosted glass. Set `blurMethod="dimezisBlurViewSdk31Plus"` on every
+  `BlurView` in `GlassCard` and `ToggleRow` (real blur on SDK 31+, safe fallback to `'none'` below
+  that) — this affects every glass surface in the app, not just Pillars/Sources, so worth
+  retesting broadly on a real Android device.
+- **v1.6 (confirmed on a live Android emulator — root cause was not the gradient at all):**
+  v1.5's `blurMethod="dimezisBlurViewSdk31Plus"` change turned out to be a no-op: device logs
+  (`adb logcat`) showed `expo-blur` warning that the method needs a `blurTarget` (via
+  `BlurTargetView`) which isn't wired up anywhere in the app, so it was silently falling back to
+  `'none'` exactly as before. The reported "blue box surrounding the option name" was that
+  unconfigured native fallback view itself rendering as a narrower, hard-edged rectangle instead
+  of filling the row — not a gradient or sizing issue in our styles. Fix: stop rendering
+  `BlurView` on Android entirely in `GlassCard`/`ToggleRow` (gradient-only fallback, per §4's own
+  "semi-opaque solid color, no blur" guidance) rather than depend on a blur backend that isn't
+  actually configured. Verified by installing to a running Android emulator directly (`adb`) and
+  screenshotting before/after — the boxed artifact is gone and selected/unselected rows now render
+  as a smooth, uniform glass tint matching the design source. Wiring up `BlurTargetView` app-wide
+  for real Android blur remains open as a future enhancement, not required for visual correctness.
+- **v1.7 (onboarding v2 — value-first/signup-last, `onboarding-v2-flow-plan.md`):** Three
+  reported-bug fixes plus a flow-level restructure, no new visual language:
+  - **`SelectableChip`/`ToggleRow` resizing on tap** — root cause in both was mismatched vertical
+    font metrics between the selected/unselected weight, not layout: `SelectableChip`'s
+    `selectedText` was missing `textStyle('body')`'s pinned `lineHeight`, so Poppins-Medium's own
+    default line box (shorter than Poppins-Light's explicit 1.85× one) made the whole pill visibly
+    shrink the instant it was tapped. `ToggleRow` had the same class of bug between its
+    selected/unselected title styles. Fixed by pinning an identical, explicit `lineHeight` to both
+    states in each component — only `fontFamily`/`color` differ now, never the box.
+  - **Slider crash on drag** — `SliderRow` was rebuilding its `Gesture.Pan()` on every render
+    because every pixel of drag called `onChange` synchronously (`runOnJS`), and for
+    store-backed callers that re-render triggered a fresh gesture object mid-touch. Rewritten to
+    build the gesture once (`useMemo`), drive the visual fill/thumb/live-value from a UI-thread
+    `useSharedValue` while dragging, and only call `onChange` once on release.
+  - **Question copy sitting mid-screen instead of near the footer** — `OnboardingStepScaffold`
+    moved its flexible spacer from _below_ the footer to _above_ the header. **Overcorrected, fixed
+    in v1.8 below** — this dragged the title down to sit right on top of its answer instead of
+    matching the design's actual layout (title high, answer low, big gap between).
+  - **Flow restructure:** `GoalsScreen`/`SourcesScreen`/`ReadingScreen` deleted — `goal_type`
+    became a direct, required diet-interview question (personalizes its own title with the user's
+    name) instead of a derived heuristic from a separate goals screen, and Sources/Reading moved
+    out of the required path entirely per the v2 plan's D1 decision. `about-you` gained a `gender`
+    `SelectableChip` row (feeds the Mifflin-St Jeor mock estimate the same way age/weight already
+    did) — **split into its own screen in v1.8 below**. The core-setup and diet-interview step
+    sequencers merged into one ordered list (`features/onboarding/lib/steps.ts`'s `FLOW_STEP_IDS`)
+    — see `architecture.md` §5.1. Account creation (8a Save) is now the **last** step of the
+    interview, not a mid-flow gate before the diet questions; the whole draft (including an
+    approximate `date_of_birth` derived from the age slider at commit time) is persisted locally
+    (`onboardingStore` + Zustand `persist`/AsyncStorage) so the interview can resume after an app
+    kill, and is written to the server in one register call plus one diet-profile `PUT`, not
+    incrementally.
+- **v1.8 (layout correction, from a direct design-vs-build screenshot comparison):**
+  - **Header/body layout was backwards, not just "not spread out enough".** v1.7 read the design
+    as "title sits low, right above its answer" and put the spacer _above_ the header to pull the
+    whole title+body+footer cluster toward the bottom. The actual design (re-checked against the
+    reference screenshots) keeps the question header pinned near the _top_, right under the
+    progress dots, with a large empty gap before the answer/options and footer near the _bottom_ —
+    the two are meant to be far apart, not clustered together. Fixed by moving
+    `OnboardingStepScaffold`'s flexible spacer back to between the header and the body (header
+    stays top-anchored with a fixed `marginTop`; body+footer anchor to the bottom via the spacer
+    absorbing the slack between them) — the opposite of both the original bug and v1.7's fix.
+  - **Gender split into its own screen.** Cramming a 4th input (a `SelectableChip` grid) onto
+    `about-you` alongside three sliders didn't align cleanly against the corrected top/bottom
+    template — a full chip grid and three full-width sliders don't share one "answer block" shape.
+    Split into a new bespoke `gender` step (its own screen, own dot) directly after `about-you` in
+    `FLOW_STEP_IDS`, styled like the diet interview's net-new chip screens (D3/D5/D8/D9) since it
+    has no design-source mockup either.
+  - **D2 "Anything your body refuses?" free-text bar removed for now** — the generic
+    `DietQuestionScreen` was rendering a `VoiceInputBar` for `disliked_foods` free-text entry
+    _above_ the screen's `NextBar`, i.e. two stacked glass pill bars on one screen. Not a spacing
+    bug so much as a treatment this screen doesn't have a matching design for; removed the
+    `freeAddField` config for D2 so only the `allergies` chip grid + one `NextBar` render, matching
+    every other diet-interview screen's one-footer chrome. See `feature-map.md` F10.
+- **v1.9 (nutrition Layer 1 — food logging + tracking):** First app-area (post-onboarding) feature.
+  Built the Diet home (14a), Log-a-meal sheet (14b), and a 15a-style confirm/edit screen, plus the
+  nutrition components (`MacroSummaryCard`, `LoggingOptionTile`, `LogMealSheet`, `FoodEntryRow`,
+  `FoodSearchList`). Notes:
+  - **Macro progress bars** on the night-glass `MacroSummaryCard` use white-glass fills
+    (`rgba(255,255,255,.16)` track / `rgba(255,255,255,.6)` fill) — the night-surface analog of
+    `SliderRow`'s documented ink track/fill (§6). Bars, never wave charts (§6.1 hard rule). If this
+    treatment recurs, promote those two values to named tokens.
+  - Over-budget calories render **neutrally** (the number can go negative) — never red, per the
+    "nothing turns red here" voice (§10). The one `coreBlue` primary action per screen is the
+    confirm "Looks right" / barcode "Look it up" button.
+  - Photo + barcode logging moved into MVP scope (§9 update above, flag F-N1). `expo-image-picker`
+    added as a dependency for camera capture (isolated to `features/nutrition/lib/photoCapture.ts`).

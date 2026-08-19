@@ -35,27 +35,27 @@ Feature folders live under `src/features/*` per `architecture.md` §2. Each row 
 feature to its API section(s) and the design screen codes (search
 `designs/reference/screens-source.html` by the `data-screen-label` code).
 
-| Feature module | API_REFERENCE sections | Design screens (codes) | MVP? |
-|---|---|---|---|
-| `auth` | §3 auth (register/login/refresh/logout), §6 verify, §7 password | 20a/24a First open, 8a Save your core, (login/return-user — see flag F1) | ✅ |
-| `onboarding` | §5 diet-profile (PUT), §3 register | 7a·1–7a·8 core setup, 12a·1–12a·6 diet interview, 16a·1–16a·5 fitness, 17a·1–17a·5 wellness | ✅ (diet fields); ⚠️ fitness/wellness fields = mock-only, see F2 |
-| `home` (dashboard) | §10 GET `/daily-summary/`, §10 `/insights/`, §15 `/core/config/` | 24b Home · sky glass (petal cluster — **canonical**), 10a composed, 10b calibrating | ✅ **USP-critical** |
-| `nutrition` | §8 food, §12 meal-plans, §13 meal actions, §14 assistant | 14a Diet home, 14b Log a meal, 15a Check my math, 15b Your usuals, 15c Week in review | ✅ |
-| `fitness` | §9 exercise (exercises + entries) | 16b Fitness home, 16c Quick loop | ✅ |
-| `wellness` | §10 `/daily-summary/water/` PATCH; DailyLog carries sleep/hrv/steps | 17b Wellness home, 17c Right now | ⚠️ partial — mood/stress/mindfulness logging has **no endpoint**, see F3 |
-| `assistant` | §14 meal assistant (`/meals/assistant-prompts/`, `/assistant/`, `/confirm/`) | 18c Chat presence (presence orb) | ⚠️ meal_plan context only; cross-pillar chat has no API, see F4 |
-| `insights` | §10 `/insights/`, `/insights/generate/` | Smart Insight cards (home), 27a lock-screen (OS, later) | ✅ (gated: needs ≥30 days data) |
-| `profile` | §4 profile/update/delete, §5 diet-profile GET, §6 verify, §7 password, §15 contact-support | 19a Profile, 19b What Coreo knows | ✅ |
-| `import` | §11 data import (`/import/`, poll) | 7a·5 Sources (partial) | ⚠️ wearable/export import = deferred scope, mock-only, see F5 |
-| `paywall` | (none — billing out of scope) | 26a/26b Coreo Plus | ⬜ deferred (build screen, no billing) — design-system §9 |
-| shared/`core` | §15 health-check/app-info/config, §16 quota | app-wide (config on boot; error/empty states 25a–25c) | ✅ |
-| notifications | (OS-rendered) | 27a/27b/27c lock screen | ⬜ later (Live Activities / notifications) |
+| Feature module     | API_REFERENCE sections                                                                     | Design screens (codes)                                                                      | MVP?                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `auth`             | §3 auth (register/login/refresh/logout), §6 verify, §7 password                            | 20a/24a First open, 8a Save your core, (login/return-user — see flag F1)                    | ✅                                                                       |
+| `onboarding`       | §5 diet-profile (PUT), §3 register                                                         | 7a·1–7a·8 core setup, 12a·1–12a·6 diet interview, 16a·1–16a·5 fitness, 17a·1–17a·5 wellness | ✅ (diet fields); ⚠️ fitness/wellness fields = mock-only, see F2         |
+| `home` (dashboard) | §10 GET `/daily-summary/`, §10 `/insights/`, §15 `/core/config/`                           | 24b Home · sky glass (petal cluster — **canonical**), 10a composed, 10b calibrating         | ✅ **USP-critical**                                                      |
+| `nutrition`        | §8 food, §12 meal-plans, §13 meal actions, §14 assistant                                   | 14a Diet home, 14b Log a meal, 15a Check my math, 15b Your usuals, 15c Week in review       | ✅                                                                       |
+| `fitness`          | §9 exercise (exercises + entries)                                                          | 16b Fitness home, 16c Quick loop                                                            | ✅                                                                       |
+| `wellness`         | §10 `/daily-summary/water/` PATCH; DailyLog carries sleep/hrv/steps                        | 17b Wellness home, 17c Right now                                                            | ⚠️ partial — mood/stress/mindfulness logging has **no endpoint**, see F3 |
+| `assistant`        | §14 meal assistant (`/meals/assistant-prompts/`, `/assistant/`, `/confirm/`)               | 18c Chat presence (presence orb)                                                            | ⚠️ meal_plan context only; cross-pillar chat has no API, see F4          |
+| `insights`         | §10 `/insights/`, `/insights/generate/`                                                    | Smart Insight cards (home), 27a lock-screen (OS, later)                                     | ✅ (gated: needs ≥30 days data)                                          |
+| `profile`          | §4 profile/update/delete, §5 diet-profile GET, §6 verify, §7 password, §15 contact-support | 19a Profile, 19b What Coreo knows                                                           | ✅                                                                       |
+| `import`           | §11 data import (`/import/`, poll)                                                         | 7a·5 Sources (partial)                                                                      | ⚠️ wearable/export import = deferred scope, mock-only, see F5            |
+| `paywall`          | (none — billing out of scope)                                                              | 26a/26b Coreo Plus                                                                          | ⬜ deferred (build screen, no billing) — design-system §9                |
+| shared/`core`      | §15 health-check/app-info/config, §16 quota                                                | app-wide (config on boot; error/empty states 25a–25c)                                       | ✅                                                                       |
+| notifications      | (OS-rendered)                                                                              | 27a/27b/27c lock screen                                                                     | ⬜ later (Live Activities / notifications)                               |
 
 ### Flags to resolve during build (design ↔ API ↔ scope mismatches)
 
 - **F1 — Return-user login screen.** The design starts at First-open/onboarding; there's
-  no explicit standalone email/password *login* screen in the 57 (8a "Save your core" is
-  the *register* moment). The scaffold has `(auth)/login.tsx`. Decide: does 8a double as
+  no explicit standalone email/password _login_ screen in the 57 (8a "Save your core" is
+  the _register_ moment). The scaffold has `(auth)/login.tsx`. Decide: does 8a double as
   sign-in-or-register, or do we design a small login screen not in the export? (Low risk,
   decide at Phase 2.)
 - **F2 — Fitness/wellness onboarding answers have no API home.** `diet-profile` (§5) is
@@ -67,7 +67,7 @@ feature to its API section(s) and the design screen codes (search
   stress/mindfulness. API only exposes `water_ml` PATCH and read-only DailyLog
   sleep_hours/hrv. Mock the wellness log writes; flag backend gap.
 - **F4 — Assistant is meal-only.** §14 assistant is scoped to `context=meal_plan`. The
-  product USP is a *cross-pillar* assistant. MVP = meal-plan assistant on the real API +
+  product USP is a _cross-pillar_ assistant. MVP = meal-plan assistant on the real API +
   a mock "Q&A over your own logged data" for the presence/chat screen; do not imply
   cross-pillar reasoning the backend can't do yet.
 - **F5 — Import = deferred wearable scope.** §11 import (apple_health/mfp/strava) maps to
@@ -112,7 +112,7 @@ Why this over alternatives:
 
 - **vs MSW** — MSW is the "standard" at the network layer and has an RN story, but it adds
   a dependency + native/polyfill setup and duplicates the seam we already own. We keep MSW
-  as a *possible later addition for tests* (network-level realism), not for app runtime.
+  as a _possible later addition for tests_ (network-level realism), not for app runtime.
 - **vs per-feature mock functions** — scatters mock logic and makes the off-switch messy;
   rejected.
 
@@ -140,15 +140,15 @@ and read it in `app.config.ts` alongside `EXPO_PUBLIC_API_URL`. Live mode = toda
 
 The scaffold currently diverges from the contract — reconcile it now, backed by the mock:
 
-| Concern | Scaffold today | Target (per API_REFERENCE) |
-|---|---|---|
-| Login path | `POST /auth/login` | `POST /users/login/` |
-| Register | (none) | `POST /users/register/` |
-| Response | `{ token }` | Style A `data: { user, tokens: { access, refresh } }` |
-| Token storage | single `authToken` in SecureStore | `access` **and** `refresh` in SecureStore |
-| Expiry/refresh | none | `401 → POST /users/token/refresh/ → retry`; on refresh fail → sign out |
-| Logout | delete token locally | `POST /users/logout/` (blacklist) + clear SecureStore |
-| Envelope parsing | assumes bare | Style A unwrap for `/users/*` and `/core/*` |
+| Concern          | Scaffold today                    | Target (per API_REFERENCE)                                             |
+| ---------------- | --------------------------------- | ---------------------------------------------------------------------- |
+| Login path       | `POST /auth/login`                | `POST /users/login/`                                                   |
+| Register         | (none)                            | `POST /users/register/`                                                |
+| Response         | `{ token }`                       | Style A `data: { user, tokens: { access, refresh } }`                  |
+| Token storage    | single `authToken` in SecureStore | `access` **and** `refresh` in SecureStore                              |
+| Expiry/refresh   | none                              | `401 → POST /users/token/refresh/ → retry`; on refresh fail → sign out |
+| Logout           | delete token locally              | `POST /users/logout/` (blacklist) + clear SecureStore                  |
+| Envelope parsing | assumes bare                      | Style A unwrap for `/users/*` and `/core/*`                            |
 
 Planned changes (no code in this doc):
 
@@ -183,10 +183,24 @@ First open. No API dependency → best fidelity test of design→code. **See §5
 
 **Phase 2 — Auth + account creation.** 8a Save your core (register), login/return path
 (F1), verify/password screens as needed. Mock-backed (§3). Unlocks the authed area.
+**Superseded by the v2 flow (below): 8a is no longer where account creation happens relative to
+onboarding — it's now the _last_ step of the interview, not a gate before it.**
 
 **Phase 3 — Onboarding.** 7a·1–7a·8 core setup + 12a·1–12a·6 diet interview → `PUT
-/users/me/diet-profile/`. Fitness (16a·*) / wellness (17a·*) captured mock-only (F2).
-`onboarding_complete` gates entry to Home.
+/users/me/diet-profile/`. Fitness (16a·_) / wellness (17a·_) captured mock-only (F2).
+`onboarding_complete` gates entry to Home. **Elaborated in detail, part 2 onward, by
+`docs/onboarding-refinement-plan.md`** (diet interview D1–D10 incl. 4 net-new API-only
+screens, config-driven `dietQuestions.ts`, and the new wave-progress "calibrating" screen), **then
+restructured by `docs/onboarding-v2-flow-plan.md`** (value-first/signup-last: account creation
+moved to the end of the interview instead of gating it, `goal_type`/`gender` became direct
+questions, the whole draft persists locally via `onboardingStore` + Zustand `persist` so an
+interrupted interview resumes, core-setup and diet-interview step sequencing merged into one
+sequencer in `features/onboarding/lib/steps.ts`, and `GoalsScreen`/`SourcesScreen`/`ReadingScreen`
+were deleted — Sources/Reading moved out of the required path). `onboarding-v2-flow-plan.md` and
+`feature-map.md` are now the current source of truth for onboarding scope/status; treat this
+section and `onboarding-refinement-plan.md` as point-in-time framing only. F2/F3 below: **diet is
+now fully specced** (no longer mock-only); fitness/wellness onboarding capture remains open per
+F2, and wellness logging endpoints remain open per F3 — neither has changed.
 
 **Phase 4 — Home / dashboard (USP).** 24b petal-cluster home + 10a/10b composed/
 calibrating, from `GET /daily-summary/` + `/core/config/`. Resolve the "back to Home from
@@ -200,8 +214,9 @@ inside a pillar" navigation detail (design-system §8: petal cluster is Home-onl
 mock wellness logs, F3).
 
 **Phase 7 — Assistant, insights, profile, states.** 18c presence/chat (meal assistant real
-+ mock Q&A, F4); insights cards (§10, ≥30-day gate); 19a/19b profile (§4); 25a–25c
-error/empty/offline states; 26a/26b paywall (UI only).
+
+- mock Q&A, F4); insights cards (§10, ≥30-day gate); 19a/19b profile (§4); 25a–25c
+  error/empty/offline states; 26a/26b paywall (UI only).
 
 **Later (not MVP):** lock-screen/notifications (27a–c), real import/wearables (§11),
 real billing, cross-pillar AI backend.
@@ -217,6 +232,7 @@ itself) while the app boots and decides where to send them — proving the desig
 tokens, motion, and SVG logo all translate faithfully from the HTML export to React Native.
 
 **Routes/screens:**
+
 - Keep OS splash (`expo-splash-screen`, already wired in `src/app/_layout.tsx`) only to
   cover font/asset load, then hand off to an in-app animated splash.
 - `src/app/(public)/splash.tsx` (new route group `(public)` for pre-auth, non-gated
@@ -228,6 +244,7 @@ tokens, motion, and SVG logo all translate faithfully from the HTML export to Re
   CTA pill ("Begin"). Built immediately after the splash so the experiment has a landing.
 
 **Design source (exact values, from design-system.md + screens-source.html):**
+
 - Background: `linear-gradient(168deg, #D3E6F8 0%, #9EC3E8 48%, #6F9CCE 100%)` (sky ramp;
   map to `zenith/day/air/sky` tokens).
 - Wave logo path: `M 16 60 C 32 36, 48 36, 60 60 S 92 84, 104 60`, viewBox `0 0 120 120`,
@@ -237,6 +254,7 @@ tokens, motion, and SVG logo all translate faithfully from the HTML export to Re
 - Tagline: `body`/`caption` weight, `ink60`, sitting on a scrim/glass per contrast rule.
 
 **Animation (design-system §5 motion + reduced-motion law):**
+
 - Wave **draws in** via animated `strokeDashoffset` (Reanimated + SVG), ~900ms ease-out.
 - Wordmark fades + slight letter-track settle after the wave completes (~300ms).
 - Soft glow at the wave's "now" point (matches the signature wave treatment).
@@ -244,16 +262,18 @@ tokens, motion, and SVG logo all translate faithfully from the HTML export to Re
 - **`AccessibilityInfo.isReduceMotionEnabled` → static** logo + wordmark, no draw-in.
 
 **Data & state:**
+
 - Server data: none. (Optional: fire-and-forget `GET /core/health-check/` — public — to
   warm the client; not required.)
 - Client/global state: `sessionStore.status` (`checking|signedOut|signedIn`, exists) +
-  a **first-run / onboarding-complete flag**. Onboarding completeness is a *server* fact
+  a **first-run / onboarding-complete flag**. Onboarding completeness is a _server_ fact
   (`diet-profile.onboarding_complete`) → TanStack Query once authed; the pre-auth
   "has this user seen first-open" is small client state → tiny Zustand slice or a
   non-sensitive persisted flag (add `shared/lib/storage.ts` when needed, per architecture.md).
 - Forms: none.
 
 **Components:**
+
 - New (feature-local first, promote to shared once reused): `AnimatedSplash`.
 - New shared primitive: **`WaveMark`** (the SVG wave logo) + wordmark — reused by First
   open, headers, empty states, and the app icon. Add to design-system §7 inventory.
@@ -261,6 +281,7 @@ tokens, motion, and SVG logo all translate faithfully from the HTML export to Re
   below).
 
 **Edge cases to handle explicitly:**
+
 - Reduced motion → static, no animation.
 - Fonts not yet loaded → OS splash stays until `useFonts` resolves (already gated); animated
   splash only mounts after.
@@ -276,6 +297,7 @@ tokens, motion, and SVG logo all translate faithfully from the HTML export to Re
 localization of the tagline, the actual onboarding questions (Phase 3).
 
 **Acceptance criteria:**
+
 - [ ] Cold start shows the OS splash, then the animated wave draws itself in on the sky
       gradient with the `coreo` wordmark, matching design-system colors/typography (tokens,
       not hardcoded values).
@@ -319,4 +341,7 @@ localization of the tagline, the actual onboarding questions (Phase 3).
   (design-system §11.3).
 - **A5:** Mock is the dev default (`EXPO_PUBLIC_API_MODE=mock`); live is a flag flip when the
   backend is ready.
+
+```
+
 ```

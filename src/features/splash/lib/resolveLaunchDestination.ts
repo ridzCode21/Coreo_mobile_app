@@ -7,16 +7,26 @@ import type { Href } from 'expo-router';
  *
  * F1 (feature-map.md) resolved for now: every signed-out user — first-time *or* returning —
  * lands on first-open, never `(auth)/login`. The 57-screen export has no standalone return-user
- * login screen; its only account entry point is 8a Save your core, reached via
+ * login screen; its only account entry point is "Save your core", reached via
  * first-open → onboarding. Routing returning signed-out users to the placeholder `login.tsx`
  * was a dead end (nothing there leads back into onboarding), so `hasSeenFirstOpen` no longer
  * affects this decision — it's kept as a param/flag for future analytics or a "welcome back"
  * variant of first-open, not for branching the destination.
+ *
+ * v2 adds one more branch (onboarding-v2-flow-plan.md §3 "Resume rule"): a signed-out user with a
+ * persisted, in-progress interview draft skips first-open entirely and resumes exactly where they
+ * left off, rather than restarting. `hasOnboardingProgress`/`resumeRoute` are only meaningful once
+ * the onboarding store has finished rehydrating from AsyncStorage — callers must gate on that
+ * (`useOnboardingStore`'s `hasHydrated`) before computing them; this function stays a pure,
+ * already-resolved-inputs decision either way.
  */
 export function resolveLaunchDestination(params: {
   isSignedIn: boolean;
   hasSeenFirstOpen: boolean;
+  hasOnboardingProgress: boolean;
+  resumeRoute: Href;
 }): Href {
   if (params.isSignedIn) return '/(app)';
+  if (params.hasOnboardingProgress) return params.resumeRoute;
   return '/(public)/first-open';
 }

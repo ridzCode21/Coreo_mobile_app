@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, type ViewStyle } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
-import { colors, fontFamily, radii, spacing, textStyle, typography } from '@/shared/theme/tokens';
+import { colors, fontFamily, radii, spacing, textStyle } from '@/shared/theme/tokens';
 
 type SelectableChipProps = {
   label: string;
@@ -11,19 +12,35 @@ type SelectableChipProps = {
 
 /**
  * Pill chip used across goal/diet-interview/setup selection screens — docs/design-system.md §7.
- * Unselected uses a flat translucent-white fill rather than a full `GlassCard`/`BlurView`: these
- * render many-in-a-row (e.g. multi-select goal lists), and a blur view per chip isn't worth the
- * perf cost for what's a small, mostly-opaque-looking surface at this size.
+ * Unselected reads as light glass via a two-stop diagonal gradient (matches the design's
+ * `linear-gradient(135deg, rgba(255,255,255,.5), rgba(255,255,255,.18))`) rather than a flat fill —
+ * a full `GlassCard`/`BlurView` per chip isn't used since these render many-in-a-row (e.g.
+ * multi-select goal lists) and a blur view per chip isn't worth the perf cost at this size.
  */
 export function SelectableChip({ label, selected, onPress, style }: SelectableChipProps) {
+  if (selected) {
+    return (
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityState={{ selected }}
+        style={[styles.base, styles.selected, style]}
+      >
+        <Text style={styles.selectedText}>{label}</Text>
+      </Pressable>
+    );
+  }
+
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      style={[styles.base, selected ? styles.selected : styles.unselected, style]}
-    >
-      <Text style={selected ? styles.selectedText : styles.unselectedText}>{label}</Text>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityState={{ selected }}>
+      <LinearGradient
+        colors={['rgba(255,255,255,0.5)', 'rgba(255,255,255,0.18)']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.base, styles.unselected, style]}
+      >
+        <Text style={styles.unselectedText}>{label}</Text>
+      </LinearGradient>
     </Pressable>
   );
 }
@@ -43,15 +60,18 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   unselected: {
-    backgroundColor: 'rgba(255,255,255,0.22)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
+    borderColor: 'rgba(255,255,255,0.6)',
   },
+  // Both states MUST share the exact same `fontSize`/`lineHeight` box (from `textStyle('body')`)
+  // — only `fontFamily` (weight) and `color` differ. The original code gave `selectedText` a
+  // weight bump *without* `textStyle('body')`'s pinned `lineHeight`, so Poppins-Medium's own
+  // (unpinned) default line box came out visibly shorter than Poppins-Light's explicit 1.85×
+  // line-height the instant a chip was tapped — the whole pill appeared to resize on selection.
+  // Locking both to the same base guarantees the chip's footprint never changes.
   selectedText: {
-    // Weight 500 at body size — the design calls for this exact combo (no single named
-    // typography token covers it; `label` is weight 500 but uppercase/wide-tracked, wrong here).
+    ...textStyle('body'),
     fontFamily: fontFamily.poppins500,
-    fontSize: typography.body.fontSize,
     color: colors.ink,
   },
   unselectedText: {

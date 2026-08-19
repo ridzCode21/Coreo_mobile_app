@@ -35,11 +35,21 @@ export function GlassCard({
       style={[styles.shadowWrap, { borderRadius: radius, shadowColor: palette.shadowColor }, style]}
     >
       <View style={[styles.clip, { borderRadius: radius, borderColor: palette.border }]}>
-        <BlurView
-          intensity={variant === 'light' ? 60 : 90}
-          tint={variant === 'light' ? 'light' : 'dark'}
-          style={StyleSheet.absoluteFill}
-        />
+        {/* Android has no working blur here: `dimezisBlurView*` methods require a `blurTarget`
+         * ref wired up via `BlurTargetView` (unconfigured app-wide right now), so without one
+         * expo-blur silently falls back to `'none'` — and that fallback's native view has been
+         * observed rendering as a narrower, hard-edged rectangle rather than filling the card,
+         * not just "no blur" but visibly broken. Skipping BlurView on Android entirely and
+         * relying on the gradient alone is the documented fallback (§4: "a fallback (semi-opaque
+         * solid color, no blur) ... if it looks bad") — revisit if/when blurTarget is wired up
+         * app-wide for real Android blur. */}
+        {Platform.OS !== 'android' ? (
+          <BlurView
+            intensity={variant === 'light' ? 60 : 90}
+            tint={variant === 'light' ? 'light' : 'dark'}
+            style={StyleSheet.absoluteFill}
+          />
+        ) : null}
         <LinearGradient
           colors={palette.gradient}
           start={{ x: 0, y: 0 }}

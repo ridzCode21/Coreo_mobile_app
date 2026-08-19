@@ -9,26 +9,30 @@ import {
 } from '@/features/onboarding/components/OnboardingStepScaffold';
 import { NextBar } from '@/features/onboarding/components/NextBar';
 import { useOnboardingStore } from '@/features/onboarding/store/onboardingStore';
-import { getNextOnboardingStep, onboardingStepRoute } from '@/features/onboarding/lib/steps';
+import { flowStepProgress, flowStepRoute, nextFlowStep } from '@/features/onboarding/lib/steps';
 
 /**
- * 7a·3 About you — age/height/weight sliders. Displayed and stored in metric (cm/kg) to match
- * `PUT /users/me/diet-profile/`'s `height_cm`/`weight_kg` fields directly (API_REFERENCE.md §5),
- * rather than the mockup's imperial display (5'11", 172 lb) — a deliberate, labeled adaptation to
- * keep the data model clean instead of doing unit-conversion just for display.
+ * About you — age/height/weight (onboarding-v2-flow-plan.md §1 row 4, §5). Gender is collected on
+ * its own following screen (`GenderScreen`), not here — see `lib/steps.ts`'s docblock for why.
+ * Displayed/stored in metric (cm/kg) to match `PUT /users/me/diet-profile/`'s `height_cm`/
+ * `weight_kg` fields directly, rather than the mockup's imperial display — a deliberate, labeled
+ * adaptation to keep the data model clean instead of unit-converting for display only.
  */
 export default function AboutYouScreen() {
   const router = useRouter();
   const draft = useOnboardingStore((state) => state.draft);
   const update = useOnboardingStore((state) => state.update);
+  const completeStep = useOnboardingStore((state) => state.completeStep);
 
   const goNext = () => {
-    router.push(onboardingStepRoute(getNextOnboardingStep('about-you', draft)));
+    completeStep('about-you');
+    const next = nextFlowStep('about-you', draft);
+    if (next) router.push(flowStepRoute(next));
   };
 
   return (
     <OnboardingStepScaffold
-      step="about-you"
+      progress={flowStepProgress('about-you', draft)}
       title={
         <Text style={onboardingTitleStyles.base}>
           The basics, so my <Text style={onboardingTitleStyles.emphasis}>math is right.</Text>
@@ -45,6 +49,7 @@ export default function AboutYouScreen() {
           max={90}
           onChange={(ageYears) => update({ ageYears })}
         />
+
         <SliderRow
           label="Height"
           value={draft.heightCm}

@@ -69,6 +69,7 @@ introduce alternative libraries that overlap with something already on this list
 | Client/UI state       | Zustand — small, global, non-server state only (auth session flags, theme, onboarding, feature flags) |
 | Forms & validation    | React Hook Form + Zod (shared schemas between form validation and API payload typing)                 |
 | Secrets/tokens        | `expo-secure-store` — the only place auth tokens or sensitive small values are persisted              |
+| Camera/photo          | `expo-image-picker` — camera + library capture for photo meal-logging (nutrition; isolated to `features/nutrition/lib/photoCapture.ts`). `expo-camera` — on-device barcode scanning (nutrition; isolated to `features/nutrition/components/BarcodeScannerView.tsx`; `CameraView` + `onBarcodeScanned`). Install via `npx expo install expo-image-picker expo-camera` |
 | Crash/perf monitoring | Sentry (deferred — see §7)                                                                            |
 | Testing               | Jest + React Native Testing Library + Maestro (deferred — see §7)                                     |
 | Release pipeline      | EAS Build, Update, Submit, Workflows                                                                  |
