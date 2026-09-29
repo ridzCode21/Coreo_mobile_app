@@ -14,7 +14,7 @@ import {
   useUpdateWaterMutation,
 } from '@/features/nutrition';
 
-const COREO_ROUTE = '/coreo' as Href;
+const COREO_ROUTE = '/core' as Href;
 const DIET_ROUTE = '/diet' as Href;
 const FITNESS_ROUTE = '/fitness' as Href;
 const WELLNESS_ROUTE = '/wellness' as Href;

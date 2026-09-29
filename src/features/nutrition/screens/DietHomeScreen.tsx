@@ -11,11 +11,16 @@ import {
   useDeleteFoodEntryMutation,
   useFoodEntriesQuery,
 } from '@/features/nutrition/api/nutritionApi';
-import { groupEntriesByMeal, targetsFromProfile } from '@/features/nutrition/lib/macros';
+import {
+  groupEntriesByMeal,
+  normalizeMacroSummary,
+  targetsFromProfile,
+} from '@/features/nutrition/lib/macros';
 import { MacroSummaryCard } from '@/features/nutrition/components/MacroSummaryCard';
 import { FoodEntryRow } from '@/features/nutrition/components/FoodEntryRow';
 import { LogMealSheet } from '@/features/nutrition/components/LogMealSheet';
 import { DietPersonalizationCard } from '@/features/nutrition/components/DietPersonalizationCard';
+import { MealPlanCard } from '@/features/nutrition/components/MealPlanCard';
 import type { MealType } from '@/shared/types/food';
 
 const MEAL_LABEL: Record<MealType, string> = {
@@ -24,8 +29,6 @@ const MEAL_LABEL: Record<MealType, string> = {
   dinner: 'Dinner',
   snack: 'Snack',
 };
-
-const EMPTY_SUMMARY = { calories_in: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
 
 /**
  * Diet home (14a) — the day's calorie budget + macros + logged entries, and the entry point to
@@ -45,7 +48,7 @@ export default function DietHomeScreen() {
 
   const profile = profileQuery.data;
   const targets = profile ? targetsFromProfile(profile) : null;
-  const consumed = entriesQuery.data?.macro_summary ?? EMPTY_SUMMARY;
+  const consumed = normalizeMacroSummary(entriesQuery.data?.macro_summary);
   const entries = entriesQuery.data?.entries ?? [];
   const sections = groupEntriesByMeal(entries);
 
@@ -87,9 +90,7 @@ export default function DietHomeScreen() {
               </Text>
             )}
 
-            {/* LAYER 2 (F-N3/F-N5): the "Next meal · before 1 PM" planned-meal card and the
-                weight-trend chip go here, fed by the meal-plan API (§12). Deliberately omitted —
-                not faked — until the meal-plan cycle. */}
+            <MealPlanCard date={today} />
 
             <View style={styles.listSection}>
               {sections.length === 0 ? (

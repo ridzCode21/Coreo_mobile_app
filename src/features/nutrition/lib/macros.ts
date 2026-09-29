@@ -23,30 +23,44 @@ export type RemainingMacros = {
   fat_g: number;
 };
 
+function finiteNumber(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
 /** Pull the four daily targets off the diet profile (API_REFERENCE.md §5). */
 export function targetsFromProfile(profile: DietProfile): MacroTargets {
   return {
-    calories: profile.daily_calories,
-    protein_g: profile.daily_protein_g,
-    carbs_g: profile.daily_carbs_g,
-    fat_g: profile.daily_fat_g,
+    calories: finiteNumber(profile.daily_calories),
+    protein_g: finiteNumber(profile.daily_protein_g),
+    carbs_g: finiteNumber(profile.daily_carbs_g),
+    fat_g: finiteNumber(profile.daily_fat_g),
+  };
+}
+
+export function normalizeMacroSummary(summary: Partial<MacroSummary> | null | undefined): MacroSummary {
+  return {
+    calories_in: finiteNumber(summary?.calories_in),
+    protein_g: finiteNumber(summary?.protein_g),
+    carbs_g: finiteNumber(summary?.carbs_g),
+    fat_g: finiteNumber(summary?.fat_g),
   };
 }
 
 /** `remaining = target − consumed`, per macro. Can go negative (over budget) — that's intentional. */
 export function computeRemaining(targets: MacroTargets, consumed: MacroSummary): RemainingMacros {
   return {
-    calories: targets.calories - consumed.calories_in,
-    protein_g: targets.protein_g - consumed.protein_g,
-    carbs_g: targets.carbs_g - consumed.carbs_g,
-    fat_g: targets.fat_g - consumed.fat_g,
+    calories: finiteNumber(targets.calories) - finiteNumber(consumed.calories_in),
+    protein_g: finiteNumber(targets.protein_g) - finiteNumber(consumed.protein_g),
+    carbs_g: finiteNumber(targets.carbs_g) - finiteNumber(consumed.carbs_g),
+    fat_g: finiteNumber(targets.fat_g) - finiteNumber(consumed.fat_g),
   };
 }
 
 /** Fill ratio for a progress bar, clamped to `0..1` so a bar never overflows its track visually. */
 export function macroFillRatio(consumed: number, target: number): number {
-  if (target <= 0) return 0;
-  return Math.min(1, Math.max(0, consumed / target));
+  const safeTarget = finiteNumber(target);
+  if (safeTarget <= 0) return 0;
+  return Math.min(1, Math.max(0, finiteNumber(consumed) / safeTarget));
 }
 
 const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];

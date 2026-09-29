@@ -9,6 +9,11 @@ import type { DietProfile } from '@/shared/types/dietProfile';
 import type { Gender } from '@/shared/types/user';
 import type { FoodEntry, FoodItem } from '@/shared/types/food';
 import type { DailyLog } from '@/shared/types/dailyLog';
+import type {
+  AssistantIntent,
+  MealPlanDetail,
+  ReplacePreviewAlternative,
+} from '@/shared/types/mealPlan';
 
 export type MockUser = {
   id: string;
@@ -41,8 +46,43 @@ type MockDb = {
   foodItems: FoodItem[];
   /** AI-photo usage counter, keyed `${userId}:${date}`, enforcing the 10/day free limit. §8/§16. */
   photoQuotaByUserDate: Record<string, number>;
+  /** Keyed `${userId}:${date}`. One plan per user per day (§12). */
+  mealPlans: Record<string, MealPlanDetail>;
+  /** GET poll counts for async meal-plan status progression. */
+  mealPlanPollCounts: Record<string, number>;
+  /** Preview tokens for the replace flow, TTL 600s (§13). */
+  replacePreviews: Record<
+    string,
+    {
+      userId: string;
+      mealId: number;
+      alternatives: ReplacePreviewAlternative[];
+      expiresAt: number;
+    }
+  >;
+  /** Per-action-per-user-per-day counters for §16 quotas. */
+  quotaCounters: Record<string, number>;
+  /** Recipes generated lazily so recipe quota only charges once per meal (§13). */
+  generatedRecipeMealIds: Set<number>;
+  /** Pending meal-assistant proposals, TTL 600s (§14). */
+  assistantProposals: Record<
+    string,
+    {
+      userId: string;
+      date: string;
+      intent: AssistantIntent;
+      mealId?: number;
+      expiresAt: number;
+    }
+  >;
   /** Monotonic id source for created food entries. */
   nextFoodEntryId: number;
+  /** Monotonic id source for created meal plans. */
+  nextMealPlanId: number;
+  /** Monotonic id source for planned meals. */
+  nextPlannedMealId: number;
+  /** Monotonic id source for feedback entries. */
+  nextMealFeedbackId: number;
 };
 
 function createEmptyDb(): MockDb {
@@ -53,7 +93,16 @@ function createEmptyDb(): MockDb {
     dailyLogs: {},
     foodItems: [],
     photoQuotaByUserDate: {},
+    mealPlans: {},
+    mealPlanPollCounts: {},
+    replacePreviews: {},
+    quotaCounters: {},
+    generatedRecipeMealIds: new Set<number>(),
+    assistantProposals: {},
     nextFoodEntryId: 1,
+    nextMealPlanId: 1,
+    nextPlannedMealId: 100,
+    nextMealFeedbackId: 1,
   };
 }
 
@@ -67,5 +116,14 @@ export function __resetMockDbForTests(): void {
   mockDb.dailyLogs = {};
   mockDb.foodItems = [];
   mockDb.photoQuotaByUserDate = {};
+  mockDb.mealPlans = {};
+  mockDb.mealPlanPollCounts = {};
+  mockDb.replacePreviews = {};
+  mockDb.quotaCounters = {};
+  mockDb.generatedRecipeMealIds = new Set<number>();
+  mockDb.assistantProposals = {};
   mockDb.nextFoodEntryId = 1;
+  mockDb.nextMealPlanId = 1;
+  mockDb.nextPlannedMealId = 100;
+  mockDb.nextMealFeedbackId = 1;
 }

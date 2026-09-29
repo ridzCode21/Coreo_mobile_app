@@ -7,7 +7,7 @@ import { Screen } from '@/shared/components/Screen';
 import { WaveChart } from '@/shared/components/WaveChart';
 import { colors, fontFamily, radii, spacing, textStyle } from '@/shared/theme/tokens';
 
-const COREO_ROUTE = '/coreo' as Href;
+const COREO_ROUTE = '/core' as Href;
 
 type PillarComingSoonScreenProps = {
   pillar: 'Fitness' | 'Wellness';

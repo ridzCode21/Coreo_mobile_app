@@ -1,6 +1,6 @@
 # Nutrition Layer 2 — Meal Planner implementation plan
 
-Status: **PROPOSED (plan only, no code yet).** Scope: `API_REFERENCE.md` §12 (meal plans), §13
+Status: **IMPLEMENTED against mock APIs (2026-08-19).** Scope: `API_REFERENCE.md` §12 (meal plans), §13
 (meal actions), §14 (meal assistant — the meal-plan-context part only, see §8 below), and the
 `plan_generate`/`plan_regenerate`/`recipe_generate`/`replace_preview`/`assistant` quotas in §16.
 Builds directly on top of `docs/onboarding-v3-minimal-drip-plan.md` rev. 2 — Diet tab's §7.3 layout

@@ -36,7 +36,7 @@ const config: ExpoConfig = {
     },
     predictiveBackGestureEnabled: false,
     // Camera for photo meal-logging (see ios.infoPlist note above).
-    permissions: ['android.permission.CAMERA'],
+    permissions: ['android.permission.INTERNET', 'android.permission.CAMERA'],
   },
   web: {
     output: 'static',

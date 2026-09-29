@@ -1,10 +1,11 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import { GlassCard } from '@/shared/components/GlassCard';
-import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { colors, spacing, textStyle } from '@/shared/theme/tokens';
 
-export type BottomDockRouteName = 'diet' | 'fitness' | 'wellness' | 'coreo';
+export type BottomDockRouteName = 'diet' | 'fitness' | 'wellness' | 'core';
 
 export type BottomDockItem = {
   name: BottomDockRouteName;
@@ -18,14 +19,14 @@ type BottomDockProps = {
 };
 
 function DockIcon({ name, active }: { name: BottomDockRouteName; active: boolean }) {
-  const stroke = active ? colors.onNight : 'rgba(239,244,249,0.72)';
+  const stroke = active ? colors.onNight : colors.ink60;
   if (name === 'diet') {
     return (
-      <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
         <Path
-          d="M7 3v18M4 3v5a3 3 0 0 0 6 0V3M17 3v18M14 3h6"
+          d="M7 13h10M8.5 13c0 3 7 3 7 0M12 6v5M9.5 8.5v2.5M14.5 8.5v2.5"
           stroke={stroke}
-          strokeWidth={1.7}
+          strokeWidth={1.8}
           strokeLinecap="round"
         />
       </Svg>
@@ -33,11 +34,11 @@ function DockIcon({ name, active }: { name: BottomDockRouteName; active: boolean
   }
   if (name === 'fitness') {
     return (
-      <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
         <Path
           d="M4 10v4M8 8v8M16 8v8M20 10v4M8 12h8"
           stroke={stroke}
-          strokeWidth={1.7}
+          strokeWidth={1.8}
           strokeLinecap="round"
         />
       </Svg>
@@ -45,39 +46,35 @@ function DockIcon({ name, active }: { name: BottomDockRouteName; active: boolean
   }
   if (name === 'wellness') {
     return (
-      <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
         <Path
-          d="M12 20c4-2.4 7-6 7-10a7 7 0 0 0-14 0c0 4 3 7.6 7 10Z"
+          d="M18.5 15.4A6.8 6.8 0 0 1 8.6 5.5 7 7 0 1 0 18.5 15.4Z"
           stroke={stroke}
-          strokeWidth={1.7}
+          strokeWidth={1.8}
           strokeLinejoin="round"
-        />
-        <Path
-          d="M9 10.5c1.5 1.4 4.5 1.4 6 0"
-          stroke={stroke}
-          strokeWidth={1.7}
-          strokeLinecap="round"
         />
       </Svg>
     );
   }
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+    <Svg width={25} height={25} viewBox="0 0 24 24" fill="none">
       <Path
         d="M3.5 12c2.3-5.7 5.3-5.7 7.8 0s5.5 5.7 9.2 0"
         stroke={stroke}
-        strokeWidth={1.7}
+        strokeWidth={2.4}
         strokeLinecap="round"
       />
-      <Circle cx={15.8} cy={14} r={1.8} fill={stroke} opacity={0.9} />
+      {active ? null : <Circle cx={15.8} cy={14} r={1.5} fill={stroke} opacity={0.8} />}
     </Svg>
   );
 }
 
 export function BottomDock({ items }: BottomDockProps) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.wrap} pointerEvents="box-none">
-      <GlassCard variant="night" radius={radii.xl} padded={false} style={styles.card}>
+    <View style={[styles.wrap, { bottom: insets.bottom + spacing.lg }]} pointerEvents="box-none">
+      <GlassCard variant="light" radius={38} padded={false} style={styles.card}>
         <View style={styles.row}>
           {items.map((item) => (
             <Pressable
@@ -103,43 +100,48 @@ export function BottomDock({ items }: BottomDockProps) {
 const styles = StyleSheet.create({
   wrap: {
     position: 'absolute',
-    left: spacing.lg,
-    right: spacing.lg,
-    bottom: spacing.lg,
+    left: spacing.xxl,
+    right: spacing.xxl,
     alignItems: 'center',
   },
   card: {
     width: '100%',
-    maxWidth: 430,
+    maxWidth: 676,
   },
   row: {
-    height: 72,
+    minHeight: 88,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   item: {
     flex: 1,
-    minHeight: 60,
+    minHeight: 64,
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
   },
   iconCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconCircleActive: {
-    backgroundColor: 'rgba(8,24,44,0.5)',
+    backgroundColor: colors.ink,
+    shadowColor: 'rgba(8,24,44,0.34)',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 1,
+    shadowRadius: 18,
+    elevation: 8,
   },
   label: {
-    ...textStyle('micro'),
-    color: 'rgba(239,244,249,0.62)',
+    ...textStyle('caption'),
+    color: colors.ink60,
   },
   labelActive: {
-    color: colors.onNight,
+    color: colors.ink,
   },
 });

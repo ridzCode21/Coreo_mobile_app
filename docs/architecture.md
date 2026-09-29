@@ -43,15 +43,18 @@ src/
                                   # design's only sign-up/sign-in moment is 8a inside onboarding
     (app)/                       # authenticated area
       _layout.tsx                 # Stack wrapper: index redirect + (tabs)
-      index.tsx                   # redirects to /coreo
+      index.tsx                   # redirects to /core
       (tabs)/
         _layout.tsx               # Expo Router Tabs with custom shared BottomDock
-        coreo/index.tsx           # → features/home CoreoHomeScreen
+        core/index.tsx            # → features/home CoreoHomeScreen
+        coreo/index.tsx           # legacy redirect → /core
         diet/
           _layout.tsx             # per-tab stack
           index.tsx               # → features/nutrition DietHomeScreen
           confirm.tsx             # → features/nutrition ConfirmMealScreen
           scan.tsx                # → features/nutrition BarcodeScannerScreen (dock hidden)
+          plan.tsx                # → features/nutrition MealPlanScreen
+          meal/[id].tsx           # → features/nutrition MealDetailScreen
         fitness/index.tsx         # → features/home placeholder until Phase 6
         wellness/index.tsx        # → features/home placeholder until Phase 6
 
@@ -83,16 +86,19 @@ src/
       schemas.ts                  # Zod dietProfilePatchSchema, freeFoodEntrySchema
       components/                 # OnboardingStepScaffold, NextBar, SliderRow, ToggleRow, etc.
     workouts/                    # not yet created — added when that feature is planned/built
-    nutrition/                   # Layer 1 built: food logging + calorie/macro tracking
+    nutrition/                   # Layer 1 + Layer 2 nutrition flows
       api/                       # nutritionApi — food entries/search/barcode/photo + daily-summary
-                                  # query/mutation hooks + nutritionKeys factory (§8/§10)
-      screens/                   # DietHomeScreen (14a, temporary (app) landing), ConfirmMealScreen (15a)
-      components/                # MacroSummaryCard, LogMealSheet, LoggingOptionTile, FoodEntryRow, FoodSearchList
+                                  # query/mutation hooks + nutritionKeys factory (§8/§10);
+                                  # mealPlanApi — meal plans/actions/assistant (§12–§14)
+      screens/                   # DietHomeScreen (14a), ConfirmMealScreen (15a),
+                                  # BarcodeScannerScreen, MealPlanScreen, MealDetailScreen
+      components/                # MacroSummaryCard, LogMealSheet, LoggingOptionTile,
+                                  # FoodEntryRow, FoodSearchList, MealPlanCard, QuotaBanner
       lib/                       # macros (pure budget/grouping helpers), photoCapture (expo-image-picker, isolated)
-      mocks/                     # handlers (§8 food + §10 daily-summary) + fixtures (seed food DB + starter day)
+      mocks/                     # handlers (§8 food + §10 daily-summary), mealPlan.handlers (§12–§14)
+                                  # + fixtures (seed food DB + starter day)
       schemas.ts                 # Zod: confirm/manual entry + confirm route params
       index.ts                   # public surface
-      # Layer 2 (pending): meal plans (§12), meal actions (§13), assistant (§14)
     home/                        # Coreo/Home dashboard + placeholder pillar surfaces for the tab shell
       screens/                    # CoreoHomeScreen, PillarComingSoonScreen
       index.ts
@@ -241,7 +247,7 @@ plan (mock-backed now, real contract from day one).
     `PUT /users/me/diet-profile/` (`goal_type`, `weight_kg`, `height_cm`), clears the onboarding
     draft, and only then `router.replace('/(app)')`s — with a retry affordance if that one PUT
     fails after the account already exists (account creation isn't rolled back). `(app)` now hosts
-    `(tabs)` with a custom shared `BottomDock`: Diet / Fitness / Wellness / Coreo. Coreo is the
+    `(tabs)` with a custom shared `BottomDock`: Diet / Fitness / Wellness / Coreo. Core (`/core`) is the
     default destination after signup; Diet has its own nested stack for logging confirm/scan.
     `(auth)`'s `login.tsx` is currently unreachable from any navigation path (F1, resolved for now
     — see `feature-map.md`); it stays in the tree as scaffold for whenever a real login screen is
