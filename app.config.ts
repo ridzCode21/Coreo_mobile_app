@@ -2,6 +2,8 @@ import type { ExpoConfig } from 'expo/config';
 
 // Env-aware app config (see docs/architecture.md §6). Real secrets never live here directly —
 // only references to process.env, populated locally via .env and in CI/EAS via EAS secrets.
+const defaultLiveApiUrl = 'https://vesselled-maxton-ringlike.ngrok-free.dev/api/v1';
+
 const config: ExpoConfig = {
   name: 'Coreo',
   slug: 'coreo',
@@ -16,6 +18,13 @@ const config: ExpoConfig = {
   ios: {
     bundleIdentifier: 'com.coreo.app',
     supportsTablet: true,
+    // Photo meal-logging (expo-image-picker, nutrition feature). Set here directly rather than via
+    // the expo-image-picker config plugin so the app still builds before the package is installed
+    // (`npx expo install expo-image-picker`). Calm, first-person copy per design-system.md §10.
+    infoPlist: {
+      NSCameraUsageDescription: 'Coreo uses your camera to read your meal, so you can log it without typing.',
+      NSPhotoLibraryUsageDescription: 'Coreo reads a photo of your meal to estimate its nutrition.',
+    },
   },
   android: {
     package: 'com.coreo.app',
@@ -26,6 +35,8 @@ const config: ExpoConfig = {
       monochromeImage: './assets/images/android-icon-monochrome.png',
     },
     predictiveBackGestureEnabled: false,
+    // Camera for photo meal-logging (see ios.infoPlist note above).
+    permissions: ['android.permission.INTERNET', 'android.permission.CAMERA'],
   },
   web: {
     output: 'static',
@@ -48,7 +59,10 @@ const config: ExpoConfig = {
     reactCompiler: true,
   },
   extra: {
-    apiUrl: process.env.EXPO_PUBLIC_API_URL ?? 'https://api.coreo.dev',
+    apiUrl: process.env.EXPO_PUBLIC_API_URL ?? defaultLiveApiUrl,
+    // 'mock' (default) routes every request through the in-app mock router instead of the
+    // network — see docs/implementation-plan.md §2. Set to 'live' for the ngrok backend above.
+    apiMode: process.env.EXPO_PUBLIC_API_MODE ?? 'mock',
   },
 };
 
