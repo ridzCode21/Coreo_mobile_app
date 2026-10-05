@@ -4,7 +4,8 @@ All rules for this repo live in `CLAUDE.md`. Read it in full before any work. Do
 rules here — this file only points to them.
 
 **Claude files are primary.** Follow `CLAUDE.md` and the playbooks in `.claude/skills/`. If your
-tool has its own config files (for example `.cursor/rules/`), follow those too. If they conflict,
+tool has its own config files (Cursor: `.cursor/rules/`; Codex: `.codex/` and `~/.codex/`), follow
+those too. Cursor and Codex load this file automatically; Claude Code loads `CLAUDE.md`. If they conflict,
 `CLAUDE.md` wins.
 
 Playbooks — open the one that matches your task: `.claude/skills/<name>/SKILL.md`

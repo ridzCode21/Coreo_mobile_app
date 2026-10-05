@@ -25,4 +25,4 @@ files, and don't ask for the design to be changed to fit the code.
 5. A difference is allowed only if the user explicitly approves it for this task. Record the
    approved difference in the commit message body.
 6. If the design is missing, unclear, or doesn't cover a state (see `docs/design-system.md` §8–9),
-   say so and ask. Don't invent visuals (`CLAUDE.md` §8).
+   say so and ask. Don't invent visuals (`CLAUDE.md` §6).

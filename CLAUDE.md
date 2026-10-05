@@ -15,7 +15,7 @@ Product vision, users, and scope: [`docs/product-context.md`](docs/product-conte
 
 ```
 CLAUDE.md                  # this file — the only place rules are written
-AGENTS.md                  # signpost for Cursor/other tools; points here, holds no rules
+AGENTS.md                  # signpost for Cursor/Codex/other tools; points here, holds no rules
 app.config.ts              # Expo app config (env-aware — see docs/architecture.md §6)
 docs/
   product-context.md       # product vision, users, market context, feature scope
@@ -70,40 +70,31 @@ lint, components): [`docs/coding-standards.md`](docs/coding-standards.md).
 
 ## 4. Playbooks (`.claude/skills/`)
 
-Claude Code runs these as `/<name>` skills (most are set to manual-only, so open or invoke the
-right one at the right point in a task). Other tools must open the `SKILL.md` by path.
+Task playbooks: `product-analysis`, `feature-planning`, `react-native-architecture`,
+`responsive-ui`, `security-review`, `design-alignment`, `pr-review`, `testing`. Each is
+`.claude/skills/<name>/SKILL.md`. Claude Code runs them as `/<name>` skills (most are manual-only,
+so invoke them yourself at the right step in §5); other tools must open the file by path.
 
-| Skill                                                                            | Open it when...                                                                           |
-| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| [`product-analysis`](.claude/skills/product-analysis/SKILL.md)                   | Starting any new feature/request — before writing a plan or code                          |
-| [`feature-planning`](.claude/skills/feature-planning/SKILL.md)                   | Turning an analyzed idea into a concrete implementation plan                              |
-| [`react-native-architecture`](.claude/skills/react-native-architecture/SKILL.md) | Deciding where code lives, which state tool to use, navigation structure                  |
-| [`responsive-ui`](.claude/skills/responsive-ui/SKILL.md)                         | Building or modifying any screen/component                                                |
-| [`testing`](.claude/skills/testing/SKILL.md)                                     | Writing or reviewing tests (once test infra exists)                                       |
-| [`security-review`](.claude/skills/security-review/SKILL.md)                     | Touching auth, tokens, storage, permissions, network calls, or before finishing a feature |
-| [`design-alignment`](.claude/skills/design-alignment/SKILL.md)                   | Before every commit that touches UI — strict match to `designs/`, warn on any difference  |
-| [`pr-review`](.claude/skills/pr-review/SKILL.md)                                 | Before declaring any task "done"                                                          |
+## 5. How to approach every task
 
-## 5. How to approach every task (decision framework)
+Use the playbooks at these points, in order, and say which step you're on. Invoke each one with
+the Skill tool (or open its `SKILL.md`) at that moment, not from memory. Skip steps only for
+genuinely trivial changes (typos, copy tweaks, config values) and say so.
 
-For anything beyond a trivial one-line fix, work through these steps in order and say which step
-you're on:
-
-1. **Understand like a product owner** — `product-analysis`: who is it for, what job does it do,
-   how do comparable apps (Strava, Fitbod, Nike Training Club, MyFitnessPal) handle it, MVP slice
-   vs. later. If `docs/product-context.md` doesn't answer, say so and ask, or state a
-   clearly-labeled assumption — never silently guess product intent.
-2. **Plan** — `feature-planning`: screens/routes touched, data needed, where state lives (query /
-   store / form), components to build or reuse, edge cases (loading/empty/error/offline),
-   acceptance criteria.
-3. **Architect** — `react-native-architecture` for folder placement and state ownership; also
-   `responsive-ui` for any UI work.
-4. **Implement** — follow `docs/coding-standards.md` and §11. Extend existing feature modules
-   rather than creating parallel structures.
-5. **Self-review** — `security-review` if the change touches auth, tokens, storage, permissions,
-   or network; then always `pr-review` as the final gate.
-
-Skip steps only for genuinely trivial changes (typos, copy tweaks, config values) and say so.
+1. **Request arrives** (new feature, screen, or behavior change) → `product-analysis`, before any
+   plan or code. If `docs/product-context.md` doesn't answer, ask or state a labeled assumption;
+   never silently guess product intent.
+2. **Idea is clear, before writing code** → `feature-planning` for a short plan (screens, data,
+   state, edge cases, acceptance criteria).
+3. **Before creating files or choosing a state tool** → `react-native-architecture`. Also
+   `responsive-ui` before building or editing any screen or component.
+4. **Implement** — follow `docs/coding-standards.md`; extend existing feature modules.
+5. **Change touches auth, tokens, storage, permissions, or network** → `security-review`, before
+   finishing.
+6. **Before every commit that touches UI** → `design-alignment`; warn the user on any difference
+   (§13).
+7. **Before saying "done"** → `pr-review`, always. Writing or reviewing tests → `testing` (once
+   test infra exists, §7).
 
 ## 6. Guardrails
 
@@ -116,7 +107,7 @@ Skip steps only for genuinely trivial changes (typos, copy tweaks, config values
 - Tokens and sensitive values never touch `AsyncStorage`, plain state, or logs — only
   `expo-secure-store`.
 - No hardcoded design values (colors, spacing, type sizes) in components — use tokens from
-  `docs/design-system.md`.
+  `docs/design-system.md`. Never invent visual values outside it: extend the doc first (or ask).
 - Flag any new dependency that overlaps with §3 to the user before adding it.
 
 ## 7. Explicitly deferred (don't set up yet, but design for it)
@@ -127,30 +118,16 @@ Keep code testable (pure functions, isolated hooks, no logic buried in component
 
 ## 8. Working with the docs
 
-`docs/product-context.md` and `docs/design-system.md` are populated (see `docs/design-system.md`
-§8–9 for open items: an unconfirmed navigation pattern, and screens that are ahead of current MVP
-scope). When a task needs them:
-
-1. Check there first — the answer is usually there.
-2. If not, make the smallest reasonable assumption, label it as an assumption in your response,
-   and suggest the doc be updated.
-3. Never invent visual values (colors, spacing, radii, type sizes) outside
-   `docs/design-system.md`. If a component isn't covered, extend the doc first (or ask) rather
-   than freelance a one-off style.
+Check `docs/` first (product-context, design-system, architecture). If the answer isn't there,
+make the smallest reasonable assumption, label it, and suggest the doc be updated. Details:
+[`product-analysis`](.claude/skills/product-analysis/SKILL.md).
 
 ## 9. Definition of done
 
-- [ ] Follows `docs/architecture.md`, `docs/coding-standards.md`, and the guardrails in §6.
-- [ ] UI works across common phone sizes and both platforms (`responsive-ui`).
-- [ ] `npm run typecheck`, `npm run lint`, and `npm run format:check` pass with no new warnings —
-      run them and read the output; don't assume.
-- [ ] `pr-review` checklist passed.
-- [ ] UI changes strictly match the Claude Design (§13); any difference was warned about and
-      approved by the user before committing.
-- [ ] New product/design assumptions are called out to the user.
-
-Git hooks (husky) run `lint-staged` (eslint + prettier on staged files) on commit and `typecheck`
-on push. They install on `npm install`; never bypass them with `--no-verify`.
+Run the [`pr-review`](.claude/skills/pr-review/SKILL.md) checklist before calling a task done. It
+includes `npm run typecheck`, `npm run lint` and `npm run format:check` (read the output; don't
+assume). Git hooks (husky) run `lint-staged` on commit and `typecheck` on push; never bypass them
+with `--no-verify`.
 
 ## 10. Git workflow & branching
 
@@ -168,35 +145,21 @@ on push. They install on `npm install`; never bypass them with `--no-verify`.
 
 ## 11. Folder placement
 
-Each `src/features/<feature>/` is a self-contained module with these subfolder roles:
-
-- `screens/` — screens rendered by routes
-- `components/` — feature-specific UI
-- `api/` — API calls and query/mutation hooks
-- `lib/` — feature-specific pure logic
-- `store/` — small client-only Zustand stores
-- `mocks/` — mock-API fixtures
-- `schemas.ts` / `index.ts` — Zod schemas and types / the feature's public exports
-
-Cross-feature code lives in `src/shared/` (`api`, `components`, `constants`, `hooks`, `lib`,
-`stores`, `theme`, `types`, `utils`).
-
-Put a new file in the existing subfolder whose role matches. Create a new directory only when none
-fits, name it consistently with this list (`lib/`, not `helpers/` or `logic/`), and say why before
-creating it. Never add a new feature module for something that belongs inside an existing one.
+Features are self-contained modules in `src/features/<feature>/` (`screens/`, `components/`,
+`api/`, `lib/`, `store/`, `mocks/`); cross-feature code lives in `src/shared/`. Put a new file in
+the existing subfolder whose role matches; say why before creating a new directory. Full rules:
+[`react-native-architecture`](.claude/skills/react-native-architecture/SKILL.md).
 
 ## 12. Tooling & communication
 
-- **Other tools (Cursor, etc.):** `AGENTS.md` is a signpost, not a rulebook. Claude files
+- **Other tools (Cursor, Codex, etc.):** `AGENTS.md` is a signpost, not a rulebook. Claude files
   (`CLAUDE.md`, `.claude/`) are primary; a tool's own config files apply too, and on conflict this
   file wins. If you change a non-negotiable below in `AGENTS.md`'s summary, change it in
   `CLAUDE.md` first.
-- **code-simplifier**: after a non-trivial edit (new functions, refactors, multi-file changes —
-  not one-line fixes), run the `code-simplifier` agent on the changed files before calling the
-  task done, without being asked.
-- **claude-md-management**: when a session teaches something durable about the project
-  (convention, gotcha, workflow change), run the `claude-md-improver` skill to fold it into this
-  file rather than only mentioning it in chat. Run it again at the end of longer sessions.
+- **code-simplifier**: after a non-trivial edit (new functions, refactors, multi-file changes),
+  run the `code-simplifier` agent on the changed files before calling the task done, unasked.
+- **claude-md-management**: when a session teaches something durable, run the `claude-md-improver`
+  skill to fold it in here (or into the matching skill) rather than only mentioning it in chat.
 - **Plain language in chat** (not in code): prefer everyday words; on first use of a technical
   term, give the full name or a one-line meaning in parentheses; don't stack unexplained acronyms
   or error codes. Code, file paths, API field names, and commit messages stay exact.

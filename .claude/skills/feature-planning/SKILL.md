@@ -18,6 +18,22 @@ takes to build has failed its purpose.
 Before finalizing, open `.claude/skills/react-native-architecture/SKILL.md` to confirm folder
 placement and state ownership decisions are consistent with the rest of the app.
 
+## Full workflow for any non-trivial task
+
+Work through these steps in order and say which step you're on. Skip steps only for genuinely
+trivial changes (typos, copy tweaks, config values) and say so.
+
+1. **Understand like a product owner** — `product-analysis`.
+2. **Plan** — this skill: screens/routes touched, data needed, where state lives (query / store /
+   form), components to build or reuse, edge cases (loading/empty/error/offline), acceptance
+   criteria.
+3. **Architect** — `react-native-architecture` for folder placement and state ownership; also
+   `responsive-ui` for any UI work.
+4. **Implement** — follow `docs/coding-standards.md`. Extend existing feature modules rather than
+   creating parallel structures.
+5. **Self-review** — `security-review` if the change touches auth, tokens, storage, permissions,
+   or network; `design-alignment` before committing UI; then always `pr-review` as the final gate.
+
 ## Plan template
 
 ```markdown

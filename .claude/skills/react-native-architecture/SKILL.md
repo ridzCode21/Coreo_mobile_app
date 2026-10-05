@@ -43,6 +43,25 @@ Before creating files, answer these in order:
      without flagging it.
    - Assume development builds (not Expo Go) — native modules are expected to work.
 
+## Feature module folder roles
+
+Each `src/features/<feature>/` is a self-contained module:
+
+- `screens/` — screens rendered by routes
+- `components/` — feature-specific UI
+- `api/` — API calls and query/mutation hooks
+- `lib/` — feature-specific pure logic
+- `store/` — small client-only Zustand stores
+- `mocks/` — mock-API fixtures
+- `schemas.ts` / `index.ts` — Zod schemas and types / the feature's public exports
+
+Cross-feature code lives in `src/shared/` (`api`, `components`, `constants`, `hooks`, `lib`,
+`stores`, `theme`, `types`, `utils`).
+
+Put a new file in the existing subfolder whose role matches. Create a new directory only when none
+fits, name it consistently with this list (`lib/`, not `helpers/` or `logic/`), and say why before
+creating it. Never add a new feature module for something that belongs inside an existing one.
+
 ## Common mistakes to avoid
 
 - A giant `src/components/` folder holding whole screens — screens live in their feature.

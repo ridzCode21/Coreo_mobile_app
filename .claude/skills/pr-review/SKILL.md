@@ -48,6 +48,16 @@ touched auth/tokens/storage/network/permissions.
 - [ ] Any assumptions made about missing product/design context are surfaced to the user, not
       buried silently.
 
+### Definition of done
+
+- [ ] Follows `docs/architecture.md`, `docs/coding-standards.md`, and the guardrails in
+      `CLAUDE.md` §6.
+- [ ] `npm run typecheck`, `npm run lint`, and `npm run format:check` pass with no new warnings —
+      run them and read the output; don't assume.
+- [ ] UI changes strictly match the Claude Design (`design-alignment` skill); any difference was
+      warned about and approved by the user before committing.
+- [ ] New product/design assumptions are called out to the user.
+
 ## Output
 
 Report back concisely: what passed, what was fixed during review, and anything flagged as a

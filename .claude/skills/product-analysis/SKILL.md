@@ -36,3 +36,16 @@ Before scoping or planning any non-trivial feature, work through this:
 A short analysis (a few sentences to a short list, not an essay) covering: user + job, relevant
 market pattern followed or deviated from, MVP slice, and any assumptions made. Hand this
 directly into `.claude/skills/feature-planning/SKILL.md`.
+
+## Working with the docs
+
+`docs/product-context.md` and `docs/design-system.md` are populated (see `docs/design-system.md`
+§8–9 for open items: an unconfirmed navigation pattern, and screens that are ahead of current MVP
+scope). When a task needs them:
+
+1. Check there first — the answer is usually there.
+2. If not, make the smallest reasonable assumption, label it as an assumption in your response,
+   and suggest the doc be updated.
+3. Never invent visual values (colors, spacing, radii, type sizes) outside
+   `docs/design-system.md`. If a component isn't covered, extend the doc first (or ask) rather
+   than freelance a one-off style.
