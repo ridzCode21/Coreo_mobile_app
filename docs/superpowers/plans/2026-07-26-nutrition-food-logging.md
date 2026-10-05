@@ -1063,7 +1063,7 @@ git commit -m "docs(nutrition): record photo/barcode scope change + nutrition La
 
 ## Task 15: Final verification (pr-review gate)
 
-- [ ] **Step 1** — open `.agent/skills/pr-review/SKILL.md` and run its checklist against the whole feature.
+- [ ] **Step 1** — open `.claude/skills/pr-review/SKILL.md` and run its checklist against the whole feature.
 - [ ] **Step 2** — full `npx tsc --noEmit` (repo-wide) + `npx eslint .` → zero errors.
 - [ ] **Step 3** — walk every acceptance criterion in the design spec §12; check each off against a live mock-mode run.
 - [ ] **Step 4** — confirm: no `coreBlue` misuse (grep), no red/error tints on over-budget, no wave chart used for macros, no hardcoded hex/spacing in nutrition files (grep for `#` and raw px in styles), tokens used throughout.

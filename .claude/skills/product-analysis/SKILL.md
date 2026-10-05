@@ -35,4 +35,4 @@ Before scoping or planning any non-trivial feature, work through this:
 
 A short analysis (a few sentences to a short list, not an essay) covering: user + job, relevant
 market pattern followed or deviated from, MVP slice, and any assumptions made. Hand this
-directly into `.agent/skills/feature-planning/SKILL.md`.
+directly into `.claude/skills/feature-planning/SKILL.md`.

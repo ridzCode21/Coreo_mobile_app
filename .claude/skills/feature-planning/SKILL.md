@@ -11,11 +11,11 @@ disable-model-invocation: true
 
 ## Instructions
 
-Take the output of `.agent/skills/product-analysis/SKILL.md` and turn it into a concrete plan
+Take the output of `.claude/skills/product-analysis/SKILL.md` and turn it into a concrete plan
 using the template below. Keep it short — a plan that takes longer to read than the feature
 takes to build has failed its purpose.
 
-Before finalizing, open `.agent/skills/react-native-architecture/SKILL.md` to confirm folder
+Before finalizing, open `.claude/skills/react-native-architecture/SKILL.md` to confirm folder
 placement and state ownership decisions are consistent with the rest of the app.
 
 ## Plan template
@@ -26,18 +26,22 @@ placement and state ownership decisions are consistent with the rest of the app.
 **Job to be done:** <one line, from product-analysis>
 
 **Routes/screens:**
+
 - <app/... route> → <src/features/<feature>/screens/...>
 
 **Data & state:**
+
 - Server data needed: <resource> → TanStack Query hook in `features/<feature>/api`
 - Client/global state needed (if any): <what> → Zustand store/slice
 - Forms: <form> → RHF + Zod schema in `features/<feature>/schemas.ts`
 
 **Components:**
+
 - New: <component> (feature-local unless reused elsewhere)
 - Reused from `src/shared/components`: <list>
 
 **Edge cases to handle explicitly:**
+
 - Loading / empty / error states
 - Offline or slow network behavior (if relevant)
 - Permission/auth edge cases (if relevant)
@@ -45,6 +49,7 @@ placement and state ownership decisions are consistent with the rest of the app.
 **Out of scope for this pass:** <what's explicitly deferred>
 
 **Acceptance criteria:**
+
 - [ ] <user-observable behavior 1>
 - [ ] <user-observable behavior 2>
 ```

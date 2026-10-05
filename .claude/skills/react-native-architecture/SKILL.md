@@ -32,8 +32,8 @@ Before creating files, answer these in order:
    - Small, global, client-only → Zustand slice (one store per concern).
    - Form input → React Hook Form + Zod schema.
    - Local to one component → `useState`.
-   If you catch yourself putting API response data into Zustand, or building a manual fetch +
-   `useState` for server data, stop — that's the wrong tool.
+     If you catch yourself putting API response data into Zustand, or building a manual fetch +
+     `useState` for server data, stop — that's the wrong tool.
 4. **Does this cross a feature boundary?** Only import another feature's `index.ts` (its public
    surface), never its internals. If two features need the same thing, promote it to
    `src/shared/` instead of importing across internals.

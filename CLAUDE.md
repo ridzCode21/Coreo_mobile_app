@@ -14,7 +14,8 @@ Product vision, users, and scope: [`docs/product-context.md`](docs/product-conte
 ## 2. Repository map
 
 ```
-CLAUDE.md                  # this file
+CLAUDE.md                  # this file — the only place rules are written
+AGENTS.md                  # signpost for Cursor/other tools; points here, holds no rules
 app.config.ts              # Expo app config (env-aware — see docs/architecture.md §6)
 docs/
   product-context.md       # product vision, users, market context, feature scope
@@ -24,7 +25,7 @@ docs/
   feature-map.md           # feature ↔ API ↔ design-screen mapping + phasing status
   API_REFERENCE.md         # the real backend contract
   implementation-plan.md   # design→screens build plan (mock-API architecture, phasing)
-.agent/skills/             # task playbooks to consult (see §4)
+.claude/skills/             # task playbooks to consult (see §4)
 designs/                   # source design exports — see designs/README.md
 src/
   app/                     # Expo Router routes (file-based, (public)/(auth)/(app) groups)
@@ -67,19 +68,21 @@ Camera note: both are nutrition-only and isolated — `features/nutrition/lib/ph
 Rationale: [`docs/architecture.md`](docs/architecture.md). Conventions (naming, file structure,
 lint, components): [`docs/coding-standards.md`](docs/coding-standards.md).
 
-## 4. Playbooks (`.agent/skills/`)
+## 4. Playbooks (`.claude/skills/`)
 
-Not auto-loaded — open the relevant `SKILL.md` at the right point in a task.
+Claude Code runs these as `/<name>` skills (most are set to manual-only, so open or invoke the
+right one at the right point in a task). Other tools must open the `SKILL.md` by path.
 
-| Skill                                                                           | Open it when...                                                                           |
-| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| [`product-analysis`](.agent/skills/product-analysis/SKILL.md)                   | Starting any new feature/request — before writing a plan or code                          |
-| [`feature-planning`](.agent/skills/feature-planning/SKILL.md)                   | Turning an analyzed idea into a concrete implementation plan                              |
-| [`react-native-architecture`](.agent/skills/react-native-architecture/SKILL.md) | Deciding where code lives, which state tool to use, navigation structure                  |
-| [`responsive-ui`](.agent/skills/responsive-ui/SKILL.md)                         | Building or modifying any screen/component                                                |
-| [`testing`](.agent/skills/testing/SKILL.md)                                     | Writing or reviewing tests (once test infra exists)                                       |
-| [`security-review`](.agent/skills/security-review/SKILL.md)                     | Touching auth, tokens, storage, permissions, network calls, or before finishing a feature |
-| [`pr-review`](.agent/skills/pr-review/SKILL.md)                                 | Before declaring any task "done"                                                          |
+| Skill                                                                            | Open it when...                                                                           |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| [`product-analysis`](.claude/skills/product-analysis/SKILL.md)                   | Starting any new feature/request — before writing a plan or code                          |
+| [`feature-planning`](.claude/skills/feature-planning/SKILL.md)                   | Turning an analyzed idea into a concrete implementation plan                              |
+| [`react-native-architecture`](.claude/skills/react-native-architecture/SKILL.md) | Deciding where code lives, which state tool to use, navigation structure                  |
+| [`responsive-ui`](.claude/skills/responsive-ui/SKILL.md)                         | Building or modifying any screen/component                                                |
+| [`testing`](.claude/skills/testing/SKILL.md)                                     | Writing or reviewing tests (once test infra exists)                                       |
+| [`security-review`](.claude/skills/security-review/SKILL.md)                     | Touching auth, tokens, storage, permissions, network calls, or before finishing a feature |
+| [`design-alignment`](.claude/skills/design-alignment/SKILL.md)                   | Before every commit that touches UI — strict match to `designs/`, warn on any difference  |
+| [`pr-review`](.claude/skills/pr-review/SKILL.md)                                 | Before declaring any task "done"                                                          |
 
 ## 5. How to approach every task (decision framework)
 
@@ -142,7 +145,8 @@ scope). When a task needs them:
 - [ ] `npm run typecheck`, `npm run lint`, and `npm run format:check` pass with no new warnings —
       run them and read the output; don't assume.
 - [ ] `pr-review` checklist passed.
-- [ ] UI changes compared against the design (§13) before pushing.
+- [ ] UI changes strictly match the Claude Design (§13); any difference was warned about and
+      approved by the user before committing.
 - [ ] New product/design assumptions are called out to the user.
 
 Git hooks (husky) run `lint-staged` (eslint + prettier on staged files) on commit and `typecheck`
@@ -183,6 +187,10 @@ creating it. Never add a new feature module for something that belongs inside an
 
 ## 12. Tooling & communication
 
+- **Other tools (Cursor, etc.):** `AGENTS.md` is a signpost, not a rulebook. Claude files
+  (`CLAUDE.md`, `.claude/`) are primary; a tool's own config files apply too, and on conflict this
+  file wins. If you change a non-negotiable below in `AGENTS.md`'s summary, change it in
+  `CLAUDE.md` first.
 - **code-simplifier**: after a non-trivial edit (new functions, refactors, multi-file changes —
   not one-line fixes), run the `code-simplifier` agent on the changed files before calling the
   task done, without being asked.
@@ -199,16 +207,9 @@ creating it. Never add a new feature module for something that belongs inside an
   #       so the screen shows the new item.
   ```
 
-## 13. Design alignment before push
+## 13. Design alignment before commit
 
-After a task's code is committed and before `git push` or opening a PR:
-
-1. Read the design for the task: the cited screen in `designs/`, the issue text,
-   `docs/design-system.md`, and any plan/spec in `docs/` or `docs/superpowers/specs/`.
-2. Compare the committed behavior to it: copy, fields, counts, empty states, and when the feature
-   runs.
-3. Don't push while they disagree. If the code is wrong, fix it, commit, and re-check.
-4. If the design must change, don't edit the design files. Give the user one paste-ready prompt
-   for the designer / Claude Design, then wait; push only after they confirm the design is
-   updated. The prompt names the screen (file and id), the exact copy or layout to change, and
-   why the shipped behavior requires it.
+The Claude Design in `designs/` is the source of truth for every UI change: the code adapts to the
+design, never the reverse. Before every commit that touches UI, run the
+[`design-alignment`](.claude/skills/design-alignment/SKILL.md) playbook and **warn the user before
+committing** if anything differs. Don't edit the design files.

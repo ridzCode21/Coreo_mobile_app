@@ -6,7 +6,7 @@ Purpose: turn the finished design (57-screen "Sky/Wave" export) into shipped Rea
 Native screens whose **visuals come from the design system** and whose **logic/data
 comes from `API_REFERENCE.md`**, using a **mock API** for now so the swap to the real
 backend is a one-flag change later. This plan follows the `CLAUDE.md` §5 decision
-framework (product-analysis → feature-planning → architecture) and the two `.agent/skills`
+framework (product-analysis → feature-planning → architecture) and the two `.claude/skills`
 playbooks. It ends with a concrete first experiment: the **custom animated splash**.
 
 > How to read this: §1 is the feature↔API↔screen map, §2 is the mock architecture,

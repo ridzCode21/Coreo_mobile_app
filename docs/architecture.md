@@ -1,6 +1,6 @@
 # Architecture
 
-Technical architecture for the app. This is the doc `.agent/skills/react-native-architecture`
+Technical architecture for the app. This is the doc `.claude/skills/react-native-architecture`
 points to. Keep it in sync as real decisions are made — if you deviate from something here,
 update this file in the same change.
 
