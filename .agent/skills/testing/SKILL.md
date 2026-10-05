@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 # Testing
 
-**Current phase note:** per `AGENTS.md` §7, test infrastructure (Jest/RNTL/Maestro configs) is
+**Current phase note:** per `CLAUDE.md` §7, test infrastructure (Jest/RNTL/Maestro configs) is
 intentionally not installed yet. This skill defines the target approach so code is written in a
 testable way now, and applies fully once infra is added — don't install test tooling proactively
 unless asked.

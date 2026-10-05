@@ -277,7 +277,7 @@ but should not be built as the primary navigation.
 
 ## 9. Flags: design/product-scope mismatches
 
-Surfacing per `AGENTS.md` §8 — these exist in the design but conflict with current
+Surfacing per `CLAUDE.md` §8 — these exist in the design but conflict with current
 `docs/product-context.md` MVP scope. Build the screens (they're designed), but gate the
 underlying functionality behind the product decisions below rather than wiring them live:
 

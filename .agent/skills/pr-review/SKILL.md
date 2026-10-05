@@ -12,7 +12,7 @@ disable-model-invocation: true
 ## Instructions
 
 Run through this checklist against the diff before calling a task finished. This is the final
-gate referenced in `AGENTS.md` §9 — it assumes `security-review` has already run if the change
+gate referenced in `CLAUDE.md` §9 — it assumes `security-review` has already run if the change
 touched auth/tokens/storage/network/permissions.
 
 ### Architecture (`docs/architecture.md`)

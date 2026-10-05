@@ -9,7 +9,7 @@ from it (see below).
 
 ## Start here
 
-- [`AGENTS.md`](AGENTS.md) — operating manual for any coding agent working in this repo
+- [`CLAUDE.md`](CLAUDE.md) — operating manual for any coding agent working in this repo
   (tech stack, architecture rules, required workflow). Read this first.
 - [`docs/product-context.md`](docs/product-context.md) — product brief: problem, users, MVP
   scope, constraints.

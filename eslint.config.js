@@ -17,7 +17,7 @@ module.exports = defineConfig([
     // "owning" effect/handler — a model react-native-reanimated's `SharedValue`s intentionally
     // violate by design (`.value` is mutated from multiple gesture callbacks and effects,
     // deliberately, to drive UI-thread animation without React re-renders). This project doesn't
-    // opt into the React Compiler (not in AGENTS.md's tech stack), so these rules only produce
+    // opt into the React Compiler (not in CLAUDE.md's tech stack), so these rules only produce
     // false positives on `useSharedValue` usage here, not real bugs — see SliderRow.tsx's gesture
     // handlers for the pattern they misflag.
     files: ['src/shared/components/SliderRow.tsx'],

@@ -305,7 +305,7 @@ plan (mock-backed now, real contract from day one).
   not yet added.
 - `shared/api/errors.ts`'s `ApiError` is the normalized shape all query/mutation errors surface
   through today. A single `reportError()` seam (still to add, in `shared/lib`) will be the one
-  file that changes when Sentry lands (deferred, see `AGENTS.md` §7).
+  file that changes when Sentry lands (deferred, see `CLAUDE.md` §7).
 
 ## 8. Release pipeline (EAS) — overview
 

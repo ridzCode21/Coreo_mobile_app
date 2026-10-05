@@ -5,7 +5,7 @@ Status: **PROPOSED (plan only, no code yet).** Owner: Jarvis. Date: 2026-07-19.
 Purpose: turn the finished design (57-screen "Sky/Wave" export) into shipped React
 Native screens whose **visuals come from the design system** and whose **logic/data
 comes from `API_REFERENCE.md`**, using a **mock API** for now so the swap to the real
-backend is a one-flag change later. This plan follows the `AGENTS.md` §5 decision
+backend is a one-flag change later. This plan follows the `CLAUDE.md` §5 decision
 framework (product-analysis → feature-planning → architecture) and the two `.agent/skills`
 playbooks. It ends with a concrete first experiment: the **custom animated splash**.
 
@@ -162,7 +162,7 @@ Planned changes (no code in this doc):
   password rules, optional profile fields, gender enum).
 - Mock `features/auth/mocks`: user store + token issuance/blacklist.
 
-Security guardrails (AGENTS.md §6, security-review skill): tokens only in SecureStore,
+Security guardrails (CLAUDE.md §6, security-review skill): tokens only in SecureStore,
 never logged, never in Zustand/AsyncStorage.
 
 ---
@@ -328,7 +328,7 @@ localization of the tagline, the actual onboarding questions (Phase 3).
   toggle; §5 add the `(public)` route group (splash/first-open) and note the onboarding gate;
   §3 note the first-run flag store + `shared/lib/storage.ts` when added.
 - **`.env.example`** — add `EXPO_PUBLIC_API_MODE`.
-- **`AGENTS.md`** — §2 repo map: point to the mock layer location once it exists.
+- **`CLAUDE.md`** — §2 repo map: point to the mock layer location once it exists.
 - **`docs/product-context.md`** — record the "auth is mock-backed but built to the real
   contract" decision, and the F2/F3/F4/F5 backend gaps as open items.
 

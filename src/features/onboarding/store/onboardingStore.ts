@@ -120,7 +120,7 @@ function toggleInList<T>(list: T[], item: T): T[] {
 /**
  * Onboarding's client-only draft state — see docs/architecture.md §3 (Zustand for small,
  * non-server client state). Persisted to AsyncStorage (answers only, **never** tokens — those
- * stay exclusively in `secureStorage`, AGENTS.md §6) so an app kill mid-interview can resume
+ * stay exclusively in `secureStorage`, CLAUDE.md §6) so an app kill mid-interview can resume
  * rather than restart. Reset at the start of a deliberately fresh run from `FirstOpenScreen`
  * (when there's nothing to resume), and again once the whole flow hands off to `(app)` home.
  */

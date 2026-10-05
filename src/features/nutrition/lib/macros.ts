@@ -1,6 +1,6 @@
 /**
  * Pure macro/calorie-budget helpers for the nutrition pillar. Kept pure + isolated (no React, no
- * I/O) so they're trivially unit-testable once the test harness lands (AGENTS.md §7). The Diet
+ * I/O) so they're trivially unit-testable once the test harness lands (CLAUDE.md §7). The Diet
  * home "Left today" card and its macro bars are derived from these — never stored (architecture.md
  * §3: derived data is computed from source of truth, not duplicated into a store).
  */
@@ -37,7 +37,9 @@ export function targetsFromProfile(profile: DietProfile): MacroTargets {
   };
 }
 
-export function normalizeMacroSummary(summary: Partial<MacroSummary> | null | undefined): MacroSummary {
+export function normalizeMacroSummary(
+  summary: Partial<MacroSummary> | null | undefined,
+): MacroSummary {
   return {
     calories_in: finiteNumber(summary?.calories_in),
     protein_g: finiteNumber(summary?.protein_g),

@@ -12,17 +12,17 @@ Companion design spec: [`docs/superpowers/specs/2026-07-26-nutrition-food-loggin
 
 ## Global Constraints
 
-Every task's requirements implicitly include these (verbatim from the spec + AGENTS.md):
+Every task's requirements implicitly include these (verbatim from the spec + CLAUDE.md):
 
-- **TypeScript strict, no `any`** unless justified in a comment (AGENTS.md §6).
-- **Server data only through TanStack Query** — never fetch-and-`useState`, never in Zustand (AGENTS.md §6).
-- **No design values hardcoded** — reference `shared/theme/tokens.ts` for every color/spacing/radius/type (AGENTS.md §6, design-system §1–3).
+- **TypeScript strict, no `any`** unless justified in a comment (CLAUDE.md §6).
+- **Server data only through TanStack Query** — never fetch-and-`useState`, never in Zustand (CLAUDE.md §6).
+- **No design values hardcoded** — reference `shared/theme/tokens.ts` for every color/spacing/radius/type (CLAUDE.md §6, design-system §1–3).
 - **Feature-based structure** — routes in `src/app/*` stay thin and delegate to `src/features/nutrition/*`; import only via a feature's `index.ts` public surface (architecture.md §1–2).
 - **Mock shapes mirror `API_REFERENCE.md` exactly** — food routes are **Style B** (bare payload); framework 401 uses **Style A** `styleAError` (API_REFERENCE §2, precedent in `dietProfile.handlers.ts`).
 - **Design laws:** one night-glass hero card per screen; `coreBlue` only on the single primary action per screen; **no red** on over-budget (neutral + "I adjust, we move on" voice); **macros render as thin bar fills, never wave charts** (waves are time-series only, design-system §6.1); sub-18px text over atmosphere sits on glass/scrim.
 - **Copy:** use the design source's verbatim strings for 14a/14b/15a where they exist; new copy is first-person, calm, cites the user's own numbers, no exclamation marks, no emoji (design-system §10).
-- **Expo API currency:** verify any `expo-image-picker` / RN API against the SDK 57 docs (`https://docs.expo.dev/versions/v57.0.0/`) before use (AGENTS.md §2).
-- **Testing is deferred** (AGENTS.md §7): do NOT install Jest/RNTL/Maestro. Per-task verification = `npx tsc --noEmit` (typecheck) + `npx eslint <files>` + a described runtime check in `EXPO_PUBLIC_API_MODE=mock`. Write logic as pure, isolated functions so tests drop in later.
+- **Expo API currency:** verify any `expo-image-picker` / RN API against the SDK 57 docs (`https://docs.expo.dev/versions/v57.0.0/`) before use (CLAUDE.md §2).
+- **Testing is deferred** (CLAUDE.md §7): do NOT install Jest/RNTL/Maestro. Per-task verification = `npx tsc --noEmit` (typecheck) + `npx eslint <files>` + a described runtime check in `EXPO_PUBLIC_API_MODE=mock`. Write logic as pure, isolated functions so tests drop in later.
 - **Responsive:** every screen scrolls (no fixed-height clip) and works at 375pt + 430pt + landscape (design-system §11).
 
 > **⚠️ Git note (environmental):** commits cannot be made from the agent sandbox (the mounted `.git` blocks lock-file removal). The `git commit` step in each task is the instruction for the human/executor to run in their own terminal. If executing inline in the sandbox, stage the intent and let the user commit. Commit messages below are the canonical ones to use.
@@ -64,7 +64,7 @@ docs/product-context.md                        # §5 photo/barcode now in scope 
 docs/feature-map.md                            # nutrition row status
 docs/design-system.md                          # §9 photo-logging note (F-N1)
 docs/architecture.md                           # §2 repo map + features/nutrition
-AGENTS.md                                       # §3 stack table + expo-image-picker
+CLAUDE.md                                       # §3 stack table + expo-image-picker
 ```
 
 ---
@@ -72,10 +72,12 @@ AGENTS.md                                       # §3 stack table + expo-image-p
 ## Task 1: Shared types (food + daily log)
 
 **Files:**
+
 - Create: `src/shared/types/food.ts`
 - Create: `src/shared/types/dailyLog.ts`
 
 **Interfaces:**
+
 - Produces: `FoodEntry`, `FoodItem`, `MacroSummary`, `DailyTotals`, `PhotoEstimate`, `MealType`, `FoodSource`, `DailyLog` — consumed by every later nutrition task.
 
 - [ ] **Step 1: Write `food.ts`** — exact shapes from API_REFERENCE §8 / §17:
@@ -185,13 +187,15 @@ git commit -m "feat(nutrition): add food + daily-log shared types (API_REFERENCE
 ## Task 2: Pure macro logic (`lib/macros.ts`)
 
 **Files:**
+
 - Create: `src/features/nutrition/lib/macros.ts`
 
 **Interfaces:**
+
 - Consumes: `MacroSummary` (Task 1), `DietProfile` (`shared/types/dietProfile.ts`, existing), `FoodEntry` (Task 1).
 - Produces: `computeRemaining(targets, consumed)`, `macroFillRatio(consumed, target)`, `groupEntriesByMeal(entries)` — consumed by `MacroSummaryCard` and `DietHomeScreen`.
 
-- [ ] **Step 1: Implement** (pure, test-ready — AGENTS.md §7):
+- [ ] **Step 1: Implement** (pure, test-ready — CLAUDE.md §7):
 
 ```ts
 // src/features/nutrition/lib/macros.ts
@@ -239,7 +243,9 @@ export function macroFillRatio(consumed: number, target: number): number {
 }
 
 /** Group a day's entries by meal for a sectioned list. Stable meal order. */
-export function groupEntriesByMeal(entries: FoodEntry[]): { meal: MealType; entries: FoodEntry[] }[] {
+export function groupEntriesByMeal(
+  entries: FoodEntry[],
+): { meal: MealType; entries: FoodEntry[] }[] {
   const order: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
   return order
     .map((meal) => ({ meal, entries: entries.filter((e) => e.meal_type === meal) }))
@@ -261,9 +267,11 @@ git commit -m "feat(nutrition): pure macro-budget + grouping helpers"
 ## Task 3: Zod schemas (`schemas.ts`)
 
 **Files:**
+
 - Create: `src/features/nutrition/schemas.ts`
 
 **Interfaces:**
+
 - Produces: `manualEntrySchema` / `ManualEntryValues`, `confirmMealSchema` / `ConfirmMealValues`, `mealTypeSchema` — consumed by the create mutation (Task 4) and confirm form (Task 9).
 
 - [ ] **Step 1: Implement** — mirror the `POST /food/entries/` payload (§8):
@@ -304,14 +312,16 @@ git commit -m "feat(nutrition): Zod schemas for food entry + confirm form"
 ## Task 4: API layer (`api/nutritionApi.ts`)
 
 **Files:**
+
 - Create: `src/features/nutrition/api/nutritionApi.ts`
 - Reference (read, don't modify): `src/features/auth/api/authApi.ts` (mutation pattern), `src/shared/api/client.ts` (get/post/delete + `multipart`), `src/shared/api/queryClient.ts`.
 
 **Interfaces:**
+
 - Consumes: `apiClient` (`shared/api/client.ts`), types from Task 1, schemas from Task 3.
 - Produces: `nutritionKeys`, `useFoodEntriesQuery(date)`, `useDailySummaryQuery(date)`, `useFoodSearchQuery(q)`, `useBarcodeLookup(code, enabled)`, `useAnalyzePhotoMutation()`, `useCreateFoodEntryMutation()`, `useDeleteFoodEntryMutation()` — consumed by all screens/components.
 
-> **Pre-step:** open `src/shared/api/client.ts` and confirm the exact method signatures (`get`/`post`/`delete`, how query params + `multipart` are passed, the `auth` option). Match them — do not invent a client API. If the client lacks a multipart helper, add a minimal typed one there (smallest change) rather than bypassing the client (AGENTS.md §6: no per-feature fetch).
+> **Pre-step:** open `src/shared/api/client.ts` and confirm the exact method signatures (`get`/`post`/`delete`, how query params + `multipart` are passed, the `auth` option). Match them — do not invent a client API. If the client lacks a multipart helper, add a minimal typed one there (smallest change) rather than bypassing the client (CLAUDE.md §6: no per-feature fetch).
 
 - [ ] **Step 1: Implement key factory + query hooks:**
 
@@ -321,7 +331,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/shared/api/client';
 import type {
-  FoodEntry, FoodItem, MacroSummary, DailyTotals, PhotoEstimate,
+  FoodEntry,
+  FoodItem,
+  MacroSummary,
+  DailyTotals,
+  PhotoEstimate,
 } from '@/shared/types/food';
 import type { DailySummary } from '@/shared/types/dailyLog';
 import type { ConfirmMealValues } from '@/features/nutrition/schemas';
@@ -381,7 +395,11 @@ export function useAnalyzePhotoMutation() {
     mutationFn: (image: { uri: string; name: string; type: string }) => {
       const form = new FormData();
       // RN FormData file part — the shape RN's fetch expects for multipart:
-      form.append('image', { uri: image.uri, name: image.name, type: image.type } as unknown as Blob);
+      form.append('image', {
+        uri: image.uri,
+        name: image.name,
+        type: image.type,
+      } as unknown as Blob);
       return apiClient.post<PhotoEstimate>('/food/photo/', form, { multipart: true });
     },
   });
@@ -450,10 +468,12 @@ git commit -m "feat(nutrition): TanStack Query hooks for food + daily-summary (�
 ## Task 5: Mock DB extension + fixtures
 
 **Files:**
+
 - Modify: `src/shared/api/mock/db.ts`
 - Create: `src/features/nutrition/mocks/fixtures.ts`
 
 **Interfaces:**
+
 - Consumes: types from Task 1.
 - Produces: `mockDb.foodEntries`, `mockDb.dailyLogs`, `mockDb.foodItems`, `mockDb.photoQuotaByUserDate`; `SEED_FOOD_ITEMS`, `starterDayEntries(userId, date)` — consumed by handlers (Task 6).
 
@@ -482,20 +502,111 @@ import type { DailyLog } from '@/shared/types/dailyLog';
 import type { FoodEntry, FoodItem } from '@/shared/types/food';
 
 export const SEED_FOOD_ITEMS: FoodItem[] = [
-  { id: 1, barcode: '8901234567890', name: 'Greek Yogurt', calories_per_100g: 59, protein_g_per_100g: 10, carbs_g_per_100g: 3.6, fat_g_per_100g: 0.4, source: 'openfoodfacts', last_fetched: '2026-07-01T00:00:00Z' },
-  { id: 2, barcode: '8900000000017', name: 'Paneer', calories_per_100g: 296, protein_g_per_100g: 18, carbs_g_per_100g: 3.4, fat_g_per_100g: 25, source: 'openfoodfacts', last_fetched: '2026-07-01T00:00:00Z' },
-  { id: 3, barcode: '8900000000024', name: 'Cooked Rice', calories_per_100g: 130, protein_g_per_100g: 2.7, carbs_g_per_100g: 28, fat_g_per_100g: 0.3, source: 'openfoodfacts', last_fetched: '2026-07-01T00:00:00Z' },
-  { id: 4, barcode: '8900000000031', name: 'Toor Dal (cooked)', calories_per_100g: 121, protein_g_per_100g: 7, carbs_g_per_100g: 20, fat_g_per_100g: 0.4, source: 'openfoodfacts', last_fetched: '2026-07-01T00:00:00Z' },
-  { id: 5, barcode: '8900000000048', name: 'Banana', calories_per_100g: 89, protein_g_per_100g: 1.1, carbs_g_per_100g: 23, fat_g_per_100g: 0.3, source: 'openfoodfacts', last_fetched: '2026-07-01T00:00:00Z' },
-  { id: 6, barcode: '8900000000055', name: 'Roti (whole wheat)', calories_per_100g: 297, protein_g_per_100g: 11, carbs_g_per_100g: 51, fat_g_per_100g: 7, source: 'openfoodfacts', last_fetched: '2026-07-01T00:00:00Z' },
-  { id: 7, barcode: '8900000000062', name: 'Mixed Greens (sautéed)', calories_per_100g: 60, protein_g_per_100g: 3, carbs_g_per_100g: 6, fat_g_per_100g: 3, source: 'openfoodfacts', last_fetched: '2026-07-01T00:00:00Z' },
-  { id: 8, barcode: '8900000000079', name: 'Lassi (sweet)', calories_per_100g: 92, protein_g_per_100g: 3, carbs_g_per_100g: 14, fat_g_per_100g: 2.5, source: 'openfoodfacts', last_fetched: '2026-07-01T00:00:00Z' },
+  {
+    id: 1,
+    barcode: '8901234567890',
+    name: 'Greek Yogurt',
+    calories_per_100g: 59,
+    protein_g_per_100g: 10,
+    carbs_g_per_100g: 3.6,
+    fat_g_per_100g: 0.4,
+    source: 'openfoodfacts',
+    last_fetched: '2026-07-01T00:00:00Z',
+  },
+  {
+    id: 2,
+    barcode: '8900000000017',
+    name: 'Paneer',
+    calories_per_100g: 296,
+    protein_g_per_100g: 18,
+    carbs_g_per_100g: 3.4,
+    fat_g_per_100g: 25,
+    source: 'openfoodfacts',
+    last_fetched: '2026-07-01T00:00:00Z',
+  },
+  {
+    id: 3,
+    barcode: '8900000000024',
+    name: 'Cooked Rice',
+    calories_per_100g: 130,
+    protein_g_per_100g: 2.7,
+    carbs_g_per_100g: 28,
+    fat_g_per_100g: 0.3,
+    source: 'openfoodfacts',
+    last_fetched: '2026-07-01T00:00:00Z',
+  },
+  {
+    id: 4,
+    barcode: '8900000000031',
+    name: 'Toor Dal (cooked)',
+    calories_per_100g: 121,
+    protein_g_per_100g: 7,
+    carbs_g_per_100g: 20,
+    fat_g_per_100g: 0.4,
+    source: 'openfoodfacts',
+    last_fetched: '2026-07-01T00:00:00Z',
+  },
+  {
+    id: 5,
+    barcode: '8900000000048',
+    name: 'Banana',
+    calories_per_100g: 89,
+    protein_g_per_100g: 1.1,
+    carbs_g_per_100g: 23,
+    fat_g_per_100g: 0.3,
+    source: 'openfoodfacts',
+    last_fetched: '2026-07-01T00:00:00Z',
+  },
+  {
+    id: 6,
+    barcode: '8900000000055',
+    name: 'Roti (whole wheat)',
+    calories_per_100g: 297,
+    protein_g_per_100g: 11,
+    carbs_g_per_100g: 51,
+    fat_g_per_100g: 7,
+    source: 'openfoodfacts',
+    last_fetched: '2026-07-01T00:00:00Z',
+  },
+  {
+    id: 7,
+    barcode: '8900000000062',
+    name: 'Mixed Greens (sautéed)',
+    calories_per_100g: 60,
+    protein_g_per_100g: 3,
+    carbs_g_per_100g: 6,
+    fat_g_per_100g: 3,
+    source: 'openfoodfacts',
+    last_fetched: '2026-07-01T00:00:00Z',
+  },
+  {
+    id: 8,
+    barcode: '8900000000079',
+    name: 'Lassi (sweet)',
+    calories_per_100g: 92,
+    protein_g_per_100g: 3,
+    carbs_g_per_100g: 14,
+    fat_g_per_100g: 2.5,
+    source: 'openfoodfacts',
+    last_fetched: '2026-07-01T00:00:00Z',
+  },
 ];
 
 /** One breakfast entry so the screen has data on first demo (not empty, not full). */
 export function starterDayEntries(date: string, startId: number): FoodEntry[] {
   return [
-    { id: startId, date, meal_type: 'breakfast', food_name: 'Greek yogurt & banana', calories: 220, protein_g: 14, carbs_g: 34, fat_g: 3, source: 'manual', created_at: `${date}T08:15:00Z` },
+    {
+      id: startId,
+      date,
+      meal_type: 'breakfast',
+      food_name: 'Greek yogurt & banana',
+      calories: 220,
+      protein_g: 14,
+      carbs_g: 34,
+      fat_g: 3,
+      source: 'manual',
+      created_at: `${date}T08:15:00Z`,
+    },
   ];
 }
 ```
@@ -514,11 +625,13 @@ git commit -m "feat(nutrition): mock DB tables + seed food fixtures"
 ## Task 6: Mock handlers (§8 food + §10 daily-summary)
 
 **Files:**
+
 - Create: `src/features/nutrition/mocks/handlers.ts`
 - Modify: `src/shared/api/mock/registerAllMocks.ts`
 - Reference: `src/features/onboarding/mocks/dietProfile.handlers.ts` (exact precedent), `src/shared/api/mock/envelope.ts`, `src/shared/api/mock/auth.ts` (`requireMockUser`).
 
 **Interfaces:**
+
 - Consumes: `registerMock`, `mockDb`, `requireMockUser`, `styleB`/`styleAError`, fixtures (Task 5), types (Task 1).
 - Produces: registered routes for `GET/POST /food/entries/`, `DELETE /food/entries/:id/`, `GET /food/search/`, `GET /food/lookup/barcode/:barcode/`, `POST /food/photo/`, `GET /daily-summary/`.
 
@@ -539,18 +652,23 @@ const PHOTO_DAILY_LIMIT = 10;
 function ensureSeed(): void {
   if (mockDb.foodItems.length === 0) mockDb.foodItems = [...SEED_FOOD_ITEMS];
 }
-function todayISO(): string { return new Date().toISOString().slice(0, 10); }
+function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 function entriesFor(userIdDate: string, all: FoodEntry[], date: string): FoodEntry[] {
   return all.filter((e) => e.date === date);
 }
 function summarize(entries: FoodEntry[]): MacroSummary {
-  return entries.reduce<MacroSummary>((acc, e) => ({
-    calories_in: acc.calories_in + e.calories,
-    protein_g: acc.protein_g + e.protein_g,
-    carbs_g: acc.carbs_g + e.carbs_g,
-    fat_g: acc.fat_g + e.fat_g,
-  }), { calories_in: 0, protein_g: 0, carbs_g: 0, fat_g: 0 });
+  return entries.reduce<MacroSummary>(
+    (acc, e) => ({
+      calories_in: acc.calories_in + e.calories,
+      protein_g: acc.protein_g + e.protein_g,
+      carbs_g: acc.carbs_g + e.carbs_g,
+      fat_g: acc.fat_g + e.fat_g,
+    }),
+    { calories_in: 0, protein_g: 0, carbs_g: 0, fat_g: 0 },
+  );
 }
 function recomputeDailyLog(userId: string, date: string): DailyLog {
   const entries = mockDb.foodEntries.filter((e) => e.date === date);
@@ -559,11 +677,19 @@ function recomputeDailyLog(userId: string, date: string): DailyLog {
   const existing = mockDb.dailyLogs[key];
   const log: DailyLog = {
     id: existing?.id ?? Math.floor(Math.random() * 1e6),
-    date, calories_in: s.calories_in, calories_out: existing?.calories_out ?? 0,
-    protein_g: s.protein_g, carbs_g: s.carbs_g, fat_g: s.fat_g,
-    water_ml: existing?.water_ml ?? 0, steps: existing?.steps ?? 0,
-    weight_kg: existing?.weight_kg ?? null, sleep_hours: existing?.sleep_hours ?? null,
-    hrv: existing?.hrv ?? null, source: 'manual', workout_sessions: existing?.workout_sessions ?? 0,
+    date,
+    calories_in: s.calories_in,
+    calories_out: existing?.calories_out ?? 0,
+    protein_g: s.protein_g,
+    carbs_g: s.carbs_g,
+    fat_g: s.fat_g,
+    water_ml: existing?.water_ml ?? 0,
+    steps: existing?.steps ?? 0,
+    weight_kg: existing?.weight_kg ?? null,
+    sleep_hours: existing?.sleep_hours ?? null,
+    hrv: existing?.hrv ?? null,
+    source: 'manual',
+    workout_sessions: existing?.workout_sessions ?? 0,
   };
   mockDb.dailyLogs[key] = log;
   return log;
@@ -583,7 +709,11 @@ registerMock('GET', '/food/entries/', (req) => {
   const date = req.query.date ?? todayISO();
   seedStarterDay(date);
   const entries = mockDb.foodEntries.filter((e) => e.date === date);
-  return { status: 200, delayMs: 250, body: styleB({ entries, macro_summary: summarize(entries) }) };
+  return {
+    status: 200,
+    delayMs: 250,
+    body: styleB({ entries, macro_summary: summarize(entries) }),
+  };
 });
 
 registerMock('POST', '/food/entries/', (req) => {
@@ -596,16 +726,34 @@ registerMock('POST', '/food/entries/', (req) => {
   if (Object.keys(fieldErrors).length) return { status: 400, body: fieldErrors };
   const date = b.date ?? todayISO();
   const entry: FoodEntry = {
-    id: mockDb.nextFoodEntryId++, date, meal_type: b.meal_type!, food_name: b.food_name!,
-    calories: b.calories ?? 0, protein_g: b.protein_g ?? 0, carbs_g: b.carbs_g ?? 0,
-    fat_g: b.fat_g ?? 0, source: b.source ?? 'manual', created_at: new Date().toISOString(),
+    id: mockDb.nextFoodEntryId++,
+    date,
+    meal_type: b.meal_type!,
+    food_name: b.food_name!,
+    calories: b.calories ?? 0,
+    protein_g: b.protein_g ?? 0,
+    carbs_g: b.carbs_g ?? 0,
+    fat_g: b.fat_g ?? 0,
+    source: b.source ?? 'manual',
+    created_at: new Date().toISOString(),
   };
   mockDb.foodEntries.push(entry);
   const log = recomputeDailyLog(user.id, date);
-  return { status: 201, delayMs: 300, body: styleB({ ...entry, daily_totals: {
-    calories_in: log.calories_in, protein_g: log.protein_g, carbs_g: log.carbs_g,
-    fat_g: log.fat_g, calories_out: log.calories_out, net_calories: log.calories_in - log.calories_out,
-  } }) };
+  return {
+    status: 201,
+    delayMs: 300,
+    body: styleB({
+      ...entry,
+      daily_totals: {
+        calories_in: log.calories_in,
+        protein_g: log.protein_g,
+        carbs_g: log.carbs_g,
+        fat_g: log.fat_g,
+        calories_out: log.calories_out,
+        net_calories: log.calories_in - log.calories_out,
+      },
+    }),
+  };
 });
 
 registerMock('DELETE', '/food/entries/:id/', (req) => {
@@ -625,7 +773,9 @@ registerMock('GET', '/food/search/', (req) => {
   ensureSeed();
   const q = (req.query.q ?? '').toLowerCase();
   const pageSize = Number(req.query.page_size ?? 20);
-  const results = mockDb.foodItems.filter((f) => f.name.toLowerCase().includes(q)).slice(0, pageSize);
+  const results = mockDb.foodItems
+    .filter((f) => f.name.toLowerCase().includes(q))
+    .slice(0, pageSize);
   return { status: 200, delayMs: 300, body: styleB(results) };
 });
 
@@ -644,14 +794,26 @@ registerMock('POST', '/food/photo/', (req) => {
   const key = `${user.id}:${todayISO()}`;
   const used = mockDb.photoQuotaByUserDate[key] ?? 0;
   if (used >= PHOTO_DAILY_LIMIT) {
-    return { status: 429, delayMs: 200, body: { error: 'Daily photo limit reached. Enter meal manually.' } };
+    return {
+      status: 429,
+      delayMs: 200,
+      body: { error: 'Daily photo limit reached. Enter meal manually.' },
+    };
   }
   mockDb.photoQuotaByUserDate[key] = used + 1;
   // Deterministic plausible estimate (matches the design's "Rice bowl, paneer, greens ~640 kcal").
-  return { status: 200, delayMs: 900, body: styleB({
-    name: 'Rice bowl with paneer and greens', portion_grams: 350,
-    est_calories: 640, est_protein_g: 32, est_carbs_g: 74, est_fat_g: 22,
-  }) };
+  return {
+    status: 200,
+    delayMs: 900,
+    body: styleB({
+      name: 'Rice bowl with paneer and greens',
+      portion_grams: 350,
+      est_calories: 640,
+      est_protein_g: 32,
+      est_carbs_g: 74,
+      est_fat_g: 22,
+    }),
+  };
 });
 
 registerMock('GET', '/daily-summary/', (req) => {
@@ -661,10 +823,17 @@ registerMock('GET', '/daily-summary/', (req) => {
   seedStarterDay(date);
   const log = recomputeDailyLog(user.id, date);
   const foodEntries = mockDb.foodEntries.filter((e) => e.date === date);
-  return { status: 200, delayMs: 250, body: styleB({
-    daily_log: log, net_calories: log.calories_in - log.calories_out,
-    food_log_count: foodEntries.length, food_entries: foodEntries, exercise_entries: [],
-  }) };
+  return {
+    status: 200,
+    delayMs: 250,
+    body: styleB({
+      daily_log: log,
+      net_calories: log.calories_in - log.calories_out,
+      food_log_count: foodEntries.length,
+      food_entries: foodEntries,
+      exercise_entries: [],
+    }),
+  };
 });
 ```
 
@@ -690,10 +859,12 @@ git commit -m "feat(nutrition): mock handlers for food (§8) + daily-summary (§
 ## Task 7: `MacroSummaryCard` + `FoodEntryRow` components
 
 **Files:**
+
 - Create: `src/features/nutrition/components/MacroSummaryCard.tsx`
 - Create: `src/features/nutrition/components/FoodEntryRow.tsx`
 
 **Interfaces:**
+
 - Consumes: `GlassCard`, tokens/`textStyle`, `macros.ts` (Task 2), types (Task 1).
 - Produces: `<MacroSummaryCard targets consumed />`, `<FoodEntryRow entry onDelete />` — consumed by `DietHomeScreen` (Task 8).
 
@@ -717,11 +888,13 @@ git commit -m "feat(nutrition): MacroSummaryCard hero + FoodEntryRow"
 ## Task 8: `DietHomeScreen` (14a) wired as temporary landing
 
 **Files:**
+
 - Create: `src/features/nutrition/screens/DietHomeScreen.tsx`
 - Create/append: `src/features/nutrition/index.ts` (export `DietHomeScreen`)
 - Modify: `src/app/(app)/index.tsx` (temporary → render `DietHomeScreen`)
 
 **Interfaces:**
+
 - Consumes: `useFoodEntriesQuery`, `useDietProfileQuery` (from onboarding `index.ts` if exported; else add a read-only hook in `nutritionApi`), `macros.ts`, `MacroSummaryCard`, `FoodEntryRow`, `LogMealSheet` (Task 9 — stub the open handler now, wire the sheet in Task 9), `Screen`, tokens.
 - Produces: the composed 14a screen.
 
@@ -740,6 +913,7 @@ git commit -m "feat(nutrition): Diet home (14a) as temporary app landing, wired 
 ## Task 9: `LogMealSheet` (14b) + `LoggingOptionTile` + `ConfirmMealScreen` (describe/manual path)
 
 **Files:**
+
 - Create: `src/features/nutrition/components/LoggingOptionTile.tsx`
 - Create: `src/features/nutrition/components/LogMealSheet.tsx`
 - Create: `src/features/nutrition/components/FoodSearchList.tsx`
@@ -748,6 +922,7 @@ git commit -m "feat(nutrition): Diet home (14a) as temporary app landing, wired 
 - Modify: `src/features/nutrition/index.ts`
 
 **Interfaces:**
+
 - Consumes: `useFoodSearchQuery`, `useCreateFoodEntryMutation`, `confirmMealSchema`, RHF, `VoiceInputBar`, `GlassCard`, tokens.
 - Produces: the 14b sheet (4 tiles + input bar), the search list, and the 15a-style confirm screen that commits a `manual`/search entry.
 
@@ -769,15 +944,17 @@ git commit -m "feat(nutrition): log-a-meal sheet (14b) + describe/search + confi
 ## Task 10: Photo path (`Snap the plate` + `Nutrition label`)
 
 **Files:**
+
 - Modify: `package.json` (+ `expo-image-picker`), `app.config.ts` (permission strings)
 - Modify: `src/features/nutrition/components/LogMealSheet.tsx` (wire photo tiles)
 - Reference: SDK 57 docs for `expo-image-picker`.
 
 **Interfaces:**
+
 - Consumes: `useAnalyzePhotoMutation`, `ConfirmMealScreen` (prefilled from `PhotoEstimate`).
 - Produces: photo capture → analyze → confirm → create entry, with 422/429 fallbacks.
 
-- [ ] **Step 1: Add the dependency** (flagged per AGENTS.md §6 — no overlap with existing libs):
+- [ ] **Step 1: Add the dependency** (flagged per CLAUDE.md §6 — no overlap with existing libs):
 
 ```bash
 npx expo install expo-image-picker
@@ -802,10 +979,12 @@ git commit -m "feat(nutrition): photo logging (snap the plate + nutrition label)
 ## Task 11: Barcode path (`Scan barcode`)
 
 **Files:**
+
 - Modify: `src/features/nutrition/components/LogMealSheet.tsx` (wire barcode tile)
 - (Barcode scanning UI: use `expo-camera`'s barcode scanner if already present, else — to avoid a 2nd new dep in this layer — provide a manual barcode-entry input that feeds `useBarcodeLookup`. **Decide + flag**: real camera scanning can be a fast-follow; the API path is identical either way.)
 
 **Interfaces:**
+
 - Consumes: `useBarcodeLookup`, `ConfirmMealScreen` (prefilled from `FoodItem`, scaled to a default portion).
 - Produces: barcode → lookup → confirm → entry, with 404/503 fallbacks.
 
@@ -826,9 +1005,11 @@ git commit -m "feat(nutrition): barcode logging via §8 /food/lookup/barcode/"
 ## Task 12: Delete entry + states polish
 
 **Files:**
+
 - Modify: `src/features/nutrition/screens/DietHomeScreen.tsx`, `src/features/nutrition/components/FoodEntryRow.tsx`
 
 **Interfaces:**
+
 - Consumes: `useDeleteFoodEntryMutation` (optimistic, from Task 4).
 
 - [ ] **Step 1: Wire delete** — `FoodEntryRow` trailing action (or long-press) → confirm → `useDeleteFoodEntryMutation(date).mutate(id)`. Optimistic removal (already in the hook); on error, rollback + a calm toast/inline message.
@@ -846,6 +1027,7 @@ git commit -m "feat(nutrition): delete entry (optimistic) + loading/empty/offlin
 ## Task 13: Responsive + accessibility pass
 
 **Files:**
+
 - Modify: nutrition screens/components as needed.
 
 - [ ] **Step 1** — verify every screen scrolls and doesn't clip at **375pt** and **430pt** widths and in **landscape** (design-system §11); hero number scales to **135%** system font without clipping (§2); tap targets ≥44pt; sub-18px text over atmosphere sits on glass/scrim (§1).
@@ -862,17 +1044,18 @@ git commit -m "fix(nutrition): responsive + a11y pass (widths, landscape, font s
 ## Task 14: Documentation updates
 
 **Files:**
-- Modify: `docs/product-context.md` §5, `docs/feature-map.md`, `docs/design-system.md` §9, `docs/architecture.md` §2, `AGENTS.md` §3.
+
+- Modify: `docs/product-context.md` §5, `docs/feature-map.md`, `docs/design-system.md` §9, `docs/architecture.md` §2, `CLAUDE.md` §3.
 
 - [ ] **Step 1** — `product-context.md` §5: remove "Barcode/photo-based food logging" from out-of-scope; add a dated note that photo+barcode were moved into MVP scope for the nutrition Layer-1 build (F-N1), macro-level still (micronutrients stay out).
 - [ ] **Step 2** — `feature-map.md`: nutrition row status → "🚧 Layer 1 (food logging + tracking) built; Layer 2 (meal plans/actions/assistant) pending"; note photo/barcode now in scope.
 - [ ] **Step 3** — `design-system.md` §9: update the 21A/21B + 25A photo-logging deferral bullet to reflect F-N1 (built in Layer 1). Add a changelog entry (§12).
 - [ ] **Step 4** — `architecture.md` §2 repo map: fill in `features/nutrition/` contents.
-- [ ] **Step 5** — `AGENTS.md` §3 stack table: add `expo-image-picker` (photo capture) row.
+- [ ] **Step 5** — `CLAUDE.md` §3 stack table: add `expo-image-picker` (photo capture) row.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add docs/ AGENTS.md
+git add docs/ CLAUDE.md
 git commit -m "docs(nutrition): record photo/barcode scope change + nutrition Layer-1 status"
 ```
 
@@ -902,7 +1085,7 @@ git commit -m "chore(nutrition): pr-review fixes; Layer-1 food logging complete"
 
 **Type consistency:** `nutritionKeys`, hook names (`useFoodEntriesQuery`/`useCreateFoodEntryMutation`/`useDeleteFoodEntryMutation`/`useAnalyzePhotoMutation`/`useBarcodeLookup`/`useFoodSearchQuery`/`useDailySummaryQuery`), `ConfirmMealValues`, `MacroTargets`/`RemainingMacros`, `FoodEntry`/`FoodItem`/`MacroSummary`/`DailyTotals`/`PhotoEstimate`/`DailyLog`, and `mockDb.{foodEntries,dailyLogs,foodItems,photoQuotaByUserDate,nextFoodEntryId}` are used with the same names across all tasks. ✅
 
-**Known adaptation:** TDD ceremony replaced by tsc+eslint+runtime-mock verification because test infra is deferred (AGENTS.md §7); pure logic (`macros.ts`) written test-ready.
+**Known adaptation:** TDD ceremony replaced by tsc+eslint+runtime-mock verification because test infra is deferred (CLAUDE.md §7); pure logic (`macros.ts`) written test-ready.
 
 ---
 
@@ -930,6 +1113,7 @@ Packaged-food barcode symbologies to enable: `ean13` (global standard, incl. mos
 **New dependency:** `expo-camera` (`npx expo install expo-camera`). Camera permission strings already added to `app.config.ts` (shared with the photo path). Isolate all `expo-camera` imports to one component (`BarcodeScannerView`) so the rest of the feature stays free of the native dep and typechecks before install — same pattern as `photoCapture.ts`.
 
 **Files:**
+
 - Create `src/features/nutrition/components/BarcodeScannerView.tsx` — the ONLY file importing `expo-camera`. Owns the camera permission flow + `CameraView` + the glass scan-reticle overlay. Props: `{ onScan(code), onClose(), onEnterManually(), paused }`. Scanning stops (`onBarcodeScanned` set to `undefined`) while `paused` (after a hit / during lookup) so it fires once.
 - Create `src/features/nutrition/screens/BarcodeScannerScreen.tsx` — composes the scanner, runs the lookup (`useBarcodeLookup`), and on a hit `router.replace`s to the confirm screen (`source: 'barcode'`, prefilled from the `FoodItem` scaled to 100 g). Owns the **manual-entry fallback** (a text field revealed by "Enter code instead") and the not-found/service-down calm notices with a "Scan again".
 - Create route `src/app/(app)/nutrition/scan.tsx` → `BarcodeScannerScreen`; register in `(app)/_layout.tsx`.

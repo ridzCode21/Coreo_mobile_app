@@ -17,10 +17,15 @@ type BarcodeScannerViewProps = {
  * native dependency and typechecks before it's installed (`npx expo install expo-camera` — same
  * isolation pattern as `lib/photoCapture.ts`). On-device barcode scanning (Apple Vision / Android
  * MLKit) — no API key, no network for the scan itself. Verify the API against the SDK 57 docs
- * before shipping (AGENTS.md §2). No design-source mockup for this screen — built in the
+ * before shipping (CLAUDE.md §2). No design-source mockup for this screen — built in the
  * established glass language (design-system §9 net-new pattern).
  */
-export function BarcodeScannerView({ onScan, onClose, onEnterManually, paused }: BarcodeScannerViewProps) {
+export function BarcodeScannerView({
+  onScan,
+  onClose,
+  onEnterManually,
+  paused,
+}: BarcodeScannerViewProps) {
   const [permission, requestPermission] = useCameraPermissions();
 
   const handleScan = (result: BarcodeScanningResult) => {
@@ -41,10 +46,18 @@ export function BarcodeScannerView({ onScan, onClose, onEnterManually, paused }:
         <Text style={styles.permissionBody}>
           I use your camera to scan a pack&apos;s barcode. Nothing is stored — I just read the code.
         </Text>
-        <Pressable onPress={requestPermission} style={styles.primaryButton} accessibilityRole="button">
+        <Pressable
+          onPress={requestPermission}
+          style={styles.primaryButton}
+          accessibilityRole="button"
+        >
           <Text style={styles.primaryButtonText}>Allow camera</Text>
         </Pressable>
-        <Pressable onPress={onEnterManually} style={styles.secondaryButton} accessibilityRole="button">
+        <Pressable
+          onPress={onEnterManually}
+          style={styles.secondaryButton}
+          accessibilityRole="button"
+        >
           <Text style={styles.secondaryButtonText}>Enter code instead</Text>
         </Pressable>
         <Pressable onPress={onClose} style={styles.secondaryButton} accessibilityRole="button">
@@ -67,7 +80,12 @@ export function BarcodeScannerView({ onScan, onClose, onEnterManually, paused }:
       {/* Overlay: dim scrim + a centered glass reticle + calm guidance. */}
       <View style={styles.overlay} pointerEvents="box-none">
         <View style={styles.topBar} pointerEvents="box-none">
-          <Pressable onPress={onClose} hitSlop={12} accessibilityRole="button" accessibilityLabel="Close">
+          <Pressable
+            onPress={onClose}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+          >
             <Text style={styles.close}>Close</Text>
           </Pressable>
         </View>

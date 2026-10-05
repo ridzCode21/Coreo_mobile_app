@@ -5,6 +5,7 @@ Extends `docs/implementation-plan.md` (Phase 3 — Onboarding). Branch:
 `feature/phase-0-1-foundations-splash`.
 
 Three things this plan covers, all confirmed at kickoff:
+
 1. **Visual refinement** — the existing onboarding option cards don't match the design
    (radius/height/sheen/typography) and the "connected" wave is decorative. Fix to match.
 2. **Diet-profile question screens from the API** — build the screens that actually
@@ -25,6 +26,7 @@ Built: splash + First-open, and core-setup steps **7a·1–7a·7** (`name → go
 pillars → sources → reading → promise`) + **8a save/register**, all mock-backed for auth.
 
 Gaps this plan closes:
+
 - **No diet-interview screens** (12a·1–12a·6) and **no diet-profile fields** in
   `onboardingStore` (it holds only `name/goals/ageYears/heightCm/weightKg/pillars/sources`).
 - **No `diet-profile` mock** — only `features/auth/mocks/handlers.ts` is registered in
@@ -34,25 +36,25 @@ Gaps this plan closes:
   text, visible inner highlight. `SelectableChip` unselected is a flat `rgba(255,255,255,.22)`
   fill (design chips read as glass).
 - **`ReadingScreen` wave is decorative** (`OnboardingWaveStrip`, full-amplitude sine, no
-  glowing now-dot, no area fill) and is tied to *source syncing*, not profile building.
+  glowing now-dot, no area fill) and is tied to _source syncing_, not profile building.
 
 ---
 
 ## Part A — Visual refinement (match the design)
 
 No new screens; tighten existing shared components against `design-system.md` §4 (material)
-and §7 (inventory). All values come from tokens — nothing hardcoded (AGENTS.md §6).
+and §7 (inventory). All values come from tokens — nothing hardcoded (CLAUDE.md §6).
 
 ### A1. `ToggleRow` (full-width option card — Pillars, Sources, and all new single/multi cards)
 
-| Aspect | Now | Refine to (design) |
-|---|---|---|
-| Corner radius | `radii.md` (20) | `radii.xl` (~28–30) |
-| Height | `minHeight` 56 | ~68–72 |
-| Fill | 2-stop white gradient | keep gradient **+ add inner top sheen** (`inset 0 1px rgba(255,255,255,.65)` → a 1px top highlight overlay), per §4 material law |
-| Title type | `bodyLg` (14–15) | ~`cardValue` (18–20, weight 300) to match design row text |
-| Selection mark | check circle only | support **radio dot** (single-select) vs **check** (multi-select) via a `selectionMode` prop |
-| Blur | none (flat gradient) | optional `expo-blur` backing behind a capability check (§4 RN note); acceptable to keep gradient-only on Android |
+| Aspect         | Now                   | Refine to (design)                                                                                                               |
+| -------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Corner radius  | `radii.md` (20)       | `radii.xl` (~28–30)                                                                                                              |
+| Height         | `minHeight` 56        | ~68–72                                                                                                                           |
+| Fill           | 2-stop white gradient | keep gradient **+ add inner top sheen** (`inset 0 1px rgba(255,255,255,.65)` → a 1px top highlight overlay), per §4 material law |
+| Title type     | `bodyLg` (14–15)      | ~`cardValue` (18–20, weight 300) to match design row text                                                                        |
+| Selection mark | check circle only     | support **radio dot** (single-select) vs **check** (multi-select) via a `selectionMode` prop                                     |
+| Blur           | none (flat gradient)  | optional `expo-blur` backing behind a capability check (§4 RN note); acceptable to keep gradient-only on Android                 |
 
 Add a `selectionMode: 'radio' | 'check'` prop so the new single-select diet screens
 (diet_type, cuisine, activity, budget) render a radio dot and multi-select
@@ -70,7 +72,7 @@ Add a `selectionMode: 'radio' | 'check'` prop so the new single-select diet scre
   wave has the signature treatment (lower amplitude, area fill under the solid segment,
   glowing white "now" dot at the solid→dashed boundary) instead of a plain clipped sine.
 - Keep the glass card + "58% synced / Sleep next" caption; this screen stays about
-  *source sync* (it's only reached when a source was connected). The **profile-building**
+  _source sync_ (it's only reached when a source was connected). The **profile-building**
   progress is the separate new screen in Part C — same `WaveChart`, different data source.
 - Footer: design shows a white "Keep going" pill (+ an assistant voice bar). **Flag V1** —
   confirm whether onboarding keeps the full-width dark `NextBar` (current, consistent with
@@ -93,19 +95,19 @@ questions) rather than a single global constant. Small, keeps dots correct per f
 Target contract: `PUT /users/me/diet-profile/` (Style B bare payload). `onboarding_complete`
 becomes `true` once `goal_type` **and** `diet_type` **and** `cuisine_preference` are set.
 
-| # | Screen (design code) | Question copy | API field | Input | Values (API enum) | Origin |
-|---|---|---|---|---|---|---|
-| D1 | 12a·1 Eating style | "How do you eat?" | `diet_type` | single (radio card) | vegetarian, vegan, non_veg, eggetarian, jain, keto, low_carb | design |
-| D2 | 12a·2 Off the table | "Anything your body refuses?" | `allergies` + `disliked_foods` | multi (chips + free add) | free list (peanuts, dairy, gluten…) | design |
-| D3 | **NEW** Cuisine | "What flavours feel like home?" | `cuisine_preference` ⭑required | single (radio card) | indian, south_indian, north_indian, mediterranean, any | added |
-| D4 | 12a·3 Target | "You're at {weight} kg. Where are we taking it?" | `target_weight_kg` | slider (from `weightKg`) | kg | design |
-| D5 | **NEW** Activity | "How much do you move on a normal week?" | `activity_level` | single (radio card) | sedentary, light, moderate, active, very_active | added |
-| D6 | 12a·4 Who cooks | "Who makes your food most days?" | `cooking_frequency` | single (radio card) | every_meal, once_daily, batch_cooking, minimal_cooking | design (mapped, see F2) |
-| D7 | 12a·5 Meal rhythm | "How does a normal day of eating flow?" | `meal_frequency` (int) | single → int | 2, 3, 4 | design |
-| D8 | **NEW** Budget | "What's the food budget like?" | `budget_tier` | single (radio card) | budget_friendly, moderate, premium | added |
-| D9 | **NEW** Health | "Anything I should plan around?" | `health_conditions` (max 3) | multi (check card) | diabetes, pcos, thyroid, heart_health, high_bp, glp_1, none, prefer_not_to_say | added |
-| D10 | 12a·6 Weak moment | "When do you slip? I'll guard that hour." | *(no API field)* | single/multi | skipping_meals, late_night_snacks, ordering_out | design (mock/assistant only, F3) |
-| — | 7a·2 Goals (existing) | mapped, not a new screen | `goal_type` | derived | lose_weight, maintain, gain_muscle, eat_healthier, manage_condition | mapped (F4) |
+| #   | Screen (design code)  | Question copy                                    | API field                      | Input                    | Values (API enum)                                                              | Origin                           |
+| --- | --------------------- | ------------------------------------------------ | ------------------------------ | ------------------------ | ------------------------------------------------------------------------------ | -------------------------------- |
+| D1  | 12a·1 Eating style    | "How do you eat?"                                | `diet_type`                    | single (radio card)      | vegetarian, vegan, non_veg, eggetarian, jain, keto, low_carb                   | design                           |
+| D2  | 12a·2 Off the table   | "Anything your body refuses?"                    | `allergies` + `disliked_foods` | multi (chips + free add) | free list (peanuts, dairy, gluten…)                                            | design                           |
+| D3  | **NEW** Cuisine       | "What flavours feel like home?"                  | `cuisine_preference` ⭑required | single (radio card)      | indian, south_indian, north_indian, mediterranean, any                         | added                            |
+| D4  | 12a·3 Target          | "You're at {weight} kg. Where are we taking it?" | `target_weight_kg`             | slider (from `weightKg`) | kg                                                                             | design                           |
+| D5  | **NEW** Activity      | "How much do you move on a normal week?"         | `activity_level`               | single (radio card)      | sedentary, light, moderate, active, very_active                                | added                            |
+| D6  | 12a·4 Who cooks       | "Who makes your food most days?"                 | `cooking_frequency`            | single (radio card)      | every_meal, once_daily, batch_cooking, minimal_cooking                         | design (mapped, see F2)          |
+| D7  | 12a·5 Meal rhythm     | "How does a normal day of eating flow?"          | `meal_frequency` (int)         | single → int             | 2, 3, 4                                                                        | design                           |
+| D8  | **NEW** Budget        | "What's the food budget like?"                   | `budget_tier`                  | single (radio card)      | budget_friendly, moderate, premium                                             | added                            |
+| D9  | **NEW** Health        | "Anything I should plan around?"                 | `health_conditions` (max 3)    | multi (check card)       | diabetes, pcos, thyroid, heart_health, high_bp, glp_1, none, prefer_not_to_say | added                            |
+| D10 | 12a·6 Weak moment     | "When do you slip? I'll guard that hour."        | _(no API field)_               | single/multi             | skipping_meals, late_night_snacks, ordering_out                                | design (mock/assistant only, F3) |
+| —   | 7a·2 Goals (existing) | mapped, not a new screen                         | `goal_type`                    | derived                  | lose_weight, maintain, gain_muscle, eat_healthier, manage_condition            | mapped (F4)                      |
 
 Not asked (kept server-defaulted): `cooking_time_max` (default 30), `eating_pattern`
 (default `mixed` — optional, can be added later via config, F5), `target_source` stays
@@ -195,6 +197,7 @@ boolean is also surfaced (the gate to Home).
 
 **The visual — promote `OnboardingWaveStrip` → `WaveChart`** (the real signature primitive,
 design-system.md §6.1), reused by Reading (A3) and here:
+
 - Solid stroke = completed portion (past), dashed stroke = remaining (future), a **glowing
   white "now" dot** at the boundary, subtle area fill under the solid segment.
 - Amplitude low/calm (matches the design's near-flat "synced" wave, not a big sine).
@@ -279,7 +282,7 @@ GET shows a loading shimmer on the card, not a blank.
 - [ ] All diet-interview screens render in the design-system style with **cards matching the
       design** (radius, height, sheen, radio-vs-check), driven from `dietQuestions.ts`.
 - [ ] Completing the interview writes a valid diet profile via mock `PUT
-      /users/me/diet-profile/`; `onboarding_complete` flips true once diet_type + cuisine +
+    /users/me/diet-profile/`; `onboarding_complete` flips true once diet_type + cuisine +
       goal_type are set.
 - [ ] The **calibrating screen** shows a wave that fills (solid/dashed/glowing now-dot) to a
       completeness % read from mock `GET /users/me/diet-profile/`, animated (static under

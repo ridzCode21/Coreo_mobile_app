@@ -3,7 +3,7 @@
 Status: **APPROVED (design)** · Owner: Jarvis · Date: 2026-07-26
 Feature module: `src/features/nutrition/` · Phase: 5 (Nutrition), Layer 1 of 2
 
-> This is the design spec (the *what* and *why*). The step-by-step build plan (the *how*)
+> This is the design spec (the _what_ and _why_). The step-by-step build plan (the _how_)
 > lives in the companion implementation plan:
 > [`2026-07-26-nutrition-food-logging-plan.md`](2026-07-26-nutrition-food-logging-plan.md).
 > Reviewer lens for this project: senior RN dev + designer + AI diet/fitness expert (per
@@ -18,8 +18,8 @@ nutrition pillar: food logging + calorie/macro tracking** — "the meal logging 
 log what they ate (four ways) and immediately see their remaining calorie budget and macro
 progress update.
 
-**Job to be done:** *"Tell the app what I ate in a few seconds, however it comes, and see where
-that leaves me for the day — without judgment."* (Design voice, 14a: "Went over yesterday?
+**Job to be done:** _"Tell the app what I ate in a few seconds, however it comes, and see where
+that leaves me for the day — without judgment."_ (Design voice, 14a: "Went over yesterday?
 Nothing turns red here. I adjust, we move on.")
 
 Scope decisions confirmed with the owner (2026-07-26):
@@ -65,11 +65,11 @@ screens-source.html`); conventions `docs/architecture.md`, `docs/design-system.m
 
 ## 3. Screens & routes
 
-| Route (file)                         | Screen (feature)              | Design | Notes                                                     |
-| ------------------------------------ | ----------------------------- | ------ | --------------------------------------------------------- |
-| `src/app/(app)/index.tsx`            | `DietHomeScreen`              | 14a    | **Temporary landing.** Thin route → feature screen.       |
-| `src/app/(app)/nutrition/confirm.tsx`| `ConfirmMealScreen`           | 15a    | Confirm/edit an estimate before committing.               |
-| (in-screen sheet, not a route)       | `LogMealSheet`                | 14b    | Bottom sheet opened from Diet home; not its own route.    |
+| Route (file)                          | Screen (feature)    | Design | Notes                                                  |
+| ------------------------------------- | ------------------- | ------ | ------------------------------------------------------ |
+| `src/app/(app)/index.tsx`             | `DietHomeScreen`    | 14a    | **Temporary landing.** Thin route → feature screen.    |
+| `src/app/(app)/nutrition/confirm.tsx` | `ConfirmMealScreen` | 15a    | Confirm/edit an estimate before committing.            |
+| (in-screen sheet, not a route)        | `LogMealSheet`      | 14b    | Bottom sheet opened from Diet home; not its own route. |
 
 Routes stay thin and delegate to `src/features/nutrition/screens/*` (architecture.md §1–2).
 `LogMealSheet` is a modal/bottom-sheet component owned by the Diet home screen, not a route — it's
@@ -119,19 +119,19 @@ Mirror `API_REFERENCE.md` shapes exactly (so the live swap is a no-op). New shar
 
 - `src/shared/types/food.ts`:
   - `FoodEntry` — `{ id, date, meal_type, food_name, calories, protein_g, carbs_g, fat_g,
-    source, created_at }` (§8).
+source, created_at }` (§8).
   - `FoodItem` — `{ id, barcode, name, calories_per_100g, protein_g_per_100g,
-    carbs_g_per_100g, fat_g_per_100g, source, last_fetched }` (§8).
+carbs_g_per_100g, fat_g_per_100g, source, last_fetched }` (§8).
   - `MacroSummary` — `{ calories_in, protein_g, carbs_g, fat_g }` (§8 GET entries).
   - `DailyTotals` — `{ calories_in, protein_g, carbs_g, fat_g, calories_out, net_calories }`
     (returned on entry create).
   - `PhotoEstimate` — `{ name, portion_grams, est_calories, est_protein_g, est_carbs_g,
-    est_fat_g }` (§8 photo).
+est_fat_g }` (§8 photo).
   - Enums: `MealType = 'breakfast'|'lunch'|'dinner'|'snack'`, `FoodSource =
-    'photo'|'barcode'|'manual'|'import'|'plan'`.
+'photo'|'barcode'|'manual'|'import'|'plan'`.
 - `src/shared/types/dailyLog.ts`: `DailyLog` (§10) — the read-only daily aggregate.
 
-Macro targets (the *budget* the "Left today" card counts down from) come from the existing diet
+Macro targets (the _budget_ the "Left today" card counts down from) come from the existing diet
 profile (`daily_calories`, `daily_protein_g`, `daily_carbs_g`, `daily_fat_g` — `DietProfile`,
 already typed in `shared/types/dietProfile.ts`), read via `GET /users/me/diet-profile/`.
 `remaining = target − macro_summary` is computed in `lib/macros.ts` (pure), not stored.
@@ -153,16 +153,16 @@ barcode(code):      ['nutrition','barcode', code]
 
 Hooks (all through `shared/api/client.ts`; food routes are **Style B** bare payloads):
 
-| Hook                          | Endpoint                              | Notes                                                                 |
-| ----------------------------- | ------------------------------------- | --------------------------------------------------------------------- |
-| `useDailySummaryQuery(date)`  | `GET /daily-summary/`                 | The day's `DailyLog` + net calories + entries. Default `date` = today.|
-| `useFoodEntriesQuery(date)`   | `GET /food/entries/`                  | `{ entries, macro_summary }`. Primary source for the day list + card. |
-| `useDietProfileQuery()`       | `GET /users/me/diet-profile/`         | Reuse onboarding's hook if exported; else add read-only here. Targets.|
-| `useFoodSearchQuery(q)`       | `GET /food/search/?q=`                | `enabled: q.length >= 2`, debounced ~300ms, `keepPreviousData`.       |
-| `useBarcodeLookup(code)`      | `GET /food/lookup/barcode/{barcode}/` | On-demand (enabled when a code is scanned).                           |
-| `useAnalyzePhotoMutation()`   | `POST /food/photo/` (multipart)       | Returns `PhotoEstimate`. Does NOT create an entry.                    |
-| `useCreateFoodEntryMutation()`| `POST /food/entries/`                 | On success → invalidate `foodEntries(date)` + `dailySummary(date)`.   |
-| `useDeleteFoodEntryMutation()`| `DELETE /food/entries/{id}/`          | Same invalidation. Optimistic remove + rollback on error.             |
+| Hook                           | Endpoint                              | Notes                                                                  |
+| ------------------------------ | ------------------------------------- | ---------------------------------------------------------------------- |
+| `useDailySummaryQuery(date)`   | `GET /daily-summary/`                 | The day's `DailyLog` + net calories + entries. Default `date` = today. |
+| `useFoodEntriesQuery(date)`    | `GET /food/entries/`                  | `{ entries, macro_summary }`. Primary source for the day list + card.  |
+| `useDietProfileQuery()`        | `GET /users/me/diet-profile/`         | Reuse onboarding's hook if exported; else add read-only here. Targets. |
+| `useFoodSearchQuery(q)`        | `GET /food/search/?q=`                | `enabled: q.length >= 2`, debounced ~300ms, `keepPreviousData`.        |
+| `useBarcodeLookup(code)`       | `GET /food/lookup/barcode/{barcode}/` | On-demand (enabled when a code is scanned).                            |
+| `useAnalyzePhotoMutation()`    | `POST /food/photo/` (multipart)       | Returns `PhotoEstimate`. Does NOT create an entry.                     |
+| `useCreateFoodEntryMutation()` | `POST /food/entries/`                 | On success → invalidate `foodEntries(date)` + `dailySummary(date)`.    |
+| `useDeleteFoodEntryMutation()` | `DELETE /food/entries/{id}/`          | Same invalidation. Optimistic remove + rollback on error.              |
 
 Which query feeds the card + list: **`useFoodEntriesQuery`** provides both the day's `entries` and
 `macro_summary` in one call — use it as the primary source for 14a. `useDailySummaryQuery` is only
@@ -238,7 +238,7 @@ both envelope styles, real latency, and the real error/quota bodies (implementat
   law 4). No red on over-budget — over-budget shows neutral + the "I adjust, we move on" copy
   (§10 voice; brand law 2).
 - Sub-18px text over atmosphere sits on glass/scrim (§1 contrast rule).
-- All design values from tokens — zero hardcoded colors/spacing/type (AGENTS.md §6).
+- All design values from tokens — zero hardcoded colors/spacing/type (CLAUDE.md §6).
 - Voice/copy from the design source verbatim where it exists (14a/14b/15a strings); new copy
   follows §10 (first person, calm, cites the user's own numbers, no exclamation/emoji).
 
@@ -269,7 +269,7 @@ both envelope styles, real latency, and the real error/quota bodies (implementat
   §5's deferral. Owner-approved 2026-07-26. **Action:** update §5 + `feature-map.md` /
   `design-system.md` §9 to record photo/barcode as in-scope for MVP.
 - **F-N2 — 15a itemized breakdown vs. aggregate photo API.** `15a Check my math` shows a
-  *per-ingredient* editable breakdown ("Steamed rice 1 cup · 205 kcal", "Paneer 80g · 235 kcal",
+  _per-ingredient_ editable breakdown ("Steamed rice 1 cup · 205 kcal", "Paneer 80g · 235 kcal",
   a "Fix" affordance on an uncertain item). But `POST /food/photo/` returns a **single aggregate**
   estimate (one `name` + total macros), and `POST /food/entries/` stores one aggregate row.
   **Decision:** build the confirm screen to the API's actual aggregate shape (edit name/portion/
@@ -278,8 +278,8 @@ both envelope styles, real latency, and the real error/quota bodies (implementat
 - **F-N3 — Diet-as-landing is throwaway.** Pointing `(app)/index.tsx` at Diet home is temporary;
   isolate it to the route file so the Phase-4 petal-cluster Home swap is a one-line change.
 - **F-N4 — `expo-image-picker` is a new dependency** (camera/photo capture). Not in the §3 stack
-  table. Per AGENTS.md §6 it's flagged before install; it doesn't overlap an existing lib. (Expo
-  SDK 57 — verify the versioned API before use per AGENTS.md §2.)
+  table. Per CLAUDE.md §6 it's flagged before install; it doesn't overlap an existing lib. (Expo
+  SDK 57 — verify the versioned API before use per CLAUDE.md §2.)
 - **F-N5 — daily-summary vs. food/entries overlap.** Both can feed the card; Layer 1 drives the
   card from `food/entries` + diet-profile targets and defers `daily-summary` wiring to Layer 2
   (when net calories / exercise appear). Intentional simplification.
@@ -310,5 +310,5 @@ both envelope styles, real latency, and the real error/quota bodies (implementat
 - `product-context.md` §5 — move barcode/photo logging out of "out of scope" for MVP (F-N1).
 - `feature-map.md` — nutrition row status → in progress (Layer 1); note photo/barcode in scope.
 - `design-system.md` §9 — update the 21A/21B + 25A photo-logging deferral note (F-N1).
-- `AGENTS.md` §3 stack table — add `expo-image-picker` once installed (F-N4).
+- `CLAUDE.md` §3 stack table — add `expo-image-picker` once installed (F-N4).
 - `architecture.md` §2 repo map — add `features/nutrition` once built.
