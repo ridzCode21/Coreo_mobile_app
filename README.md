@@ -18,6 +18,8 @@ from it (see below).
 - [`docs/design-system.md`](docs/design-system.md) — design tokens/components.
 - [`docs/coding-standards.md`](docs/coding-standards.md) — conventions, including the git
   workflow below.
+- [`docs/getting-started.md`](docs/getting-started.md) — backend integration, running locally, good
+  first tasks.
 
 ## Branching
 
