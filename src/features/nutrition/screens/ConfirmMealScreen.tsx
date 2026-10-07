@@ -1,12 +1,5 @@
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
@@ -103,7 +96,8 @@ export default function ConfirmMealScreen() {
     if (!parsed.success) {
       for (const issue of parsed.error.issues) {
         const field = issue.path[0];
-        if (typeof field === 'string') setError(field as keyof FormState, { message: issue.message });
+        if (typeof field === 'string')
+          setError(field as keyof FormState, { message: issue.message });
       }
       return;
     }

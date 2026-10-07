@@ -40,7 +40,9 @@ export function FoodSearchList({ query, onPick }: FoodSearchListProps) {
       ) : null}
 
       {data?.length === 0 && !isFetching ? (
-        <Text style={styles.stateText}>Nothing matched. Type it out and I&apos;ll do the math.</Text>
+        <Text style={styles.stateText}>
+          Nothing matched. Type it out and I&apos;ll do the math.
+        </Text>
       ) : null}
 
       {data?.map((item) => (

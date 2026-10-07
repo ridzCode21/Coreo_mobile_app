@@ -1,11 +1,7 @@
 import { registerMock } from '@/shared/api/mock/router';
 import { mockDb, type MockUser } from '@/shared/api/mock/db';
 import { styleAError, styleAOk } from '@/shared/api/mock/envelope';
-import {
-  blacklistMockToken,
-  issueTokenPair,
-  verifyMockToken,
-} from '@/shared/api/mock/tokens';
+import { blacklistMockToken, issueTokenPair, verifyMockToken } from '@/shared/api/mock/tokens';
 import { serializeMockUser } from '@/features/auth/mocks/serializeUser';
 
 function randomId(): string {

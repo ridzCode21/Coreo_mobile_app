@@ -22,7 +22,8 @@ const config: ExpoConfig = {
     // the expo-image-picker config plugin so the app still builds before the package is installed
     // (`npx expo install expo-image-picker`). Calm, first-person copy per design-system.md §10.
     infoPlist: {
-      NSCameraUsageDescription: 'Coreo uses your camera to read your meal, so you can log it without typing.',
+      NSCameraUsageDescription:
+        'Coreo uses your camera to read your meal, so you can log it without typing.',
       NSPhotoLibraryUsageDescription: 'Coreo reads a photo of your meal to estimate its nutrition.',
     },
   },

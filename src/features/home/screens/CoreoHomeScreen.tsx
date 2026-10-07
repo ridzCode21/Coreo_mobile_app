@@ -93,10 +93,7 @@ export default function CoreoHomeScreen() {
           {headline.split(',')[0]}
           {headline.includes(',') ? (
             <>
-              ,{' '}
-              <Text style={styles.greetingAccent}>
-                {headline.split(',').slice(1).join(',')}
-              </Text>
+              , <Text style={styles.greetingAccent}>{headline.split(',').slice(1).join(',')}</Text>
             </>
           ) : null}
         </Text>
