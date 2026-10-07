@@ -85,19 +85,12 @@ written once you know where it goes.
 ## 9. Commits
 
 - Small, scoped commits with conventional-style messages: `feat(workouts): add session summary
-  screen`, `fix(auth): handle expired refresh token`.
+screen`, `fix(auth): handle expired refresh token`.
 - A commit that touches a feature's public contract (`index.ts` exports, API shape) mentions that
   explicitly in the message body.
 
 ## 10. Git workflow
 
-- **`main`** — release-ready code only. Nothing is committed here directly; it only receives
-  merges from `development` when cutting a release.
-- **`development`** — the active integration branch and base for all work. This is the "main
-  source" in day-to-day terms; branch from here, and merge back here.
-- **Feature/fix branches** — cut from `development`, named `feature/<short-name>` or
-  `fix/<short-name>` (e.g. `feature/design-system-setup`, `fix/token-refresh`). Merge back into
-  `development` via PR (even a self-reviewed one) rather than committing straight to
-  `development` for anything non-trivial.
-- Keep branches scoped to one task/feature so they can merge independently — don't let a branch
-  drift into unrelated work.
+The rules live in [`CLAUDE.md`](../CLAUDE.md) §10 (branch names, who merges, PR targets). In short:
+branch off `development` as `feature/<issue-number>-<short-slug>`, open the PR into `development`,
+and keep each branch scoped to one task. `main` is production only and is merged by the repo owner.
