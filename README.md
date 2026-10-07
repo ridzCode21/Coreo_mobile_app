@@ -3,9 +3,8 @@
 Cross-pillar health app (diet, fitness, wellness — one AI-aware experience instead of three
 disconnected apps) built with Expo + React Native + TypeScript.
 
-This is the `main` branch: **release-ready code only**, kept intentionally minimal until the
-first release is cut. All active development happens on `development` and feature branches cut
-from it (see below).
+`main` holds **production code only** and is empty until the first release. All active
+development happens on `development` and feature branches cut from it (see below).
 
 ## Start here
 
@@ -23,8 +22,10 @@ from it (see below).
 
 ## Branching
 
-- `main` — release-ready only, receives merges from `development` at release time.
+- `main` — production code only (empty until the first release); receives merges from
+  `development` at release time. Only the repo owner merges here.
 - `development` — active integration branch; base for all work.
-- `feature/<name>` / `fix/<name>` — cut from `development`, merged back via PR.
+- `feature/<issue-number>-<short-slug>` — cut from `development`, merged back via PR.
+- `hotfix/<short-slug>` — cut from `main`, merged into both `main` and `development`.
 
-Full detail in `docs/coding-standards.md` §10.
+Full rules: `CLAUDE.md` §10.
