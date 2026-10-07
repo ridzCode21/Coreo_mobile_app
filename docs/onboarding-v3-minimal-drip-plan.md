@@ -15,7 +15,7 @@ model) are unchanged from rev. 1 and still stand. Sections 5–9 are substantial
 pillars within 48h." The pre-signup interview should be short, and personalization should happen
 progressively after signup — this part of the plan is confirmed correct by the build so far (the
 visual language holds up, minimal-then-drip is the right direction). What needs correcting is what
-happens *after* signup: Home and Diet have started duplicating each other, and the progressive
+happens _after_ signup: Home and Diet have started duplicating each other, and the progressive
 personalization checklist has quietly grown back into a full onboarding form, just relocated inside
 the app instead of before it.
 
@@ -105,7 +105,7 @@ during implementation review:
   field, no way to know if a rest day was intentional, and "logged a meal" isn't really an
   on/off-track judgment. Labeling it "transparent count, not a mystery score" doesn't fix this: a
   user who deliberately rests today will read "0/4, off track" as the app being wrong about them.
-  This is a case of the UI asserting a conclusion (*"on track"*) the API can't actually support yet
+  This is a case of the UI asserting a conclusion (_"on track"_) the API can't actually support yet
   — same category of problem `product-context.md` §6 warns about for the AI assistant (don't imply
   authority you don't have), just showing up in a stat card instead of assistant copy.
 - **The macro/target card is fully duplicated between Home ("Starter Targets") and Diet ("Left
@@ -119,7 +119,7 @@ during implementation review:
 
 ### 6.2 The fix — Home answers exactly two questions
 
-*How is my day going overall, and what's one thing worth my attention?* Nothing else earns a
+_How is my day going overall, and what's one thing worth my attention?_ Nothing else earns a
 permanent card.
 
 ```
@@ -178,12 +178,12 @@ the presentation and the write-affordance mismatch:
 
 Four literal states, driven by the same facts already computed for §6.2/6.3 — no new data source:
 
-| State | Trigger | Headline |
-| --- | --- | --- |
-| Fresh | no entries logged today, no insights | "Today starts here." |
-| Active, no insight yet | ≥1 entry logged today | "Here's where today stands." |
-| Established | `targetQuality` ≥ `estimated` and some logging history | "Today, your core is readable." |
-| Insight available | §6.3 priority 3 card is showing | "A pattern is starting to show." |
+| State                  | Trigger                                                | Headline                         |
+| ---------------------- | ------------------------------------------------------ | -------------------------------- |
+| Fresh                  | no entries logged today, no insights                   | "Today starts here."             |
+| Active, no insight yet | ≥1 entry logged today                                  | "Here's where today stands."     |
+| Established            | `targetQuality` ≥ `estimated` and some logging history | "Today, your core is readable."  |
+| Insight available      | §6.3 priority 3 card is showing                        | "A pattern is starting to show." |
 
 ---
 
@@ -222,20 +222,20 @@ problems with the current version, beyond the psychology:
 **Fix — replace the standing checklist with contextual, trigger-based asks**, and move the full
 editable list to Profile/Personalization (one level deeper, reachable but not a Diet-home fixture):
 
-| Trigger | Ask | Why this moment |
-| --- | --- | --- |
-| First Diet visit, `!dietQuick` | diet_type, activity_level, allergies | §7.1 — already the plan |
-| First tap on "Generate today's plan," cuisine unset | cuisine_preference (+ any other still-missing field that blocks generation) | User just asked for food — the API also folds cuisine into `onboarding_complete`, so this is the natural moment, not signup |
-| Tap "Replace meal" | disliked_foods (if unset) | Directly relevant to the action just taken |
-| Regeneration reason = `too_expensive` | budget_tier | The complaint *is* the missing field |
-| Regeneration reason = `too_much_cooking` | cooking_frequency / cooking-time preference | Same pattern |
-| `goal_type == 'manage_condition'` at signup | Prioritize `health_conditions` at the *next* Diet visit, ahead of diet_type/activity in tier-1 ordering | The stated goal makes this field unusually relevant sooner |
+| Trigger                                             | Ask                                                                                                     | Why this moment                                                                                                             |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| First Diet visit, `!dietQuick`                      | diet_type, activity_level, allergies                                                                    | §7.1 — already the plan                                                                                                     |
+| First tap on "Generate today's plan," cuisine unset | cuisine_preference (+ any other still-missing field that blocks generation)                             | User just asked for food — the API also folds cuisine into `onboarding_complete`, so this is the natural moment, not signup |
+| Tap "Replace meal"                                  | disliked_foods (if unset)                                                                               | Directly relevant to the action just taken                                                                                  |
+| Regeneration reason = `too_expensive`               | budget_tier                                                                                             | The complaint _is_ the missing field                                                                                        |
+| Regeneration reason = `too_much_cooking`            | cooking_frequency / cooking-time preference                                                             | Same pattern                                                                                                                |
+| `goal_type == 'manage_condition'` at signup         | Prioritize `health_conditions` at the _next_ Diet visit, ahead of diet_type/activity in tier-1 ordering | The stated goal makes this field unusually relevant sooner                                                                  |
 
 A user experiences this as "Coreo asked one thing because I just asked it to do something," not
 "my profile is 40% done." This is also a better fit for the meal-plan API specifically —
 `RegenerationReason` already includes `too_expensive`/`too_much_cooking`/`dont_like_foods`/
 `different_cuisine`, which map almost one-to-one onto the profile fields above. The regeneration
-flow effectively *is* a contextual-profiling trigger the backend already half-designed for.
+flow effectively _is_ a contextual-profiling trigger the backend already half-designed for.
 
 Keep one compact, honest indicator instead of the 40%-style card — e.g. a small "2 useful details
 still missing" line inside a lower-priority "Improve recommendations" row (§7.3), not a hero card,

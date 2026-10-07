@@ -207,7 +207,11 @@ function makeMeal(
   };
 }
 
-function createPlan(userId: string, date: string, planMode: 'standard' | 'historical'): MealPlanDetail {
+function createPlan(
+  userId: string,
+  date: string,
+  planMode: 'standard' | 'historical',
+): MealPlanDetail {
   const profile = profileFor(userId);
   const calories = profile.daily_calories || 2020;
   const protein = profile.daily_protein_g || 120;
@@ -297,14 +301,19 @@ function createFoodEntryFromMeal(meal: PlannedMeal, calories = meal.calories_kca
   return entry;
 }
 
-function alternativeFromMeal(meal: PlannedMeal, name: string, factor: number): ReplacePreviewAlternative {
+function alternativeFromMeal(
+  meal: PlannedMeal,
+  name: string,
+  factor: number,
+): ReplacePreviewAlternative {
   return {
     name,
     calories_kcal: Math.round(meal.calories_kcal * factor),
     protein_g: round1(meal.protein_g * factor),
     carbs_g: round1(meal.carbs_g * factor),
     fat_g: round1(meal.fat_g * factor),
-    rationale: factor < 1 ? 'A lighter swap with similar protein.' : 'A steadier option with more fuel.',
+    rationale:
+      factor < 1 ? 'A lighter swap with similar protein.' : 'A steadier option with more fuel.',
     recipe_json: null,
     constraint_violation: false,
     serving_size: meal.serving_size,
@@ -336,7 +345,10 @@ registerMock('POST', '/meal-plans/', (request) => {
   if (!validDate(body.date)) return { status: 400, body: styleB({ error: 'invalid_date' }) };
   const planMode = parsePlanMode(body.plan_mode);
   if (!planMode) {
-    return { status: 400, body: styleB({ error: 'invalid_plan_mode', valid: ['standard', 'historical'] }) };
+    return {
+      status: 400,
+      body: styleB({ error: 'invalid_plan_mode', valid: ['standard', 'historical'] }),
+    };
   }
 
   const key = planKey(user.id, body.date);
@@ -376,7 +388,10 @@ registerMock('GET', '/meal-plans/:date/', (request) => {
   return {
     status: 200,
     delayMs: 250,
-    body: styleB({ ...advanced, meals: advanced.meals.filter((meal) => meal.status !== 'replaced') }),
+    body: styleB({
+      ...advanced,
+      meals: advanced.meals.filter((meal) => meal.status !== 'replaced'),
+    }),
   };
 });
 
@@ -394,7 +409,10 @@ registerMock('POST', '/meal-plans/:date/regenerate/', (request) => {
   }
   const planMode = parsePlanMode(body.plan_mode);
   if (!planMode) {
-    return { status: 400, body: styleB({ error: 'invalid_plan_mode', valid: ['standard', 'historical'] }) };
+    return {
+      status: 400,
+      body: styleB({ error: 'invalid_plan_mode', valid: ['standard', 'historical'] }),
+    };
   }
   const quota = consumeQuota(user, 'plan_regenerate');
   if (quota) return quota;
@@ -621,7 +639,8 @@ registerMock('POST', '/meal-plans/:date/assistant/', (request) => {
   const prompt = PROMPTS.find((candidate) => candidate.id === body.prompt_option_id);
   if (!prompt) return { status: 404, body: styleB({ error: 'prompt_option_not_found' }) };
   const meal = plan.meals.find((candidate) => candidate.status === 'planned') ?? plan.meals[0];
-  if (prompt.intent === 'get_recipe') return { status: 200, body: styleB({ recipe: recipeFor(meal) }) };
+  if (prompt.intent === 'get_recipe')
+    return { status: 200, body: styleB({ recipe: recipeFor(meal) }) };
   const proposalId = `proposal-${prompt.id}-${Date.now()}`;
   mockDb.assistantProposals[proposalId] = {
     userId: user.id,

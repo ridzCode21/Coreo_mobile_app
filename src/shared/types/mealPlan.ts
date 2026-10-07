@@ -96,11 +96,7 @@ export type MealPlanDetail = {
 };
 
 export type QuotaAction =
-  | 'assistant'
-  | 'plan_generate'
-  | 'plan_regenerate'
-  | 'recipe_generate'
-  | 'replace_preview';
+  'assistant' | 'plan_generate' | 'plan_regenerate' | 'recipe_generate' | 'replace_preview';
 
 export type QuotaExceededError = {
   error: 'quota_exceeded';
