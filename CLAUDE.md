@@ -126,8 +126,10 @@ make the smallest reasonable assumption, label it, and suggest the doc be update
 
 Run the [`pr-review`](.claude/skills/pr-review/SKILL.md) checklist before calling a task done. It
 includes `npm run typecheck`, `npm run lint` and `npm run format:check` (read the output; don't
-assume). Git hooks (husky) run `lint-staged` on commit and `typecheck` on push; never bypass them
-with `--no-verify`.
+assume). Git hooks (husky) enforce this locally: `pre-commit` blocks commits on `main`/`development` and
+runs `lint-staged`; `pre-push` blocks pushes to `main`/`development` and runs `typecheck`, `lint`
+and `format:check`. Never bypass them (`--no-verify`, `HUSKY=0`); `.claude/settings.json` denies
+those commands for Claude Code.
 
 ## 10. Git workflow & branching
 
