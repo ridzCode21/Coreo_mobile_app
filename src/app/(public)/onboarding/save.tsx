@@ -1,1 +1,1 @@
-export { default } from '@/features/onboarding/screens/SaveScreen';
+export { SaveScreen as default } from '@/features/onboarding';

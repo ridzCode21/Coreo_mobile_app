@@ -1,1 +1,1 @@
-export { default } from '@/features/onboarding/screens/FirstOpenScreen';
+export { FirstOpenScreen as default } from '@/features/onboarding';
