@@ -4,7 +4,6 @@ description: >-
   Turn an analyzed feature idea into a concrete, buildable implementation plan — screens/routes,
   data and state ownership, components, and edge cases. Use after product-analysis and before
   writing any code for a non-trivial feature or change.
-disable-model-invocation: true
 ---
 
 # Feature Planning
@@ -31,7 +30,7 @@ trivial changes (typos, copy tweaks, config values) and say so.
    `responsive-ui` for any UI work.
 4. **Implement** — follow `docs/coding-standards.md`. Extend existing feature modules rather than
    creating parallel structures.
-5. **Self-review** — `security-review` if the change touches auth, tokens, storage, permissions,
+5. **Self-review** — `app-security-review` if the change touches auth, tokens, storage, permissions,
    or network; `design-alignment` before committing UI; then always `pr-review` as the final gate.
 
 ## Plan template

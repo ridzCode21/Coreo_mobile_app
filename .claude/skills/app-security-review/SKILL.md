@@ -1,10 +1,9 @@
 ---
-name: security-review
+name: app-security-review
 description: >-
   Mobile app security checklist covering token/secret storage, network calls, input validation,
   and permissions. Use when touching auth, tokens, storage, permissions, or network code, and
   before finishing any feature that handles user or sensitive data.
-disable-model-invocation: true
 ---
 
 # Security Review
