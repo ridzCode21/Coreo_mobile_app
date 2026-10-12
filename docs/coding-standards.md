@@ -85,7 +85,7 @@ written once you know where it goes.
 ## 9. Commits
 
 - Small, scoped commits with conventional-style messages: `feat(workouts): add session summary
-  screen`, `fix(auth): handle expired refresh token`.
+screen`, `fix(auth): handle expired refresh token`.
 - A commit that touches a feature's public contract (`index.ts` exports, API shape) mentions that
   explicitly in the message body.
 

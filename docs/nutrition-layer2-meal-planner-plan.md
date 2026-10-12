@@ -16,6 +16,7 @@ Layer 1 already does it," not a new convention.
 ## 1. What's in scope, what isn't
 
 **In scope (this plan):**
+
 - Generate / fetch / regenerate a meal plan (§12)
 - Meal actions: recipe view, log, skip, adjust-quantity, feedback, replace (preview+confirm),
   "ate something else" (§13)
@@ -24,8 +25,9 @@ Layer 1 already does it," not a new convention.
 - Quota handling for all five rate-limited actions (§16)
 
 **Explicitly not in scope here** (per `feature-map.md`'s own phase split, not a scope change):
+
 - The standalone presence/chat screen (18c, `PresenceOrb`) — that's Phase 7. This plan wires the
-  *API* the assistant needs, exposed as inline prompt buttons on the meal plan itself, not a
+  _API_ the assistant needs, exposed as inline prompt buttons on the meal plan itself, not a
   freeform chat surface.
 - Fitness/Wellness — unaffected.
 - Any real LLM — `product-context.md`'s own assumption is "rule/template-based suggestions dressed
@@ -39,23 +41,47 @@ Layer 1 already does it," not a new convention.
 Mirrors `API_REFERENCE.md` §12/§13/§14/§17 exactly, same convention as `dietProfile.ts`/`food.ts`:
 
 ```ts
-export const MEAL_PLAN_STATUSES = ['pending', 'generating', 'validating', 'ready', 'failed'] as const;
+export const MEAL_PLAN_STATUSES = [
+  'pending',
+  'generating',
+  'validating',
+  'ready',
+  'failed',
+] as const;
 export type MealPlanStatus = (typeof MEAL_PLAN_STATUSES)[number];
 
 export const PLANNED_MEAL_STATUSES = [
-  'planned', 'logged_as_planned', 'logged_modified', 'skipped', 'replaced', 'eaten_outside', 'missed',
+  'planned',
+  'logged_as_planned',
+  'logged_modified',
+  'skipped',
+  'replaced',
+  'eaten_outside',
+  'missed',
 ] as const;
 export type PlannedMealStatus = (typeof PLANNED_MEAL_STATUSES)[number];
 
 export const REGENERATION_REASONS = [
-  'too_boring', 'too_expensive', 'too_much_cooking', 'dont_like_foods',
-  'need_more_protein', 'make_lighter', 'different_cuisine', 'surprise_me',
+  'too_boring',
+  'too_expensive',
+  'too_much_cooking',
+  'dont_like_foods',
+  'need_more_protein',
+  'make_lighter',
+  'different_cuisine',
+  'surprise_me',
 ] as const;
 export type RegenerationReason = (typeof REGENERATION_REASONS)[number];
 
 export const FEEDBACK_TYPES = [
-  'like', 'dislike', 'too_heavy', 'too_light', 'too_much_cooking', 'too_expensive',
-  'not_available', 'other',
+  'like',
+  'dislike',
+  'too_heavy',
+  'too_light',
+  'too_much_cooking',
+  'too_expensive',
+  'not_available',
+  'other',
 ] as const;
 export type FeedbackType = (typeof FEEDBACK_TYPES)[number];
 
@@ -109,7 +135,8 @@ export type MealPlanDetail = {
   meals: PlannedMeal[];
 };
 
-export type QuotaAction = 'assistant' | 'plan_generate' | 'plan_regenerate' | 'recipe_generate' | 'replace_preview';
+export type QuotaAction =
+  'assistant' | 'plan_generate' | 'plan_regenerate' | 'recipe_generate' | 'replace_preview';
 
 /** §16 quota-exceeded body — shared shape across all five rate-limited actions. */
 export type QuotaExceededError = {
@@ -132,8 +159,15 @@ export type AssistantProposal = {
 };
 
 export type AssistantIntent =
-  | 'replace_meal' | 'modify_meal' | 'adjust_quantity' | 'skip_meal' | 'log_meal'
-  | 'ate_something_else' | 'regenerate_plan' | 'submit_feedback' | 'get_recipe';
+  | 'replace_meal'
+  | 'modify_meal'
+  | 'adjust_quantity'
+  | 'skip_meal'
+  | 'log_meal'
+  | 'ate_something_else'
+  | 'regenerate_plan'
+  | 'submit_feedback'
+  | 'get_recipe';
 ```
 
 ---
@@ -148,7 +182,10 @@ type MockDb = {
   /** Keyed `${userId}:${date}`. One plan per user per day (§12's idempotent-create rule). */
   mealPlans: Record<string, MealPlanDetail>;
   /** Preview tokens for the replace flow, TTL 600s (§13). Cleared on confirm or expiry check. */
-  replacePreviews: Record<string, { userId: string; mealId: number; alternatives: unknown[]; expiresAt: number }>;
+  replacePreviews: Record<
+    string,
+    { userId: string; mealId: number; alternatives: unknown[]; expiresAt: number }
+  >;
   /** Per-action-per-user-per-day counters for the five §16 quotas, e.g. `plan_generate:${userId}:${date}`. */
   quotaCounters: Record<string, number>;
   /** Recipes generated lazily so `recipe_generate` quota only charges once per meal (§13's "first view" rule). */
@@ -168,9 +205,9 @@ both `POST /meal-plans/` and `.../regenerate/`:
 // will want the exact same pattern later)
 export function advanceOnPoll<T extends { status: string }>(
   entity: T,
-  transitions: string[],   // e.g. ['pending', 'generating', 'validating', 'ready']
-  pollCountKey: string,     // caller tracks how many times this entity has been GET-polled
-): T
+  transitions: string[], // e.g. ['pending', 'generating', 'validating', 'ready']
+  pollCountKey: string, // caller tracks how many times this entity has been GET-polled
+): T;
 ```
 
 Concretely for meal plans: `POST /meal-plans/` creates the record at `status: 'pending'` and returns
@@ -187,16 +224,16 @@ handler per route in §12/§13/§14. A few implementation notes worth calling ou
 to get subtly wrong:
 
 - **`POST /meal-plans/` idempotency**: if a plan already exists for that date, return it as `200`
-  (not `202`) *without* incrementing the `plan_generate` counter — §12 is explicit that re-requesting
+  (not `202`) _without_ incrementing the `plan_generate` counter — §12 is explicit that re-requesting
   an existing plan "does not consume quota." This is the one quota rule that's easy to get backwards.
 - **`POST /meal-plans/{date}/regenerate/`** discards the existing plan and creates a new one at
-  `pending`, *does* increment `plan_regenerate` (separate counter from `plan_generate`).
-- **Recipe quota**: `GET .../recipe/` only increments `recipe_generate` the *first* time for a given
+  `pending`, _does_ increment `plan_regenerate` (separate counter from `plan_generate`).
+- **Recipe quota**: `GET .../recipe/` only increments `recipe_generate` the _first_ time for a given
   meal id (checked via `generatedRecipeMealIds`); subsequent views of the same meal's recipe are free,
   matching §13's "first view logs a `recipe_view` event; generation may consume quota" wording.
 - **Replace preview token TTL**: store `expiresAt = Date.now() + 600_000` (mock-only use of
   `Date.now()` — fine here since this is app runtime code, not a Workflow script); confirm checks
-  the token exists *and* hasn't expired, returning `404 preview_not_found` for either case (§13
+  the token exists _and_ hasn't expired, returning `404 preview_not_found` for either case (§13
   doesn't distinguish "never existed" from "expired" in its error shape, so neither should the mock).
 - **`ate-something-else`** needs `remaining_calories` in its response — compute from the diet
   profile's `daily_calories` minus today's `daily_log.calories_in` after inserting the new entry, not
@@ -235,25 +272,51 @@ export function useMealPlanQuery(date: string) {
 }
 
 /** POST /meal-plans/ — explicit tap only, never on mount (§7.4 of the IA plan — quota-limited). */
-export function useCreateMealPlanMutation(date: string) { /* mutate → invalidate byDate(date) */ }
+export function useCreateMealPlanMutation(date: string) {
+  /* mutate → invalidate byDate(date) */
+}
 
-export function useRegenerateMealPlanMutation(date: string) { /* body: { regeneration_reason, plan_mode } */ }
+export function useRegenerateMealPlanMutation(date: string) {
+  /* body: { regeneration_reason, plan_mode } */
+}
 
-export function useMealRecipeQuery(date: string, mealId: number, enabled: boolean) { /* lazy */ }
+export function useMealRecipeQuery(date: string, mealId: number, enabled: boolean) {
+  /* lazy */
+}
 
-export function useLogMealMutation(date: string) { /* POST .../log/, body: { actual_calories? } */ }
-export function useSkipMealMutation(date: string) { /* POST .../skip/ */ }
-export function useAdjustQuantityMutation(date: string) { /* POST .../adjust-quantity/ */ }
-export function useMealFeedbackMutation(date: string) { /* POST .../feedback/ */ }
+export function useLogMealMutation(date: string) {
+  /* POST .../log/, body: { actual_calories? } */
+}
+export function useSkipMealMutation(date: string) {
+  /* POST .../skip/ */
+}
+export function useAdjustQuantityMutation(date: string) {
+  /* POST .../adjust-quantity/ */
+}
+export function useMealFeedbackMutation(date: string) {
+  /* POST .../feedback/ */
+}
 
-export function useReplacePreviewMutation(date: string) { /* POST .../replace/preview/ */ }
-export function useReplaceConfirmMutation(date: string) { /* POST .../replace/confirm/ */ }
+export function useReplacePreviewMutation(date: string) {
+  /* POST .../replace/preview/ */
+}
+export function useReplaceConfirmMutation(date: string) {
+  /* POST .../replace/confirm/ */
+}
 
-export function useAteSomethingElseMutation(date: string) { /* POST /meal-plans/{date}/ate-something-else/ */ }
+export function useAteSomethingElseMutation(date: string) {
+  /* POST /meal-plans/{date}/ate-something-else/ */
+}
 
-export function useAssistantPromptsQuery(context: 'meal_plan') { /* GET /meals/assistant-prompts/ */ }
-export function useAssistantMutation(date: string) { /* POST /meal-plans/{date}/assistant/ */ }
-export function useAssistantConfirmMutation(date: string) { /* POST .../assistant/confirm/ */ }
+export function useAssistantPromptsQuery(context: 'meal_plan') {
+  /* GET /meals/assistant-prompts/ */
+}
+export function useAssistantMutation(date: string) {
+  /* POST /meal-plans/{date}/assistant/ */
+}
+export function useAssistantConfirmMutation(date: string) {
+  /* POST .../assistant/confirm/ */
+}
 ```
 
 All mutations that mutate a meal (log/skip/adjust/replace-confirm/assistant-confirm) invalidate both
@@ -277,15 +340,15 @@ Every mutation above can 429 with the same `QuotaExceededError` shape. Add one s
 
 Exactly the layout rev. 2 §7.3 already specified; the state machine behind it:
 
-| `useMealPlanQuery` result | Card shows |
-| --- | --- |
-| 404 (no plan requested yet) | `"No plan yet — [Generate today's plan]"` (explicit tap, §7.4) |
-| `pending` / `generating` / `validating` | Compact spinner row: `"Building your plan…"` (polling handles the rest) |
-| `ready` | Meal rows (breakfast/lunch/dinner/snack present), each tappable → meal detail |
-| `failed` | `"Couldn't build your plan — [Retry]"` (retry = regenerate with no reason, or just re-POST) |
+| `useMealPlanQuery` result               | Card shows                                                                                  |
+| --------------------------------------- | ------------------------------------------------------------------------------------------- |
+| 404 (no plan requested yet)             | `"No plan yet — [Generate today's plan]"` (explicit tap, §7.4)                              |
+| `pending` / `generating` / `validating` | Compact spinner row: `"Building your plan…"` (polling handles the rest)                     |
+| `ready`                                 | Meal rows (breakfast/lunch/dinner/snack present), each tappable → meal detail               |
+| `failed`                                | `"Couldn't build your plan — [Retry]"` (retry = regenerate with no reason, or just re-POST) |
 
 Tapping "Generate" is where the **cuisine contextual ask** (rev. 2 §7.2) intercepts: if
-`cuisine_preference` is null, show the one-question sheet first, `PUT` it, *then* `POST
+`cuisine_preference` is null, show the one-question sheet first, `PUT` it, _then_ `POST
 /meal-plans/`. This is the first and highest-priority entry in that contextual-ask table — build it
 before the others.
 
@@ -309,7 +372,7 @@ not silent numbers that don't add up.
   range, `1.0` = reset), **Replace** (see 5.4), **Feedback** (a `SelectableChip` row of
   `FeedbackType`, optional note).
 
-This screen is a *pushed* screen inside the Diet tab's own stack (per rev. 2 §5's navigation rule),
+This screen is a _pushed_ screen inside the Diet tab's own stack (per rev. 2 §5's navigation rule),
 so it gets a real back button — unlike the Diet tab root, which must not have one.
 
 ### 5.4 Replace flow (two screens, matching §13's preview→confirm split)
@@ -319,7 +382,7 @@ so it gets a real back button — unlike the Diet tab root, which must not have 
   shortly" respectively (§13 documents both as distinct failure modes — don't collapse them into one
   generic error).
 - **Confirm**: user taps one alternative → `useReplaceConfirmMutation({ preview_token,
-  chosen_index })`. Show a visible countdown or at least don't let the sheet sit open past 600s
+chosen_index })`. Show a visible countdown or at least don't let the sheet sit open past 600s
   silently — if the token expires mid-read, the confirm call's `404 preview_not_found` should re-open
   the preview step with a plain "that expired, let's try again" message, not a raw error.
 
@@ -327,7 +390,7 @@ so it gets a real back button — unlike the Diet tab root, which must not have 
 
 Reason picker (`RegenerationReason` chips) → on selecting `too_expensive` or `too_much_cooking`
 specifically, check whether `budget_tier`/`cooking_frequency` are already set; if not, show the
-one-question ask *before* firing the regenerate call (rev. 2 §7.2's second and third trigger rows).
+one-question ask _before_ firing the regenerate call (rev. 2 §7.2's second and third trigger rows).
 Other reasons regenerate immediately with no extra question.
 
 ### 5.6 "Ate something else" — quick log from a meal slot

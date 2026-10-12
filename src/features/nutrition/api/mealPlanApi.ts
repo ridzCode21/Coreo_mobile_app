@@ -62,7 +62,10 @@ export function useCreateMealPlanMutation(date: string) {
 export function useRegenerateMealPlanMutation(date: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (values: { regeneration_reason: RegenerationReason; plan_mode?: 'standard' | 'historical' }) =>
+    mutationFn: (values: {
+      regeneration_reason: RegenerationReason;
+      plan_mode?: 'standard' | 'historical';
+    }) =>
       apiClient.post<MealPlanCreateResponse>(`/meal-plans/${date}/regenerate/`, {
         regeneration_reason: values.regeneration_reason,
         plan_mode: values.plan_mode ?? 'standard',
@@ -156,7 +159,8 @@ export function useAteSomethingElseMutation(date: string) {
       description: string;
       approx_calories: number;
       approx_protein_g: number;
-    }) => apiClient.post<AteSomethingElseResponse>(`/meal-plans/${date}/ate-something-else/`, values),
+    }) =>
+      apiClient.post<AteSomethingElseResponse>(`/meal-plans/${date}/ate-something-else/`, values),
     onSuccess: () => invalidateMealPlan(queryClient, date),
   });
 }
@@ -164,7 +168,10 @@ export function useAteSomethingElseMutation(date: string) {
 export function useAssistantPromptsQuery(context: 'meal_plan') {
   return useQuery({
     queryKey: mealPlanKeys.assistantPrompts(context),
-    queryFn: () => apiClient.get<{ options: AssistantPromptOption[] }>(`/meals/assistant-prompts/?context=${context}`),
+    queryFn: () =>
+      apiClient.get<{ options: AssistantPromptOption[] }>(
+        `/meals/assistant-prompts/?context=${context}`,
+      ),
   });
 }
 

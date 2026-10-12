@@ -29,11 +29,7 @@ import {
 import { todayISO } from '@/features/nutrition/api/nutritionApi';
 import { QuotaBanner } from '@/features/nutrition/components/QuotaBanner';
 import { quotaErrorFrom } from '@/features/nutrition/lib/quotaError';
-import type {
-  FeedbackType,
-  PlannedMeal,
-  ReplacePreviewAlternative,
-} from '@/shared/types/mealPlan';
+import type { FeedbackType, PlannedMeal, ReplacePreviewAlternative } from '@/shared/types/mealPlan';
 
 type Sheet = 'portion' | 'replace' | 'feedback' | 'outside' | null;
 
@@ -259,7 +255,11 @@ export default function MealDetailScreen() {
               </Pressable>
               <ActionButton label="Portion" onPress={() => setSheet('portion')} disabled={busy} />
               <ActionButton label="Replace" onPress={() => setSheet('replace')} disabled={busy} />
-              <ActionButton label="Skip" onPress={skip} disabled={busy || meal.status !== 'planned'} />
+              <ActionButton
+                label="Skip"
+                onPress={skip}
+                disabled={busy || meal.status !== 'planned'}
+              />
               <ActionButton
                 label="Ate else"
                 onPress={() => setSheet('outside')}
@@ -501,10 +501,7 @@ function ReplaceSheet({
               onPress={() => onChosen(index)}
               accessibilityRole="button"
               accessibilityState={{ selected: chosen === index }}
-              style={[
-                styles.replacementRow,
-                chosen === index && styles.replacementRowSelected,
-              ]}
+              style={[styles.replacementRow, chosen === index && styles.replacementRowSelected]}
             >
               <Text style={styles.replacementName}>{item.name}</Text>
               <Text style={styles.replacementMeta}>
@@ -609,12 +606,7 @@ function OutsideSheet({
           />
         ))}
       </View>
-      <SheetButton
-        label="Log it"
-        busy={busy}
-        disabled={!description.trim()}
-        onPress={onSubmit}
-      />
+      <SheetButton label="Log it" busy={busy} disabled={!description.trim()} onPress={onSubmit} />
     </SheetFrame>
   );
 }

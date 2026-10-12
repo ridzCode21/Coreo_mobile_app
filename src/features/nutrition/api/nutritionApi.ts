@@ -95,7 +95,11 @@ export function useAnalyzePhotoMutation() {
     mutationFn: (image: PhotoUploadFile) => {
       const form = new FormData();
       // RN's fetch accepts this file-part shape on FormData for multipart uploads.
-      form.append('image', { uri: image.uri, name: image.name, type: image.type } as unknown as Blob);
+      form.append('image', {
+        uri: image.uri,
+        name: image.name,
+        type: image.type,
+      } as unknown as Blob);
       return apiClient.post<PhotoEstimate>('/food/photo/', form, { multipart: true });
     },
   });
@@ -130,7 +134,9 @@ export function useDeleteFoodEntryMutation(date: string) {
     mutationFn: (entryId: number) => apiClient.delete<void>(`/food/entries/${entryId}/`),
     onMutate: async (entryId) => {
       await queryClient.cancelQueries({ queryKey: nutritionKeys.foodEntries(date) });
-      const previous = queryClient.getQueryData<FoodEntriesResponse>(nutritionKeys.foodEntries(date));
+      const previous = queryClient.getQueryData<FoodEntriesResponse>(
+        nutritionKeys.foodEntries(date),
+      );
       if (previous) {
         queryClient.setQueryData<FoodEntriesResponse>(nutritionKeys.foodEntries(date), {
           ...previous,

@@ -7,10 +7,7 @@ import { GlassCard } from '@/shared/components/GlassCard';
 import { Screen } from '@/shared/components/Screen';
 import { SelectableChip } from '@/shared/components/SelectableChip';
 import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
-import {
-  useDietProfileQuery,
-  useUpdateDietProfileMutation,
-} from '@/features/onboarding';
+import { useDietProfileQuery, useUpdateDietProfileMutation } from '@/features/onboarding';
 import { QuotaBanner } from '@/features/nutrition/components/QuotaBanner';
 import {
   useMealPlanQuery,
@@ -143,8 +140,7 @@ export default function MealPlanScreen() {
             ) : null}
             <View style={styles.mealList}>
               {plan.meals.map((meal) => {
-                const done =
-                  meal.status !== 'planned' && meal.status !== 'missed';
+                const done = meal.status !== 'planned' && meal.status !== 'missed';
                 return (
                   <Pressable
                     key={meal.id}
@@ -157,9 +153,7 @@ export default function MealPlanScreen() {
                       <Text style={done ? styles.mealMetaDone : styles.mealMeta}>
                         {MEAL_LABEL[meal.meal_type]}
                       </Text>
-                      <Text style={done ? styles.mealNameDone : styles.mealName}>
-                        {meal.name}
-                      </Text>
+                      <Text style={done ? styles.mealNameDone : styles.mealName}>{meal.name}</Text>
                       <Text style={done ? styles.mealMacrosDone : styles.mealMacros}>
                         {meal.calories_kcal} kcal · {Math.round(meal.protein_g)}g protein
                       </Text>
@@ -286,7 +280,9 @@ function RegenerateSheet({
                 : "What's not working today?"}
           </Text>
           <Text style={styles.sheetBody}>
-            {contextAsk ? "This makes future plans fit better. I won't ask again." : "Pick one — I'll rebuild around it."}
+            {contextAsk
+              ? "This makes future plans fit better. I won't ask again."
+              : "Pick one — I'll rebuild around it."}
           </Text>
           <View style={styles.chips}>
             {contextAsk === 'budget'
@@ -326,7 +322,9 @@ function RegenerateSheet({
             {saving ? (
               <ActivityIndicator color={colors.white} />
             ) : (
-              <Text style={styles.sheetPrimaryText}>{contextAsk ? 'Continue' : 'Regenerate plan'}</Text>
+              <Text style={styles.sheetPrimaryText}>
+                {contextAsk ? 'Continue' : 'Regenerate plan'}
+              </Text>
             )}
           </Pressable>
         </View>

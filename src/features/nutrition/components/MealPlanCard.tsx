@@ -6,10 +6,7 @@ import { ApiError } from '@/shared/api/errors';
 import { GlassCard } from '@/shared/components/GlassCard';
 import { SelectableChip } from '@/shared/components/SelectableChip';
 import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
-import {
-  useDietProfileQuery,
-  useUpdateDietProfileMutation,
-} from '@/features/onboarding';
+import { useDietProfileQuery, useUpdateDietProfileMutation } from '@/features/onboarding';
 import {
   useAssistantConfirmMutation,
   useAssistantMutation,
@@ -110,8 +107,7 @@ export function MealPlanCard({ date }: { date: string }) {
   };
 
   const isBuilding =
-    planQuery.data &&
-    ['pending', 'generating', 'validating'].includes(planQuery.data.status);
+    planQuery.data && ['pending', 'generating', 'validating'].includes(planQuery.data.status);
   const noPlan = planQuery.isError && isNotFound(planQuery.error);
   const failedPlan = planQuery.data?.status === 'failed';
   const plan = planQuery.data?.status === 'ready' ? planQuery.data : null;

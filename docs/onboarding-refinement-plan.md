@@ -282,7 +282,7 @@ GET shows a loading shimmer on the card, not a blank.
 - [ ] All diet-interview screens render in the design-system style with **cards matching the
       design** (radius, height, sheen, radio-vs-check), driven from `dietQuestions.ts`.
 - [ ] Completing the interview writes a valid diet profile via mock `PUT
-    /users/me/diet-profile/`; `onboarding_complete` flips true once diet_type + cuisine +
+/users/me/diet-profile/`; `onboarding_complete` flips true once diet_type + cuisine +
       goal_type are set.
 - [ ] The **calibrating screen** shows a wave that fills (solid/dashed/glowing now-dot) to a
       completeness % read from mock `GET /users/me/diet-profile/`, animated (static under

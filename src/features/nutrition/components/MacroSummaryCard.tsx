@@ -2,7 +2,11 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { GlassCard } from '@/shared/components/GlassCard';
 import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
-import { computeRemaining, macroFillRatio, type MacroTargets } from '@/features/nutrition/lib/macros';
+import {
+  computeRemaining,
+  macroFillRatio,
+  type MacroTargets,
+} from '@/features/nutrition/lib/macros';
 import type { TargetQuality } from '@/features/onboarding';
 import type { MacroSummary } from '@/shared/types/food';
 
@@ -24,7 +28,12 @@ function formatThousands(value: number): string {
   // Locale-independent grouping (RN's Intl is inconsistent across platforms/Android builds).
   const rounded = Math.round(value);
   const sign = rounded < 0 ? '-' : '';
-  return sign + Math.abs(rounded).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return (
+    sign +
+    Math.abs(rounded)
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  );
 }
 
 type MacroKey = 'protein_g' | 'carbs_g' | 'fat_g';
