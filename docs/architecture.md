@@ -69,6 +69,7 @@ src/
       components/                # AnimatedSplash (Reanimated + SVG draw-in)
       screens/                   # SplashScreen — decides + navigates to the next destination
       lib/                       # resolveLaunchDestination — pure routing-decision function
+      index.ts                   # public surface (SplashScreen, imported by the route file)
     onboarding/                  # minimal pre-signup flow + post-signup diet profile utilities
       screens/                   # FirstOpenScreen, Name/AboutYou/Gender/Pillars/Promise/
                                   # SaveScreen, DietQuestionScreen (goal + D1–D10), CalibratingScreen
@@ -158,6 +159,13 @@ eas.json                         # EAS build/submit profiles — not yet created
   surface) — never reach into another feature's internal files (`features/workouts/components/X`
   from outside `workouts`).
 - `src/app/*` route files import from `src/features/*` only. No business logic in `src/app/*`.
+- `src/shared/*` never imports from `src/features/*`. The one exception is
+  `shared/api/mock/registerAllMocks.ts`, the mock backend's single wiring point (§4).
+- **These rules are enforced by ESLint** (`no-restricted-imports` blocks in `eslint.config.js`,
+  built from the folders in `src/features/`), so `npm run lint`, the `lint-staged` pre-commit hook
+  and the `pr-review` checklist all fail on a violation. A new feature is covered automatically.
+  If you need something from another feature, export it from that feature's `index.ts` — don't
+  add a lint exception.
 - Path aliases: `@/*` → `./src/*` (configured in `tsconfig.json`), so `@/features/auth` and
   `@/shared/theme/tokens` resolve directly — use these instead of long relative paths.
 

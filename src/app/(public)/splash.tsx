@@ -1,1 +1,1 @@
-export { default } from '@/features/splash/screens/SplashScreen';
+export { SplashScreen as default } from '@/features/splash';

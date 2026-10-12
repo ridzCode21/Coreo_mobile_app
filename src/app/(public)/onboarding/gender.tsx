@@ -1,1 +1,1 @@
-export { default } from '@/features/onboarding/screens/GenderScreen';
+export { GenderScreen as default } from '@/features/onboarding';

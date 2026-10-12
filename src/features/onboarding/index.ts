@@ -2,12 +2,20 @@
  * Public surface for the onboarding feature. Other features import only from here, never from
  * onboarding's internal files (architecture.md §2 import rules).
  *
- * Currently narrow on purpose: the diet-profile read is the one thing a sibling feature (nutrition)
- * legitimately needs post-onboarding — the committed profile carries the daily calorie/macro
- * targets the Diet home counts down from. (Route files still import onboarding *screens* by internal
- * path; consolidating those behind this surface is a separate cleanup, noted as a smell — not done
- * here to avoid touching unrelated code.)
+ * Exposes the routed pre-signup screens (for `src/app/(public)/*` route files), the step sequencer
+ * and draft store that splash needs to resume an interrupted interview, and the diet-profile read
+ * that nutrition/home need post-onboarding — the committed profile carries the daily calorie/macro
+ * targets the Diet home counts down from.
  */
+export { default as FirstOpenScreen } from '@/features/onboarding/screens/FirstOpenScreen';
+export { default as NameScreen } from '@/features/onboarding/screens/NameScreen';
+export { default as GoalScreen } from '@/features/onboarding/screens/GoalScreen';
+export { default as AboutYouScreen } from '@/features/onboarding/screens/AboutYouScreen';
+export { default as GenderScreen } from '@/features/onboarding/screens/GenderScreen';
+export { default as PillarsScreen } from '@/features/onboarding/screens/PillarsScreen';
+export { default as SaveScreen } from '@/features/onboarding/screens/SaveScreen';
+export { firstUnansweredFlowStep, flowStepRoute } from '@/features/onboarding/lib/steps';
+export { useOnboardingStore } from '@/features/onboarding/store/onboardingStore';
 export {
   useDietProfileQuery,
   useUpdateDietProfileMutation,

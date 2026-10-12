@@ -1,1 +1,1 @@
-export { default } from '@/features/onboarding/screens/GoalScreen';
+export { GoalScreen as default } from '@/features/onboarding';

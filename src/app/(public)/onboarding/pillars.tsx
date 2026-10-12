@@ -1,1 +1,1 @@
-export { default } from '@/features/onboarding/screens/PillarsScreen';
+export { PillarsScreen as default } from '@/features/onboarding';

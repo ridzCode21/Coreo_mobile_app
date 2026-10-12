@@ -9,8 +9,7 @@ import { useAppFlagsStore } from '@/shared/stores/appFlagsStore';
 import { useOrientationLock } from '@/shared/hooks/useOrientationLock';
 import { AnimatedSplash } from '@/features/splash/components/AnimatedSplash';
 import { resolveLaunchDestination } from '@/features/splash/lib/resolveLaunchDestination';
-import { firstUnansweredFlowStep, flowStepRoute } from '@/features/onboarding/lib/steps';
-import { useOnboardingStore } from '@/features/onboarding/store/onboardingStore';
+import { firstUnansweredFlowStep, flowStepRoute, useOnboardingStore } from '@/features/onboarding';
 
 /**
  * Always the first screen the user sees on cold start (mounted outside the auth gate — see
