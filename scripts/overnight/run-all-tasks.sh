@@ -48,7 +48,7 @@ CODEX_BIN="${CODEX_BIN:-codex}"
 CLAUDE_MODEL="${CLAUDE_MODEL:-}"              # empty = your Claude Code default
 CLAUDE_EFFORT="${CLAUDE_EFFORT:-}"            # e.g. high
 CODEX_MODEL="${CODEX_MODEL:-}"                # empty = your ~/.codex/config.toml default
-BUDGET_USD="${BUDGET_USD:-}"                  # optional per-Claude-session spend cap
+BUDGET_USD="${BUDGET_USD:-10}"                # spend cap per Claude session in USD (0 = no cap). A session that hits it fails and is retried
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-2}"             # whole-pipeline attempts per issue
 MAX_ROUNDS="${MAX_ROUNDS:-4}"                 # implement/fix + review rounds per attempt
 ALLOW_FALLBACK="${ALLOW_FALLBACK:-1}"         # 1 = the other provider takes over when one is limited
@@ -324,7 +324,7 @@ invoke_claude() { # role prompt out err
               --allowedTools "$CLAUDE_ALLOWED" --disallowedTools "$CLAUDE_DENIED")
   [ -n "$CLAUDE_MODEL" ] && args+=(--model "$CLAUDE_MODEL")
   [ -n "$CLAUDE_EFFORT" ] && args+=(--effort "$CLAUDE_EFFORT")
-  [ -n "$BUDGET_USD" ] && args+=(--max-budget-usd "$BUDGET_USD")
+  [ -n "$BUDGET_USD" ] && [ "$BUDGET_USD" != 0 ] && args+=(--max-budget-usd "$BUDGET_USD")
   ( cd "$WT" && env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT "$CLAUDE_BIN" "${args[@]}" < "$prompt" > "$out" 2> "$err" )
 }
 invoke_codex() { # role prompt out err

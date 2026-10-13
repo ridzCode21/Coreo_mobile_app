@@ -73,7 +73,7 @@ tail -f scripts/overnight/.state/runner.log              # watch live
 
 ## Settings (environment variables)
 
-`CLAUDE_MODEL`, `CLAUDE_EFFORT`, `CODEX_MODEL` (empty = your defaults), `BUDGET_USD` (cap per Claude session),
+`CLAUDE_MODEL`, `CLAUDE_EFFORT`, `CODEX_MODEL` (empty = your defaults), `BUDGET_USD` (cap per Claude session, default 10, 0 = no cap),
 `MAX_ATTEMPTS` (2), `MAX_ROUNDS` (4), `ALLOW_FALLBACK` (1), `LIMIT_WAIT_MINUTES` (30), `LIMIT_WAIT_MAX_HOURS` (7),
 `POLISH_MINOR` (1), `GH_COMMENT` (1: comment on each GitHub issue, never closes it), `BASE_BRANCH`, `INTEG_BRANCH`
 (`chore/overnight-runner`), `WORKTREE_DIR` (`../django_frontend-overnight`), `REPO_SLUG`, `BACKEND_REPO` (`../django_app/django_app`), `BACKEND_BRANCH` (`feat/initial`).
@@ -110,7 +110,7 @@ tokens (#52), shared background and glass (#53), signup contract (#8).
   reported as blocked or partial, not installed.
 - Progress truth is `status.tsv` and git. The runner is safe to stop and start at any time; an interrupted issue resumes.
 - Sessions use the mock API; the backend is not running overnight. Live checks stay on the issue's "How to verify".
-- Each issue costs real tokens (about $0.2 of fixed overhead per Claude session, plus the work). Set `BUDGET_USD` to cap it.
+- Each issue costs real tokens (about $0.2 of fixed overhead per Claude session, plus the work). Each Claude session is capped at `BUDGET_USD` (default 10); a session that hits the cap fails and the issue is retried, so raise it if big issues keep failing that way.
 
 ## In the morning
 
