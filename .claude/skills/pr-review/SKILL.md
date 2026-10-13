@@ -4,7 +4,6 @@ description: >-
   Final self-review checklist against this project's architecture, coding standards, and state
   management rules before considering any task or change complete. Use as the last step before
   declaring a task done, or when explicitly asked to review a diff/PR.
-disable-model-invocation: true
 ---
 
 # PR Review
@@ -12,7 +11,7 @@ disable-model-invocation: true
 ## Instructions
 
 Run through this checklist against the diff before calling a task finished. This is the final
-gate referenced in `CLAUDE.md` §9 — it assumes `security-review` has already run if the change
+gate referenced in `CLAUDE.md` §9 — it assumes `app-security-review` has already run if the change
 touched auth/tokens/storage/network/permissions.
 
 ### Architecture (`docs/architecture.md`)

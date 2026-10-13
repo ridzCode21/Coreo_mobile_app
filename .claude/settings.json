@@ -5,5 +5,18 @@
     "code-review@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true
+  },
+  "permissions": {
+    "deny": [
+      "Bash(git commit *--no-verify*)",
+      "Bash(git push *--no-verify*)",
+      "Bash(git * --no-verify*)",
+      "Bash(HUSKY=0 *)",
+      "Bash(git config core.hooksPath*)",
+      "Bash(git push *origin main*)",
+      "Bash(git push *origin development*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)"
+    ]
   }
 }

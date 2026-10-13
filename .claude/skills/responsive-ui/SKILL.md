@@ -4,7 +4,6 @@ description: >-
   Build screens and components that adapt correctly across phone sizes, both platforms, and
   light/dark, using design tokens rather than hardcoded values. Use whenever building or
   modifying any screen or UI component.
-disable-model-invocation: true
 ---
 
 # Responsive UI
