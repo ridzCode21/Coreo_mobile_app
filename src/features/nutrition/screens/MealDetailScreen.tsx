@@ -14,7 +14,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { GlassCard } from '@/shared/components/GlassCard';
 import { Screen } from '@/shared/components/Screen';
 import { SelectableChip } from '@/shared/components/SelectableChip';
-import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { SkyBackground } from '@/shared/components/SkyBackground';
+import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 import {
   useAdjustMealQuantityMutation,
   useAteSomethingElseMutation,
@@ -189,10 +190,7 @@ export default function MealDetailScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient
-        colors={[colors.zenith, colors.day, colors.air]}
-        style={StyleSheet.absoluteFill}
-      />
+      <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} accessibilityRole="button" style={styles.back}>
@@ -593,7 +591,7 @@ function OutsideSheet({
         value={description}
         onChangeText={onDescription}
         placeholder="What did you have?"
-        placeholderTextColor="rgba(239,244,249,0.58)"
+        placeholderTextColor={withAlpha(colors.fog, 0.58)}
         style={styles.darkInput}
       />
       <View style={styles.chipRow}>
@@ -657,8 +655,8 @@ const styles = StyleSheet.create({
   },
   back: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.42)',
-    borderColor: 'rgba(255,255,255,0.7)',
+    backgroundColor: withAlpha(colors.white, 0.42),
+    borderColor: withAlpha(colors.white, 0.7),
     borderRadius: 22,
     borderWidth: 1,
     height: 44,
@@ -687,7 +685,7 @@ const styles = StyleSheet.create({
   },
   heroLabel: {
     ...textStyle('label'),
-    color: 'rgba(239,244,249,0.72)',
+    color: withAlpha(colors.fog, 0.72),
     marginBottom: spacing.sm,
   },
   title: {
@@ -697,7 +695,7 @@ const styles = StyleSheet.create({
   },
   heroBody: {
     ...textStyle('body'),
-    color: 'rgba(239,244,249,0.78)',
+    color: withAlpha(colors.fog, 0.78),
   },
   heroMetrics: {
     flexDirection: 'row',
@@ -724,12 +722,12 @@ const styles = StyleSheet.create({
   },
   metricLabelDark: {
     ...textStyle('caption'),
-    color: 'rgba(239,244,249,0.65)',
+    color: withAlpha(colors.fog, 0.65),
     marginTop: spacing.xs,
   },
   statusText: {
     ...textStyle('caption'),
-    color: 'rgba(239,244,249,0.72)',
+    color: withAlpha(colors.fog, 0.72),
     marginTop: spacing.lg,
     textTransform: 'capitalize',
   },
@@ -762,8 +760,8 @@ const styles = StyleSheet.create({
   },
   secondaryAction: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.42)',
-    borderColor: 'rgba(255,255,255,0.68)',
+    backgroundColor: withAlpha(colors.white, 0.42),
+    borderColor: withAlpha(colors.white, 0.68),
     borderRadius: radii.pill,
     borderWidth: 1,
     flexGrow: 1,
@@ -789,7 +787,7 @@ const styles = StyleSheet.create({
   },
   ingredientRow: {
     alignItems: 'center',
-    borderBottomColor: 'rgba(255,255,255,0.46)',
+    borderBottomColor: withAlpha(colors.white, 0.46),
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -839,7 +837,7 @@ const styles = StyleSheet.create({
     color: colors.ink62,
   },
   backdrop: {
-    backgroundColor: 'rgba(21,39,65,0.42)',
+    backgroundColor: withAlpha(colors.midnight, 0.42),
     flex: 1,
   },
   sheetWrap: {
@@ -858,7 +856,7 @@ const styles = StyleSheet.create({
   },
   grabber: {
     alignSelf: 'center',
-    backgroundColor: 'rgba(23,25,29,0.22)',
+    backgroundColor: withAlpha(colors.ink, 0.22),
     borderRadius: radii.pill,
     height: 4,
     marginBottom: spacing.xl,
@@ -882,8 +880,8 @@ const styles = StyleSheet.create({
   },
   input: {
     ...textStyle('bodyLg'),
-    backgroundColor: 'rgba(255,255,255,0.44)',
-    borderColor: 'rgba(255,255,255,0.74)',
+    backgroundColor: withAlpha(colors.white, 0.44),
+    borderColor: withAlpha(colors.white, 0.74),
     borderRadius: radii.xl,
     borderWidth: 1,
     color: colors.ink,
@@ -893,8 +891,8 @@ const styles = StyleSheet.create({
   },
   darkInput: {
     ...textStyle('bodyLg'),
-    backgroundColor: 'rgba(21,39,65,0.76)',
-    borderColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: withAlpha(colors.midnight, 0.76),
+    borderColor: withAlpha(colors.white, 0.18),
     borderRadius: radii.xl,
     borderWidth: 1,
     color: colors.onNight,
@@ -907,8 +905,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   replacementRow: {
-    backgroundColor: 'rgba(255,255,255,0.36)',
-    borderColor: 'rgba(255,255,255,0.64)',
+    backgroundColor: withAlpha(colors.white, 0.36),
+    borderColor: withAlpha(colors.white, 0.64),
     borderRadius: radii.lg,
     borderWidth: 1,
     padding: spacing.lg,

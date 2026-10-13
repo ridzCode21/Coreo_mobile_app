@@ -5,7 +5,15 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { GlassCard } from '@/shared/components/GlassCard';
-import { colors, fontFamily, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import {
+  colors,
+  fontFamily,
+  radii,
+  spacing,
+  textStyle,
+  typography,
+  withAlpha,
+} from '@/shared/theme/tokens';
 import {
   authErrorMessage,
   registerFieldErrors,
@@ -412,7 +420,7 @@ export default function SaveScreen() {
 const styles = StyleSheet.create({
   summaryText: {
     ...textStyle('bodySm'),
-    color: 'rgba(23,25,29,0.75)',
+    color: colors.ink75,
   },
   buttonStack: {
     gap: spacing.sm,
@@ -426,28 +434,27 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: 'rgba(18,42,70,0.2)',
+    shadowColor: withAlpha(colors.overlayInk, 0.2),
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 1,
     shadowRadius: 26,
   },
   appleButtonText: {
-    fontFamily: fontFamily.poppins500,
-    fontSize: 14,
+    ...textStyle('button'),
     color: colors.ink,
   },
   googleButton: {
     height: 54,
     borderRadius: radii.pill,
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: withAlpha(colors.white, 0.3),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
+    borderColor: withAlpha(colors.white, 0.6),
     alignItems: 'center',
     justifyContent: 'center',
   },
   googleButtonText: {
     fontFamily: fontFamily.poppins400,
-    fontSize: 14,
+    fontSize: typography.button.fontSize,
     color: colors.ink62,
   },
   emailLink: {
@@ -517,13 +524,12 @@ const styles = StyleSheet.create({
   },
   privacyCard: {
     marginTop: spacing.md,
-    backgroundColor: 'rgba(23,25,29,0.08)',
+    backgroundColor: withAlpha(colors.ink, 0.08),
     borderRadius: radii.sm,
     padding: spacing.md,
   },
   privacyText: {
-    ...textStyle('bodySm'),
-    fontSize: 10.5,
-    color: 'rgba(23,25,29,0.65)',
+    ...textStyle('legal'),
+    color: withAlpha(colors.ink, 0.65),
   },
 });

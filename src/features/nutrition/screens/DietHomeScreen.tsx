@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { LinearGradient } from 'expo-linear-gradient';
 
 import { Screen } from '@/shared/components/Screen';
-import { colors, fontFamily, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { SkyBackground } from '@/shared/components/SkyBackground';
+import { colors, fontFamily, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 import { targetQuality, useDietProfileQuery } from '@/features/onboarding';
 import {
   todayISO,
@@ -54,12 +54,7 @@ export default function DietHomeScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient
-        // Static day-ramp atmosphere. Time-aware atmosphere (design-system §1 law 1) is a later
-        // decorative enhancement, not required for Layer 1.
-        colors={[colors.zenith, colors.day, colors.air]}
-        style={StyleSheet.absoluteFill}
-      />
+      <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
         <Text style={styles.eyebrow}>Diet</Text>
         {/* Two-weight headline treatment matching the design (pageTitle: light lead + medium
@@ -188,9 +183,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.62)',
+    backgroundColor: withAlpha(colors.white, 0.62),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
+    borderColor: withAlpha(colors.white, 0.6),
     borderRadius: radii.pill,
     paddingLeft: spacing.xxl,
     paddingRight: spacing.sm,

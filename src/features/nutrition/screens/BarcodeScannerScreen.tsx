@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 
 import { useRouter, type Href } from 'expo-router';
 
 import { ApiError } from '@/shared/api/errors';
-import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { colors, radii, spacing, textStyle, tracking, withAlpha } from '@/shared/theme/tokens';
 import { useBarcodeLookup } from '@/features/nutrition/api/nutritionApi';
 import { scalePer100g } from '@/features/nutrition/lib/macros';
 import { BarcodeScannerView } from '@/features/nutrition/components/BarcodeScannerView';
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: 'rgba(18,42,70,0.7)',
+    backgroundColor: withAlpha(colors.overlayInk, 0.7),
     borderRadius: radii.pill,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   statusCol: {
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: 'rgba(18,42,70,0.7)',
+    backgroundColor: withAlpha(colors.overlayInk, 0.7),
     borderRadius: radii.lg,
     padding: spacing.xl,
   },
@@ -196,8 +196,8 @@ const styles = StyleSheet.create({
   },
   scannedCode: {
     ...textStyle('caption'),
-    color: 'rgba(255,255,255,0.6)',
-    letterSpacing: 1,
+    color: withAlpha(colors.white, 0.6),
+    letterSpacing: tracking.wide,
   },
   bannerButton: {
     paddingVertical: spacing.sm,
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   },
   bannerLink: {
     ...textStyle('caption'),
-    color: 'rgba(255,255,255,0.8)',
+    color: withAlpha(colors.white, 0.8),
   },
   manualRoot: {
     flex: 1,
@@ -226,19 +226,19 @@ const styles = StyleSheet.create({
   },
   manualBody: {
     ...textStyle('body'),
-    color: 'rgba(239,244,249,0.62)',
+    color: withAlpha(colors.fog, 0.62),
     marginBottom: spacing.sm,
   },
   manualField: {
     ...textStyle('cardValue'),
     color: colors.onNight,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: withAlpha(colors.white, 0.12),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.24)',
+    borderColor: withAlpha(colors.white, 0.24),
     borderRadius: radii.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    letterSpacing: 1,
+    letterSpacing: tracking.wide,
   },
   notice: {
     ...textStyle('bodySm'),
@@ -261,6 +261,6 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     ...textStyle('body'),
-    color: 'rgba(239,244,249,0.62)',
+    color: withAlpha(colors.fog, 0.62),
   },
 });

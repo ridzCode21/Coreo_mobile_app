@@ -1,11 +1,14 @@
 import {
   colors,
+  glass,
   radii,
   sheetSkyGradient,
   skyGradient,
   spacing,
   textStyle,
+  tracking,
   typography,
+  withAlpha,
 } from '@/shared/theme/tokens';
 
 describe('foundation: theme tokens', () => {
@@ -145,5 +148,70 @@ describe('foundation: theme tokens', () => {
       expect(textStyle('small').lineHeight).toBe(12 * 1.6);
       expect(textStyle('cardTitle').fontSize).toBe(19);
     });
+
+    it("adds the legal/fine-print style for Save's privacy note (10.5/300)", () => {
+      expect(typography.legal).toMatchObject({ fontSize: 10.5, fontWeight: '300' });
+    });
+  });
+
+  // Issue #53 — shared sky background, glass cards and raw values. GlassCard's four recipes
+  // (light, night, chip, sheet) move into one token export so no screen/component can drift from
+  // the design's measured values again; `withAlpha` lets components reuse a named base colour at
+  // a one-off opacity without hardcoding a new hex/rgba literal.
+
+  describe('glass recipes', () => {
+    it("fixes light glass to the design's exact border (.55) and shadow (.14) — gradient was already correct", () => {
+      expect(glass.light.gradient).toEqual(['rgba(255,255,255,0.62)', 'rgba(255,255,255,0.2)']);
+      expect(glass.light.border).toBe('rgba(255,255,255,0.55)');
+      expect(glass.light.shadowColor).toBe('rgba(18,42,70,0.14)');
+    });
+
+    it("fixes night glass to the design's dominant gradient (.6 to .7) and border (.22)", () => {
+      expect(glass.night.gradient).toEqual(['rgba(34,66,102,0.6)', 'rgba(12,28,48,0.7)']);
+      expect(glass.night.border).toBe('rgba(255,255,255,0.22)');
+    });
+
+    it("adds the chip glass recipe (.5 to .14, border .55) used by SelectableChip/ToggleRow's unselected state", () => {
+      expect(glass.chip.gradient).toEqual(['rgba(255,255,255,0.5)', 'rgba(255,255,255,0.14)']);
+      expect(glass.chip.border).toBe('rgba(255,255,255,0.55)');
+    });
+
+    it('adds the selected-chip/row glass recipe (.94 to .6, border .9) already used by ToggleRow', () => {
+      expect(glass.chipSelected.gradient).toEqual([
+        'rgba(255,255,255,0.94)',
+        'rgba(255,255,255,0.6)',
+      ]);
+      expect(glass.chipSelected.border).toBe('rgba(255,255,255,0.9)');
+    });
+
+    it("preserves SelectableChip's distinct selected-state shadow (.18)", () => {
+      expect(glass.selectableChipSelected.shadowColor).toBe('rgba(18,42,70,0.18)');
+    });
+
+    it('adds the sheet glass recipe (160deg .82 to .55, border .85, radius 36)', () => {
+      expect(glass.sheet.gradient).toEqual(['rgba(255,255,255,0.82)', 'rgba(255,255,255,0.55)']);
+      expect(glass.sheet.border).toBe('rgba(255,255,255,0.85)');
+      expect(radii.xxl).toBe(36);
+    });
+  });
+
+  describe('withAlpha and new base colours', () => {
+    it('blends a hex colour to an rgba string at the given alpha', () => {
+      expect(withAlpha(colors.white, 0.5)).toBe('rgba(255,255,255,0.5)');
+      expect(withAlpha(colors.ink, 0.8)).toBe('rgba(23,25,29,0.8)');
+    });
+
+    it("adds the Brand Book 'Fog' colour (#EFF4F8) used for faded text on night/dark glass", () => {
+      expect(colors.fog).toBe('#EFF4F8');
+    });
+
+    it('adds the overlayInk base (#122A46) used by card shadows and translucent dark overlays', () => {
+      expect(colors.overlayInk).toBe('#122A46');
+      expect(withAlpha(colors.overlayInk, 0.35)).toBe('rgba(18,42,70,0.35)');
+    });
+  });
+
+  it('adds a wide letter-spacing token for scanner/manual-entry text (barcode screen)', () => {
+    expect(tracking.wide).toBe(1);
   });
 });

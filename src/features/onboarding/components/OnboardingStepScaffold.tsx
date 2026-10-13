@@ -1,9 +1,9 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, fontFamily, spacing, textStyle } from '@/shared/theme/tokens';
+import { SkyBackground } from '@/shared/components/SkyBackground';
 import { WaveMark } from '@/shared/components/WaveMark';
 import { ProgressDots } from '@/shared/components/ProgressDots';
 
@@ -55,13 +55,7 @@ export function OnboardingStepScaffold({
   const paddingX = compactPaddingX ? spacing.screenPadXCompact : spacing.screenPadX;
 
   return (
-    <LinearGradient
-      colors={[colors.day, colors.air, colors.sky]}
-      locations={[0, 0.48, 1]}
-      start={{ x: 0.4, y: 0 }}
-      end={{ x: 0.6, y: 1 }}
-      style={styles.fill}
-    >
+    <SkyBackground style={styles.fill}>
       <ScrollView
         contentContainerStyle={[
           styles.content,
@@ -88,7 +82,7 @@ export function OnboardingStepScaffold({
 
         <View style={styles.footer}>{footer}</View>
       </ScrollView>
-    </LinearGradient>
+    </SkyBackground>
   );
 }
 
@@ -145,7 +139,7 @@ const styles = StyleSheet.create({
   subtitle: {
     ...textStyle('bodyLg'),
     marginTop: spacing.md,
-    color: 'rgba(23,25,29,0.6)',
+    color: colors.ink60,
   },
   body: {},
   footer: {

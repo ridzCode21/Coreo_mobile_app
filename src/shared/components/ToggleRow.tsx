@@ -3,7 +3,15 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 
-import { colors, fontFamily, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import {
+  colors,
+  fontFamily,
+  glass,
+  radii,
+  spacing,
+  textStyle,
+  withAlpha,
+} from '@/shared/theme/tokens';
 
 export type ToggleRowSelectionMode = 'check' | 'radio';
 
@@ -82,7 +90,10 @@ export function ToggleRow({
            * same technique as GlassCard, since this chassis doesn't route through GlassCard itself
            * (it needs its own selected/unselected gradient, not GlassCard's fixed light/night pair). */}
           <LinearGradient
-            colors={[selected ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.5)', 'transparent']}
+            colors={[
+              selected ? glass.chipSelected.topHighlight : glass.chip.topHighlight,
+              'transparent',
+            ]}
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
             style={[
@@ -142,10 +153,10 @@ export function ToggleRow({
   );
 }
 
-const SELECTED_GRADIENT = ['rgba(255,255,255,0.94)', 'rgba(255,255,255,0.6)'] as const;
-const UNSELECTED_GRADIENT = ['rgba(255,255,255,0.5)', 'rgba(255,255,255,0.16)'] as const;
-const SELECTED_BORDER = 'rgba(255,255,255,0.9)';
-const UNSELECTED_BORDER = 'rgba(255,255,255,0.55)';
+const SELECTED_GRADIENT = glass.chipSelected.gradient;
+const UNSELECTED_GRADIENT = glass.chip.gradient;
+const SELECTED_BORDER = glass.chipSelected.border;
+const UNSELECTED_BORDER = glass.chip.border;
 
 const styles = StyleSheet.create({
   /** The design's selected row has *two* box-shadows — a dark drop shadow (`selectedShadow`
@@ -155,7 +166,7 @@ const styles = StyleSheet.create({
    * colored-glow equivalent to add there. */
   selectedGlow: Platform.select({
     ios: {
-      shadowColor: '#FFFFFF',
+      shadowColor: colors.white,
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.8,
       shadowRadius: 18,
@@ -164,7 +175,7 @@ const styles = StyleSheet.create({
   }),
   wrap: Platform.select({
     ios: {
-      shadowColor: 'rgba(18,42,70,0.14)',
+      shadowColor: glass.light.shadowColor,
       shadowOffset: { width: 0, height: 10 },
       shadowOpacity: 1,
       shadowRadius: 20,
@@ -173,7 +184,7 @@ const styles = StyleSheet.create({
   }),
   selectedShadow: Platform.select({
     ios: {
-      shadowColor: 'rgba(18,42,70,0.2)',
+      shadowColor: glass.chipSelected.shadowColor,
       shadowOffset: { width: 0, height: 14 },
       shadowOpacity: 1,
       shadowRadius: 28,
@@ -213,7 +224,7 @@ const styles = StyleSheet.create({
     ...textStyle('cardValue'),
     // Design source uses rgba(23,25,29,.8) for unselected row text — noticeably higher contrast
     // than the `ink60` (.62) token, which read as too faint against the design.
-    color: 'rgba(23,25,29,0.8)',
+    color: withAlpha(colors.ink, 0.8),
   },
   subtitleSelected: {
     ...textStyle('bodySm'),
@@ -236,14 +247,14 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: 'rgba(23,25,29,0.3)',
+    borderColor: withAlpha(colors.ink, 0.3),
   },
   radioOuter: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: 'rgba(23,25,29,0.3)',
+    borderColor: withAlpha(colors.ink, 0.3),
   },
   radioOuterSelected: {
     width: 24,

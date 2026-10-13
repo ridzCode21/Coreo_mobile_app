@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 
-import { colors } from '@/shared/theme/tokens';
+import { SkyBackground } from '@/shared/components/SkyBackground';
 import { useSessionStore } from '@/features/auth';
 import { useAppFlagsStore } from '@/shared/stores/appFlagsStore';
 import { useOrientationLock } from '@/shared/hooks/useOrientationLock';
@@ -55,18 +54,9 @@ export default function SplashScreen() {
   }, [animationDone, hasHydratedDraft, isSignedIn, lastCompletedStep, router]);
 
   return (
-    // Approximates the design source's 168deg sky-ramp gradient (day → air → sky) — see
-    // docs/implementation-plan.md §5 "Design source". expo-linear-gradient takes a direction
-    // vector, not a CSS angle; this is a close visual match, not a pixel-exact conversion.
-    <LinearGradient
-      colors={[colors.day, colors.air, colors.sky]}
-      locations={[0, 0.48, 1]}
-      start={{ x: 0.4, y: 0 }}
-      end={{ x: 0.6, y: 1 }}
-      style={styles.fill}
-    >
+    <SkyBackground style={styles.fill}>
       <AnimatedSplash onFinished={handleFinished} />
-    </LinearGradient>
+    </SkyBackground>
   );
 }
 
