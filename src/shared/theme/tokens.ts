@@ -126,6 +126,7 @@ export const spacing = {
   screenPadTop: 64,
   screenPadBottom: 36,
   sheetSubtitleGap: 2,
+  replaceDetailGap: 3,
 } as const;
 
 export const radii = {
@@ -143,6 +144,7 @@ export const radii = {
 } as const;
 
 export const componentSizes = {
+  minimumTapTarget: 44,
   sheetGrabberWidth: 40,
   sheetGrabberHeight: 5,
   sheetChipHeight: 42,
@@ -150,6 +152,10 @@ export const componentSizes = {
   sheetControlHeight: 52,
   sheetVoiceButton: 38,
   sheetVoiceIcon: 14,
+  replaceOptionRadio: 18,
+  replaceCompareActionHeight: 38,
+  replaceConfirmActionHeight: 54,
+  replaceBackIcon: 15,
   portionSliderThumbSize: 32,
   portionSliderTrackHeight: 4,
   portionSliderShadowRadius: 18,
@@ -202,6 +208,12 @@ export const typography = {
   label: { fontSize: 10, fontWeight: '500', letterSpacing: 2, textTransform: 'uppercase' },
   micro: { fontSize: 9, fontWeight: '500', letterSpacing: 1.4, textTransform: 'uppercase' },
   legal: { fontSize: 10.5, fontWeight: '300', letterSpacing: 0 },
+  replaceOption: { fontSize: 13, fontWeight: '400', letterSpacing: 0 },
+  replaceOptionSelected: { fontSize: 13, fontWeight: '500', letterSpacing: 0 },
+  replaceCompareTitle: { fontSize: 14, fontWeight: '500', letterSpacing: 0 },
+  replaceConfirmMeal: { fontSize: 15, fontWeight: '500', letterSpacing: 0 },
+  replaceReceiptTitle: { fontSize: 16, fontWeight: '500', letterSpacing: 0 },
+  replaceReceiptMacros: { fontSize: 11, fontWeight: '300', letterSpacing: 0 },
 } as const satisfies Record<string, TypographySpec>;
 
 export type ColorToken = keyof typeof colors;

@@ -152,14 +152,26 @@ export type MealActionStatusResponse = {
   fat_g?: number;
 };
 
-export type ReplacePreviewAlternative = Omit<
-  PlannedMeal,
-  'id' | 'date' | 'meal_type' | 'status' | 'replaced_at' | 'replacement_of_id'
->;
+export type ReplacePreviewAlternative = {
+  meal_type: MealType;
+  name: string;
+  calories_kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  rationale: string;
+  serving_size: string;
+  prep_time_minutes: number;
+  estimated_cost_tier: BudgetTier;
+  ingredients: { item: string; quantity: string }[];
+  nutrition_source: 'food_records';
+  nutrition_trace: object[];
+};
 
 export type ReplacePreviewResponse = {
   alternatives: ReplacePreviewAlternative[];
-  preview_token: string;
+  preview_token: string | null;
+  rejected_count: number;
 };
 
 export type AteSomethingElseRequest = {

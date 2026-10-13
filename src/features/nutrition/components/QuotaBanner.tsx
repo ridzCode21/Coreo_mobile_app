@@ -14,7 +14,7 @@ export function QuotaBanner({ error }: QuotaBannerProps) {
     <GlassCard variant="night" radius={radii.xl} style={styles.card}>
       <Text style={styles.label}>Today&apos;s limit is spent</Text>
       <Text style={styles.body}>
-        {error.message} More unlocks in {resetDistance(error.quota_resets_at)}.
+        <Text>{error.message}</Text> More unlocks in {resetDistance(error.quota_resets_at)}.
       </Text>
       <View style={styles.chip}>
         <Text style={styles.chipText}>

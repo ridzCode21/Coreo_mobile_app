@@ -48,3 +48,12 @@ export const confirmPrefillSchema = z.object({
   fat_g: z.number().optional(),
 });
 export type ConfirmPrefill = z.infer<typeof confirmPrefillSchema>;
+
+export const replacedFromParamSchema = z.object({
+  name: z.string(),
+  calories_kcal: z.number(),
+  protein_g: z.number(),
+  carbs_g: z.number(),
+  fat_g: z.number(),
+});
+export type ReplacedFromParam = z.infer<typeof replacedFromParamSchema>;

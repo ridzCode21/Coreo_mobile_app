@@ -1,20 +1,19 @@
-import { useMemo, useState, type ReactNode } from 'react';
-import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { GlassCard } from '@/shared/components/GlassCard';
 import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
-import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
+import {
+  colors,
+  componentSizes,
+  radii,
+  spacing,
+  textStyle,
+  withAlpha,
+} from '@/shared/theme/tokens';
 import {
   useAdjustMealQuantityMutation,
   useAteSomethingElseMutation,
@@ -31,12 +30,22 @@ import { FeedbackSheet } from '@/features/nutrition/components/FeedbackSheet';
 import { OutsideSheet } from '@/features/nutrition/components/OutsideSheet';
 import { PortionSheet } from '@/features/nutrition/components/PortionSheet';
 import { QuotaBanner } from '@/features/nutrition/components/QuotaBanner';
+import { ReplaceCompareScreen } from '@/features/nutrition/components/ReplaceCompareScreen';
+import { ReplaceConfirmSheet } from '@/features/nutrition/components/ReplaceConfirmSheet';
+import { ReplacePromptSheet } from '@/features/nutrition/components/ReplacePromptSheet';
 import { buildAteSomethingElsePayload } from '@/features/nutrition/lib/ateSomethingElsePayload';
 import { resolvePortionBase } from '@/features/nutrition/lib/portionEstimate';
 import { quotaErrorFrom } from '@/features/nutrition/lib/quotaError';
-import type { FeedbackType, PlannedMeal, ReplacePreviewAlternative } from '@/shared/types/mealPlan';
+import {
+  PREVIEW_TTL_MS,
+  previewNotFoundFrom,
+  serviceUnavailableFrom,
+} from '@/features/nutrition/lib/replacePreview';
+import { replacedFromParamSchema, type ReplacedFromParam } from '@/features/nutrition/schemas';
+import type { FeedbackType, PlannedMeal } from '@/shared/types/mealPlan';
 
 type Sheet = 'portion' | 'replace' | 'feedback' | 'outside' | null;
+type ReplaceStep = 'prompt' | 'compare' | 'confirm';
 
 const MEAL_LABEL: Record<PlannedMeal['meal_type'], string> = {
   breakfast: 'Breakfast',
@@ -59,7 +68,7 @@ function detailFallback(meal: PlannedMeal | undefined): string {
 
 export default function MealDetailScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{ id?: string; replacedFrom?: string }>();
   const date = todayISO();
   const mealId = Number(params.id);
   const planQuery = useMealPlanQuery(date);
@@ -82,6 +91,10 @@ export default function MealDetailScreen() {
   const [portion, setPortion] = useState(1);
   const [replacePreference, setReplacePreference] = useState('');
   const [chosenReplacement, setChosenReplacement] = useState(0);
+  const [replaceStep, setReplaceStep] = useState<ReplaceStep>('prompt');
+  const [replaceExpiresAt, setReplaceExpiresAt] = useState(0);
+  const [replaceError, setReplaceError] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(false);
   const [feedbackType, setFeedbackType] = useState<FeedbackType>('like');
   const [feedbackNote, setFeedbackNote] = useState('');
   const [outsideDescription, setOutsideDescription] = useState('');
@@ -99,8 +112,28 @@ export default function MealDetailScreen() {
 
   const recipeQuota = quotaErrorFrom(recipeQuery.error);
   const replaceQuota = quotaErrorFrom(replacePreview.error);
+  const replacedFrom = useMemo<ReplacedFromParam | null>(() => {
+    if (!params.replacedFrom) return null;
+    try {
+      const parsed = replacedFromParamSchema.safeParse(JSON.parse(params.replacedFrom));
+      return parsed.success ? parsed.data : null;
+    } catch {
+      return null;
+    }
+  }, [params.replacedFrom]);
+
+  const resetReplace = () => {
+    setReplacePreference('');
+    setChosenReplacement(0);
+    setReplaceStep('prompt');
+    setReplaceExpiresAt(0);
+    setReplaceError(false);
+    replacePreview.reset();
+    replaceConfirm.reset();
+  };
 
   const closeSheet = () => {
+    if (sheet === 'replace') resetReplace();
     setSheet(null);
     setStatusMessage(null);
   };
@@ -133,21 +166,58 @@ export default function MealDetailScreen() {
     );
   };
 
-  const previewReplacement = () => {
+  const previewReplacement = (preference = replacePreference) => {
     if (!meal) return;
     setChosenReplacement(0);
-    replacePreview.mutate({ mealId: meal.id, preference: replacePreference });
+    setReplaceError(false);
+    setReplaceExpiresAt(Date.now() + PREVIEW_TTL_MS);
+    replacePreview.mutate(
+      { mealId: meal.id, preference },
+      { onSuccess: () => setReplaceExpiresAt(Date.now() + PREVIEW_TTL_MS) },
+    );
+  };
+
+  const openReplace = () => {
+    resetReplace();
+    setSheet('replace');
+    previewReplacement('');
   };
 
   const confirmReplacement = () => {
-    if (!meal || !replacePreview.data) return;
+    if (!meal || !replacePreview.data?.preview_token) return;
     replaceConfirm.mutate(
       {
         mealId: meal.id,
         preview_token: replacePreview.data.preview_token,
         chosen_index: chosenReplacement,
       },
-      { onSuccess: () => showSaved('Swapped. Your plan has the new meal.') },
+      {
+        onSuccess: (response) => {
+          if (!response.meal_id) return;
+          const snapshot: ReplacedFromParam = {
+            name: meal.name,
+            calories_kcal: meal.calories_kcal,
+            protein_g: meal.protein_g,
+            carbs_g: meal.carbs_g,
+            fat_g: meal.fat_g,
+          };
+          resetReplace();
+          setSheet(null);
+          router.replace(
+            `/diet/meal/${response.meal_id}?replacedFrom=${encodeURIComponent(JSON.stringify(snapshot))}`,
+          );
+        },
+        onError: (error) => {
+          if (previewNotFoundFrom(error)) {
+            replacePreview.reset();
+            replaceConfirm.reset();
+            setReplaceStep('prompt');
+            previewReplacement(replacePreference);
+            return;
+          }
+          setReplaceError(true);
+        },
+      },
     );
   };
 
@@ -186,19 +256,64 @@ export default function MealDetailScreen() {
         ) : meal ? (
           <>
             <GlassCard variant="night" radius={radii.xl} style={styles.hero}>
-              <Text style={styles.heroLabel}>{MEAL_LABEL[meal.meal_type]}</Text>
-              <Text style={styles.title}>{meal.name}</Text>
-              <Text style={styles.heroBody}>{meal.rationale}</Text>
-              <View style={styles.heroMetrics}>
-                <Metric label="kcal" value={String(meal.calories_kcal)} dark />
-                <Metric label="protein" value={`${Math.round(meal.protein_g)}g`} dark />
-                <Metric label="carbs" value={`${Math.round(meal.carbs_g)}g`} dark />
-                <Metric label="fat" value={`${Math.round(meal.fat_g)}g`} dark />
+              <View style={styles.heroHeading}>
+                <Text style={styles.heroLabel}>{MEAL_LABEL[meal.meal_type]}</Text>
+                {meal.replacement_of_id !== null ? (
+                  <View style={styles.replacedBadge}>
+                    <Text style={styles.replacedBadgeText}>Replaced</Text>
+                  </View>
+                ) : null}
               </View>
-              <Text style={styles.statusText}>
-                {mealStatusCopy(meal.status)} · {meal.serving_size}
-              </Text>
+              {meal.replacement_of_id !== null ? (
+                <>
+                  <Text style={styles.receiptTitle}>{meal.name}</Text>
+                  <Text style={styles.receiptMacros}>
+                    {Math.round(meal.calories_kcal)} kcal · P {Math.round(meal.protein_g)}g · C{' '}
+                    {Math.round(meal.carbs_g)}g · F {Math.round(meal.fat_g)}g
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.title}>{meal.name}</Text>
+                  <Text style={styles.heroBody}>{meal.rationale}</Text>
+                  <View style={styles.heroMetrics}>
+                    <Metric label="kcal" value={String(meal.calories_kcal)} dark />
+                    <Metric label="protein" value={`${Math.round(meal.protein_g)}g`} dark />
+                    <Metric label="carbs" value={`${Math.round(meal.carbs_g)}g`} dark />
+                    <Metric label="fat" value={`${Math.round(meal.fat_g)}g`} dark />
+                  </View>
+                  <Text style={styles.statusText}>
+                    {mealStatusCopy(meal.status)} · {meal.serving_size}
+                  </Text>
+                </>
+              )}
             </GlassCard>
+
+            {meal.replacement_of_id !== null && replacedFrom ? (
+              <>
+                <GlassCard variant="chip" radius={radii.sm} style={styles.replacedNotice}>
+                  <Text style={styles.replacedNoticeText}>
+                    Replaced <Text style={styles.replacedOriginalName}>{replacedFrom.name}</Text> —
+                    swapped for a closer macro match.
+                  </Text>
+                  {showOriginal ? (
+                    <Text style={styles.originalMacros}>
+                      {replacedFrom.name} · {Math.round(replacedFrom.calories_kcal)} kcal · P{' '}
+                      {Math.round(replacedFrom.protein_g)}g · C {Math.round(replacedFrom.carbs_g)}g
+                      · F {Math.round(replacedFrom.fat_g)}g
+                    </Text>
+                  ) : null}
+                </GlassCard>
+                <Pressable
+                  onPress={() => setShowOriginal((current) => !current)}
+                  accessibilityRole="button"
+                  accessibilityLabel="View the original"
+                  style={styles.originalLink}
+                >
+                  <Text style={styles.originalLinkText}>View the original</Text>
+                </Pressable>
+              </>
+            ) : null}
 
             {statusMessage ? (
               <GlassCard variant="light" radius={radii.lg} style={styles.notice}>
@@ -238,7 +353,7 @@ export default function MealDetailScreen() {
                 }}
                 disabled={busy}
               />
-              <ActionButton label="Replace" onPress={() => setSheet('replace')} disabled={busy} />
+              <ActionButton label="Replace" onPress={openReplace} disabled={busy} />
               <ActionButton
                 label="Skip"
                 onPress={skip}
@@ -304,20 +419,48 @@ export default function MealDetailScreen() {
           onSubmit={savePortion}
         />
       ) : null}
-      <ReplaceSheet
-        visible={sheet === 'replace'}
+      <ReplacePromptSheet
+        visible={sheet === 'replace' && replaceStep === 'prompt'}
         preference={replacePreference}
-        chosen={chosenReplacement}
-        alternatives={replacePreview.data?.alternatives ?? []}
+        alternatives={replacePreview.data?.alternatives ?? null}
         quotaError={replaceQuota}
-        busy={replacePreview.isPending || replaceConfirm.isPending}
-        previewed={Boolean(replacePreview.data)}
+        serviceUnavailable={serviceUnavailableFrom(replacePreview.error)}
+        loading={replacePreview.isPending}
         onPreference={setReplacePreference}
-        onChosen={setChosenReplacement}
         onClose={closeSheet}
-        onPreview={previewReplacement}
-        onConfirm={confirmReplacement}
+        onSubmit={() => previewReplacement()}
+        onPick={(index) => {
+          setChosenReplacement(index);
+          setReplaceStep('compare');
+        }}
       />
+      <ReplaceCompareScreen
+        visible={sheet === 'replace' && replaceStep === 'compare'}
+        alternatives={replacePreview.data?.alternatives ?? []}
+        selectedIndex={chosenReplacement}
+        onBack={() => setReplaceStep('prompt')}
+        onUseThisOne={(index) => {
+          setChosenReplacement(index);
+          setReplaceStep('confirm');
+        }}
+      />
+      {meal && replacePreview.data?.alternatives[chosenReplacement] ? (
+        <ReplaceConfirmSheet
+          visible={sheet === 'replace' && replaceStep === 'confirm'}
+          mealTypeLabel={MEAL_LABEL[meal.meal_type].toLowerCase()}
+          original={meal}
+          alternative={replacePreview.data.alternatives[chosenReplacement]}
+          expiresAt={replaceExpiresAt}
+          busy={replaceConfirm.isPending}
+          error={replaceError}
+          onChooseDifferent={() => setReplaceStep('compare')}
+          onTryAgain={() => {
+            setReplaceStep('prompt');
+            previewReplacement(replacePreference);
+          }}
+          onConfirm={confirmReplacement}
+        />
+      ) : null}
       <FeedbackSheet
         visible={sheet === 'feedback'}
         value={feedbackType}
@@ -376,138 +519,6 @@ function ActionButton({
   );
 }
 
-function SheetFrame({
-  visible,
-  title,
-  body,
-  children,
-  onClose,
-}: {
-  visible: boolean;
-  title: string;
-  body?: string;
-  children: ReactNode;
-  onClose: () => void;
-}) {
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} />
-      <View style={styles.sheetWrap} pointerEvents="box-none">
-        <View style={styles.sheet}>
-          <View style={styles.grabber} />
-          <Text style={styles.sheetTitle}>{title}</Text>
-          {body ? <Text style={styles.sheetBody}>{body}</Text> : null}
-          {children}
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
-function ReplaceSheet({
-  visible,
-  preference,
-  chosen,
-  alternatives,
-  quotaError,
-  busy,
-  previewed,
-  onPreference,
-  onChosen,
-  onClose,
-  onPreview,
-  onConfirm,
-}: {
-  visible: boolean;
-  preference: string;
-  chosen: number;
-  alternatives: ReplacePreviewAlternative[];
-  quotaError: ReturnType<typeof quotaErrorFrom>;
-  busy: boolean;
-  previewed: boolean;
-  onPreference: (value: string) => void;
-  onChosen: (value: number) => void;
-  onClose: () => void;
-  onPreview: () => void;
-  onConfirm: () => void;
-}) {
-  return (
-    <SheetFrame
-      visible={visible}
-      title="Swap this meal"
-      body="Tell me what would fit better, or leave it open."
-      onClose={onClose}
-    >
-      <TextInput
-        value={preference}
-        onChangeText={onPreference}
-        placeholder="e.g. no dairy, less cooking, more protein"
-        placeholderTextColor={colors.ink40}
-        style={styles.input}
-      />
-      {quotaError ? <QuotaBanner error={quotaError} /> : null}
-      {alternatives.length > 0 ? (
-        <View style={styles.replacementList}>
-          {alternatives.map((item, index) => (
-            <Pressable
-              key={`${item.name}-${index}`}
-              onPress={() => onChosen(index)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: chosen === index }}
-              style={[styles.replacementRow, chosen === index && styles.replacementRowSelected]}
-            >
-              <Text style={styles.replacementName}>{item.name}</Text>
-              <Text style={styles.replacementMeta}>
-                {item.calories_kcal} kcal · {Math.round(item.protein_g)}g protein
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
-      <SheetButton
-        label={previewed ? 'Use this swap' : 'Show swaps'}
-        busy={busy}
-        onPress={previewed ? onConfirm : onPreview}
-      />
-    </SheetFrame>
-  );
-}
-
-function SheetButton({
-  label,
-  busy,
-  disabled = false,
-  onPress,
-}: {
-  label: string;
-  busy: boolean;
-  disabled?: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={busy || disabled}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      style={styles.sheetButtonWrap}
-    >
-      <LinearGradient
-        colors={[colors.coreBlue, colors.coreBlueDeep]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.sheetButton, (busy || disabled) && styles.disabled]}
-      >
-        {busy ? (
-          <ActivityIndicator color={colors.white} />
-        ) : (
-          <Text style={styles.sheetButtonText}>{label}</Text>
-        )}
-      </LinearGradient>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   root: { flex: 1 },
   scrollContent: { paddingBottom: spacing.xxxl },
@@ -546,6 +557,11 @@ const styles = StyleSheet.create({
   },
   hero: {
     marginBottom: spacing.lg,
+  },
+  heroHeading: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   heroLabel: {
     ...textStyle('label'),
@@ -594,6 +610,54 @@ const styles = StyleSheet.create({
     color: withAlpha(colors.fog, 0.72),
     marginTop: spacing.lg,
     textTransform: 'capitalize',
+  },
+  replacedBadge: {
+    backgroundColor: withAlpha(colors.white, 0.18),
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.ms,
+    paddingVertical: spacing.xs,
+  },
+  replacedBadgeText: {
+    ...textStyle('micro'),
+    color: colors.onNight,
+    textTransform: 'none',
+  },
+  receiptTitle: {
+    ...textStyle('replaceReceiptTitle'),
+    color: colors.onNight,
+    marginTop: spacing.sm,
+  },
+  receiptMacros: {
+    ...textStyle('replaceReceiptMacros'),
+    color: withAlpha(colors.fog, 0.6),
+    marginTop: spacing.sliderCaptionGap,
+  },
+  replacedNotice: {
+    marginBottom: spacing.md,
+  },
+  replacedNoticeText: {
+    ...textStyle('caption'),
+    color: colors.ink70,
+  },
+  replacedOriginalName: {
+    ...textStyle('caption'),
+    color: colors.ink,
+  },
+  originalMacros: {
+    ...textStyle('legal'),
+    color: colors.ink55,
+    marginTop: spacing.sm,
+  },
+  originalLink: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: componentSizes.minimumTapTarget,
+    marginBottom: spacing.lg,
+  },
+  originalLinkText: {
+    ...textStyle('caption'),
+    color: colors.ink,
+    textDecorationLine: 'underline',
   },
   notice: {
     marginBottom: spacing.lg,
@@ -699,89 +763,5 @@ const styles = StyleSheet.create({
   mutedText: {
     ...textStyle('body'),
     color: colors.ink62,
-  },
-  backdrop: {
-    backgroundColor: withAlpha(colors.midnight, 0.42),
-    flex: 1,
-  },
-  sheetWrap: {
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-  },
-  sheet: {
-    backgroundColor: colors.day,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    paddingBottom: spacing.xxxl,
-    paddingHorizontal: spacing.screenPadX,
-    paddingTop: spacing.lg,
-  },
-  grabber: {
-    alignSelf: 'center',
-    backgroundColor: withAlpha(colors.ink, 0.22),
-    borderRadius: radii.pill,
-    height: 4,
-    marginBottom: spacing.xl,
-    width: 46,
-  },
-  sheetTitle: {
-    ...textStyle('sheetTitle'),
-    color: colors.ink,
-    marginBottom: spacing.sm,
-  },
-  sheetBody: {
-    ...textStyle('body'),
-    color: colors.ink62,
-    marginBottom: spacing.lg,
-  },
-  input: {
-    ...textStyle('bodyLg'),
-    backgroundColor: withAlpha(colors.white, 0.44),
-    borderColor: withAlpha(colors.white, 0.74),
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    color: colors.ink,
-    marginBottom: spacing.lg,
-    minHeight: 58,
-    paddingHorizontal: spacing.lg,
-  },
-  replacementList: {
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  replacementRow: {
-    backgroundColor: withAlpha(colors.white, 0.36),
-    borderColor: withAlpha(colors.white, 0.64),
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    padding: spacing.lg,
-  },
-  replacementRowSelected: {
-    backgroundColor: colors.white,
-  },
-  replacementName: {
-    ...textStyle('bodyLg'),
-    color: colors.ink,
-  },
-  replacementMeta: {
-    ...textStyle('caption'),
-    color: colors.ink62,
-    marginTop: spacing.xs,
-  },
-  sheetButtonWrap: {
-    marginTop: spacing.sm,
-  },
-  sheetButton: {
-    alignItems: 'center',
-    borderRadius: radii.pill,
-    minHeight: 58,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  sheetButtonText: {
-    ...textStyle('bodyLg'),
-    color: colors.white,
   },
 });
