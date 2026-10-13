@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   },
   body: {
     ...textStyle('body'),
-    color: colors.ink60,
+    color: colors.ink62,
     marginTop: spacing.sm,
     marginBottom: spacing.lg,
   },

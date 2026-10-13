@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
   eyebrow: { ...textStyle('label'), color: colors.ink45 },
   loading: { paddingVertical: spacing.xxxl, alignItems: 'center' },
   warning: { marginBottom: spacing.lg },
-  warningText: { ...textStyle('bodySm'), color: colors.ink60 },
+  warningText: { ...textStyle('bodySm'), color: colors.ink62 },
   mealList: { gap: spacing.sm },
   mealRow: {
     minHeight: 82,
@@ -374,13 +374,13 @@ const styles = StyleSheet.create({
   mealMetaDone: { ...textStyle('micro'), color: 'rgba(239,244,249,0.55)' },
   mealName: { ...textStyle('bodyLg'), color: colors.ink, marginTop: spacing.xs },
   mealNameDone: { ...textStyle('bodyLg'), color: colors.onNight, marginTop: spacing.xs },
-  mealMacros: { ...textStyle('caption'), color: colors.ink60, marginTop: spacing.xs },
+  mealMacros: { ...textStyle('caption'), color: colors.ink62, marginTop: spacing.xs },
   mealMacrosDone: {
     ...textStyle('caption'),
     color: 'rgba(239,244,249,0.62)',
     marginTop: spacing.xs,
   },
-  status: { ...textStyle('micro'), color: colors.ink60, textTransform: 'capitalize' },
+  status: { ...textStyle('micro'), color: colors.ink62, textTransform: 'capitalize' },
   statusDone: {
     ...textStyle('micro'),
     color: 'rgba(239,244,249,0.7)',
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   regenerateText: { ...textStyle('body'), color: colors.ink },
-  emptyText: { ...textStyle('body'), color: colors.ink60 },
+  emptyText: { ...textStyle('body'), color: colors.ink62 },
   backdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(18,42,70,0.35)' },
   sheetWrap: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   sheetTitle: { ...textStyle('sheetTitle'), color: colors.ink },
-  sheetBody: { ...textStyle('bodySm'), color: colors.ink60, marginTop: spacing.xs },
+  sheetBody: { ...textStyle('bodySm'), color: colors.ink62, marginTop: spacing.xs },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.lg },
   sheetPrimary: {
     minHeight: 54,

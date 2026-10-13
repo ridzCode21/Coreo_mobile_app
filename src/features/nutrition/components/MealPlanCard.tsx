@@ -415,12 +415,12 @@ const styles = StyleSheet.create({
   },
   mealMacros: {
     ...textStyle('caption'),
-    color: colors.ink60,
+    color: colors.ink62,
     marginTop: spacing.xs,
   },
   statusChip: {
     ...textStyle('micro'),
-    color: colors.ink60,
+    color: colors.ink62,
     textTransform: 'capitalize',
   },
   promptRow: {
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
   },
   sheetBody: {
     ...textStyle('body'),
-    color: colors.ink60,
+    color: colors.ink62,
     marginTop: spacing.md,
   },
   sheetPrimary: {
@@ -531,6 +531,6 @@ const styles = StyleSheet.create({
   },
   sheetSecondaryText: {
     ...textStyle('body'),
-    color: colors.ink60,
+    color: colors.ink62,
   },
 });

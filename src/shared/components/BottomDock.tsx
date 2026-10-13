@@ -19,7 +19,7 @@ type BottomDockProps = {
 };
 
 function DockIcon({ name, active }: { name: BottomDockRouteName; active: boolean }) {
-  const stroke = active ? colors.onNight : colors.ink60;
+  const stroke = active ? colors.onNight : colors.ink62;
   if (name === 'diet') {
     return (
       <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   },
   label: {
     ...textStyle('caption'),
-    color: colors.ink60,
+    color: colors.ink62,
   },
   labelActive: {
     color: colors.ink,

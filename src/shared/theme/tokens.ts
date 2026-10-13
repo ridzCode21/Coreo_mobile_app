@@ -6,9 +6,13 @@
 
 export const colors = {
   ink: '#17191D',
-  ink60: 'rgba(23,25,29,0.62)',
   ink40: 'rgba(23,25,29,0.42)',
   ink45: 'rgba(23,25,29,0.45)',
+  ink50: 'rgba(23,25,29,0.5)',
+  ink55: 'rgba(23,25,29,0.55)',
+  ink60: 'rgba(23,25,29,0.6)',
+  ink62: 'rgba(23,25,29,0.62)',
+  ink75: 'rgba(23,25,29,0.75)',
   label: '#5F6B76',
 
   zenith: '#EDF4FB',
@@ -21,36 +25,52 @@ export const colors = {
   evening: '#48678C',
   night: '#2E4666',
   midnight: '#152741',
+  nightShadow: 'rgba(8,24,44,0.3)',
 
   coreBlue: '#35689E',
   coreBlueDeep: '#16395E',
 
   white: '#FFFFFF',
-  onNight: '#EFF4F9',
+  onNight: '#F0F4F8',
 
-  success: '#2F5D3A',
+  success: '#3E8E63',
   attention: '#7A5220',
+} as const;
+
+export const skyGradient = {
+  colors: [colors.day, colors.air, '#6F9CCE'],
+  locations: [0, 0.48, 1],
+} as const;
+
+export const sheetSkyGradient = {
+  colors: ['#A3C4E5', '#7299C6', '#54779F'],
+  locations: [0, 0.52, 1],
 } as const;
 
 export const spacing = {
   xs: 4,
   sm: 8,
+  ms: 10,
   md: 12,
+  ml: 14,
   lg: 16,
   xl: 20,
   xxl: 24,
   xxxl: 32,
   screenPadX: 26,
   screenPadXCompact: 22,
-  screenPadTop: 70,
+  screenPadTop: 64,
   screenPadBottom: 36,
 } as const;
 
 export const radii = {
+  xs: 12,
   sm: 15,
   md: 20,
+  ml: 22,
   lg: 23,
   xl: 28,
+  xxl: 36,
   pill: 9999,
   petalOuter: 125,
   petalInner: 30,
@@ -84,16 +104,20 @@ export const typography = {
   heroMarketing: { fontSize: 52, fontWeight: '200', letterSpacing: -1.5 },
   wordmark: { fontSize: 38, fontWeight: '300', letterSpacing: 6 },
   pageTitle: { fontSize: 34, fontWeight: '200', letterSpacing: -1 },
-  questionTitle: { fontSize: 30, fontWeight: '200', letterSpacing: -0.5 },
-  greeting: { fontSize: 28, fontWeight: '200', letterSpacing: -0.5 },
+  questionTitle: { fontSize: 30, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.4 },
+  greeting: { fontSize: 28, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.35 },
   cardValue: { fontSize: 22, fontWeight: '300', letterSpacing: 0 },
-  sheetTitle: { fontSize: 25, fontWeight: '200', letterSpacing: -0.4 },
+  cardTitle: { fontSize: 19, fontWeight: '300', letterSpacing: -0.3 },
+  sheetTitle: { fontSize: 25, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.4 },
   bodyLg: { fontSize: 15, fontWeight: '300', letterSpacing: 0, lineHeight: 1.75 },
-  body: { fontSize: 13, fontWeight: '300', letterSpacing: 0, lineHeight: 1.85 },
+  button: { fontSize: 14, fontWeight: '500', letterSpacing: 0 },
+  buttonSm: { fontSize: 13.5, fontWeight: '500', letterSpacing: 0 },
+  body: { fontSize: 13, fontWeight: '300', letterSpacing: 0, lineHeight: 1.8 },
   bodySm: { fontSize: 12.5, fontWeight: '300', letterSpacing: 0, lineHeight: 1.6 },
-  caption: { fontSize: 11.5, fontWeight: '400', letterSpacing: 0 },
+  small: { fontSize: 12, fontWeight: '300', letterSpacing: 0, lineHeight: 1.6 },
+  caption: { fontSize: 11, fontWeight: '400', letterSpacing: 0 },
   label: { fontSize: 10, fontWeight: '500', letterSpacing: 2, textTransform: 'uppercase' },
-  micro: { fontSize: 9, fontWeight: '500', letterSpacing: 1.2, textTransform: 'uppercase' },
+  micro: { fontSize: 9, fontWeight: '500', letterSpacing: 1.4, textTransform: 'uppercase' },
 } as const satisfies Record<string, TypographySpec>;
 
 export type ColorToken = keyof typeof colors;

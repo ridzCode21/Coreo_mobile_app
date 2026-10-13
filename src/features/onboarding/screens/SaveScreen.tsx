@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
   googleButtonText: {
     fontFamily: fontFamily.poppins400,
     fontSize: 14,
-    color: colors.ink60,
+    color: colors.ink62,
   },
   emailLink: {
     alignSelf: 'center',
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
   },
   emailLinkText: {
     ...textStyle('bodySm'),
-    color: colors.ink60,
+    color: colors.ink62,
     textDecorationLine: 'underline',
   },
   emailCard: {

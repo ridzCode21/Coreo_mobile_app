@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
   },
   body: {
     ...textStyle('bodySm'),
-    color: colors.ink60,
+    color: colors.ink62,
     marginTop: spacing.xs,
   },
   inlineAction: {
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
   },
   secondaryText: {
     ...textStyle('body'),
-    color: colors.ink60,
+    color: colors.ink62,
   },
   primaryButton: {
     flex: 1,
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   },
   detailLine: {
     ...textStyle('caption'),
-    color: colors.ink60,
+    color: colors.ink62,
     marginTop: spacing.xs,
   },
   backdrop: {
