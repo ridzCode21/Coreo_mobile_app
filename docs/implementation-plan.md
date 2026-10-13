@@ -162,7 +162,7 @@ Planned changes (no code in this doc):
   password rules, optional profile fields, gender enum).
 - Mock `features/auth/mocks`: user store + token issuance/blacklist.
 
-Security guardrails (CLAUDE.md §6, security-review skill): tokens only in SecureStore,
+Security guardrails (CLAUDE.md §6, app-security-review skill): tokens only in SecureStore,
 never logged, never in Zustand/AsyncStorage.
 
 ---

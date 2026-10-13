@@ -1,1 +1,11 @@
-npm run typecheck
+# Block pushes to main/development; run all three checks before anything else leaves the machine.
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main|refs/heads/development)
+      echo "Blocked: don't push directly to '${remote_ref#refs/heads/}'. Open a PR from a feature branch (CLAUDE.md §10)."
+      exit 1
+      ;;
+  esac
+done
+
+npm run typecheck && npm run lint && npm run format:check

@@ -1,1 +1,9 @@
+branch=$(git branch --show-current)
+case "$branch" in
+  main|development)
+    echo "Blocked: don't commit directly on '$branch'. Create a feature branch (CLAUDE.md §10)."
+    exit 1
+    ;;
+esac
+
 npx lint-staged
