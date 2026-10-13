@@ -14,7 +14,7 @@ PASS means a senior engineer and the designer would both sign off.
    `{{WORK}}/gates-last.txt` (the runner's own gate results).
 2. Skills (Skill tool): `superpowers:requesting-code-review` approach, repo playbook `pr-review` (follow its
    checklist), `design-alignment` (but use the CURRENT design file named above, not `designs/`), and
-   `security-review` when auth, tokens, storage, permissions or network code changed. Run the
+   `app-security-review` when auth, tokens, storage, permissions or network code changed. Run the
    `code-simplifier:code-simplifier` agent on the changed files and judge its suggestions.
 3. **Design alignment (strict).** For every screen/state in `design-spec.md`, compare the code to the design:
    copy character by character, element order, counts, states, interactions and destinations, tokens, sizes,

@@ -17,7 +17,7 @@ a third fresh session will review the result against the design. Your plan and t
    `superpowers:brainstorming` (no interview: choose the simplest design that satisfies the issue and the
    Claude Design, note the choice), `superpowers:writing-plans`, and the repo playbooks in CLAUDE.md §5:
    `product-analysis`, `feature-planning`, `react-native-architecture`, `responsive-ui`. For issues touching
-   auth, tokens, storage, permissions or network also read `security-review` now and plan for it.
+   auth, tokens, storage, permissions or network also read `app-security-review` now and plan for it.
 3. Design extraction: for every screen and state the issue lists, write the exact copy, element order,
    every state the design shows (empty, loading, error, offline, success, calibrating, quota reached...),
    what each tap does and where it goes, and the tokens/sizes. Compare with the backend contract and say
