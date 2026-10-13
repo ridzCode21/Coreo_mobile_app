@@ -37,6 +37,7 @@ these rules, it's probably the wrong component, not an exception to add.
 | `ink55`                     | `rgba(23,25,29,.55)`  | Secondary text                                                                          |
 | `ink60`                     | `rgba(23,25,29,.6)`   | Strong secondary text and slider fills                                                  |
 | `ink62`                     | `rgba(23,25,29,.62)`  | Secondary text at the pre-existing .62 strength                                         |
+| `ink70`                     | `rgba(23,25,29,.7)`   | Live portion-estimate text                                                              |
 | `ink75`                     | `rgba(23,25,29,.75)`  | High-emphasis secondary text                                                            |
 | `label`                     | `#5F6B76`             | Muted caption/label color used inside light glass cards (e.g. field labels)             |
 | `zenith`                    | `#EDF4FB`             | Atmosphere · highest/lightest (morning)                                                 |
@@ -88,28 +89,30 @@ mid-ramp atmosphere must sit on a scrim or glass surface**, never bare on the gr
 **Single typeface: Poppins, weights 200/300/400/500 only — never 600+.** Hierarchy comes from
 weight contrast within a size, not from adding more sizes or going bold.
 
-| Token           | Size      | Weight           | Tracking                  | Use                                                                   |
-| --------------- | --------- | ---------------- | ------------------------- | --------------------------------------------------------------------- |
-| `display`       | 78–88px   | 200              | tight (−2 to −2.5px)      | Hero data numbers (rendered as dot-matrix, see §6), lock-screen clock |
-| `heroMarketing` | 52–64px   | 200              | −1.5 to −2px              | Marketing/brand moments only                                          |
-| `wordmark`      | 38px      | 300              | +6px                      | Logo wordmark exactly — never reuse this size for anything else       |
-| `pageTitle`     | 34px      | 200(+500 accent) | −1px                      | Section/page headers                                                  |
-| `questionTitle` | 30px      | 200(+400 accent) | −0.5px, line-height 1.4   | Onboarding question headline                                          |
-| `greeting`      | 28px      | 200(+400 accent) | −0.5px, line-height 1.35  | "Morning, {name}." home greeting                                      |
-| `cardValue`     | 22–24px   | 300              | normal                    | Stat values inside cards (age/height/weight, profile name)            |
-| `cardTitle`     | 19px      | 300              | −0.3px                    | Card and confirmation titles                                          |
-| `sheetSubtitle` | 11.5px    | 300              | normal                    | Sheet question subtitles (e.g. "Helps me plan better tomorrow.")      |
-| `sheetTitle`    | 25px      | 200              | −0.5px, line-height 1.4   | Bottom-sheet titles (e.g. paywall)                                    |
-| `bodyLg`        | 14–15px   | 300              | normal                    | Assistant responses, emphasized body text                             |
-| `button`        | 14px      | 500              | normal                    | Primary button labels                                                 |
-| `buttonSm`      | 13.5px    | 500              | normal                    | Compact button labels                                                 |
-| `body`          | 13px      | 300              | normal, line-height 1.8   | Default body copy                                                     |
-| `bodySm`        | 12–12.5px | 300              | normal, line-height ~1.6  | Card descriptions, insight text                                       |
-| `small`         | 12px      | 300              | normal, line-height 1.6   | Small supporting text                                                 |
-| `caption`       | 11px      | 400              | normal                    | Chip text, secondary metadata                                         |
-| `label`         | 10–10.5px | 500              | +1.6 to +2.6px, uppercase | Field labels, section eyebrows, nav captions                          |
-| `micro`         | 9px       | 500              | +1.4px, uppercase         | Tiny axis labels, timestamps inside charts                            |
-| `legal`         | 10.5px    | 300              | normal                    | Privacy notes and fine print                                          |
+| Token             | Size      | Weight           | Tracking                  | Use                                                                   |
+| ----------------- | --------- | ---------------- | ------------------------- | --------------------------------------------------------------------- |
+| `display`         | 78–88px   | 200              | tight (−2 to −2.5px)      | Hero data numbers (rendered as dot-matrix, see §6), lock-screen clock |
+| `heroMarketing`   | 52–64px   | 200              | −1.5 to −2px              | Marketing/brand moments only                                          |
+| `wordmark`        | 38px      | 300              | +6px                      | Logo wordmark exactly — never reuse this size for anything else       |
+| `pageTitle`       | 34px      | 200(+500 accent) | −1px                      | Section/page headers                                                  |
+| `questionTitle`   | 30px      | 200(+400 accent) | −0.5px, line-height 1.4   | Onboarding question headline                                          |
+| `greeting`        | 28px      | 200(+400 accent) | −0.5px, line-height 1.35  | "Morning, {name}." home greeting                                      |
+| `cardValue`       | 22–24px   | 300              | normal                    | Stat values inside cards (age/height/weight, profile name)            |
+| `portionReadout`  | 44px      | 200              | −1px                      | Current multiplier in the adjust-portion sheet                        |
+| `cardTitle`       | 19px      | 300              | −0.3px                    | Card and confirmation titles                                          |
+| `sheetSubtitle`   | 11.5px    | 300              | normal                    | Sheet question subtitles (e.g. "Helps me plan better tomorrow.")      |
+| `sheetTitle`      | 25px      | 200              | −0.5px, line-height 1.4   | Bottom-sheet titles (e.g. paywall)                                    |
+| `bodyLg`          | 14–15px   | 300              | normal                    | Assistant responses, emphasized body text                             |
+| `button`          | 14px      | 500              | normal                    | Primary button labels                                                 |
+| `buttonSm`        | 13.5px    | 500              | normal                    | Compact button labels                                                 |
+| `body`            | 13px      | 300              | normal, line-height 1.8   | Default body copy                                                     |
+| `portionEstimate` | 13px      | 400              | normal                    | Live macro estimate in the adjust-portion sheet                       |
+| `bodySm`          | 12–12.5px | 300              | normal, line-height ~1.6  | Card descriptions, insight text                                       |
+| `small`           | 12px      | 300              | normal, line-height 1.6   | Small supporting text                                                 |
+| `caption`         | 11px      | 400              | normal                    | Chip text, secondary metadata                                         |
+| `label`           | 10–10.5px | 500              | +1.6 to +2.6px, uppercase | Field labels, section eyebrows, nav captions                          |
+| `micro`           | 9px       | 500              | +1.4px, uppercase         | Tiny axis labels, timestamps inside charts                            |
+| `legal`           | 10.5px    | 300              | normal                    | Privacy notes and fine print                                          |
 
 Non-type text tracking overrides also live in the token module; `tracking.wide` is `1px` for
 scanner codes and manual barcode entry.
@@ -130,42 +133,47 @@ plus these as additional padding, not instead of them.
 
 **Spacing scale** (use these, not arbitrary values):
 
-| Token               | px                         |
-| ------------------- | -------------------------- |
-| `space.xs`          | 4                          |
-| `space.sm`          | 8                          |
-| `space.ms`          | 10                         |
-| `space.md`          | 12                         |
-| `space.ml`          | 14                         |
-| `space.lg`          | 16                         |
-| `sheet.titleGap`    | 18                         |
-| `space.xl`          | 20                         |
-| `space.xxl`         | 24                         |
-| `space.xxxl`        | 32                         |
-| `screen.padX`       | 26 (22 on compact layouts) |
-| `screen.padTop`     | 64                         |
-| `screen.padBottom`  | 30–40                      |
-| `sheet.subtitleGap` | 2                          |
+| Token                    | px                         |
+| ------------------------ | -------------------------- |
+| `space.xs`               | 4                          |
+| `space.sliderCaptionGap` | 6                          |
+| `space.sm`               | 8                          |
+| `space.ms`               | 10                         |
+| `space.md`               | 12                         |
+| `space.ml`               | 14                         |
+| `space.lg`               | 16                         |
+| `sheet.titleGap`         | 18                         |
+| `space.xl`               | 20                         |
+| `space.xxl`              | 24                         |
+| `space.xxxl`             | 32                         |
+| `portion.readoutGap`     | 22                         |
+| `screen.padX`            | 26 (22 on compact layouts) |
+| `screen.padTop`          | 64                         |
+| `screen.padBottom`       | 30–40                      |
+| `sheet.subtitleGap`      | 2                          |
 
 **Radius scale:**
 
-| Token           | px                      | Use                                                                   |
-| --------------- | ----------------------- | --------------------------------------------------------------------- |
-| `radius.xs`     | 12                      | Compact badges and controls                                           |
-| `radius.sm`     | 14–16                   | Small chips/tags                                                      |
-| `radius.md`     | 20                      | Compact rows, small cards                                             |
-| `radius.ml`     | 22                      | Compact glass rows                                                    |
-| `radius.lg`     | 22–24                   | Standard glass card (default)                                         |
-| `radius.xl`     | 26–30                   | Hero/primary glass card, nav dock                                     |
-| `radius.xxl`    | 36                      | Large sheet and dock corners                                          |
-| `radius.pill`   | `height / 2`            | Any full pill button/bar — compute from actual height, don't hardcode |
-| `radius.circle` | `50%`                   | Icon buttons, avatars, orb                                            |
-| `radius.petal`  | 125 (outer corner only) | Petal-cluster cells, see §6                                           |
+| Token            | px                      | Use                                                                   |
+| ---------------- | ----------------------- | --------------------------------------------------------------------- |
+| `radius.xs`      | 12                      | Compact badges and controls                                           |
+| `radius.sm`      | 14–16                   | Small chips/tags                                                      |
+| `radius.control` | 18                      | Compact input rows                                                    |
+| `radius.md`      | 20                      | Compact rows, small cards                                             |
+| `radius.ml`      | 22                      | Compact glass rows                                                    |
+| `radius.lg`      | 22–24                   | Standard glass card (default)                                         |
+| `radius.xl`      | 26–30                   | Hero/primary glass card, nav dock                                     |
+| `radius.xxl`     | 36                      | Large sheet and dock corners                                          |
+| `radius.pill`    | `height / 2`            | Any full pill button/bar — compute from actual height, don't hardcode |
+| `radius.circle`  | `50%`                   | Icon buttons, avatars, orb                                            |
+| `radius.petal`   | 125 (outer corner only) | Petal-cluster cells, see §6                                           |
 
 **Sheet control sizes:** `componentSizes.sheetGrabberWidth` / `sheetGrabberHeight` are 40×5px;
 `sheetChipHeight` is 42px; `sheetNoteHeight` is 48px; `sheetControlHeight` is 52px; and the compact
-voice affordance uses `sheetVoiceButton` / `sheetVoiceIcon` at 38px / 14px. These values implement
-the 29d and 31a sheet geometry without component-local size literals.
+voice affordance uses `sheetVoiceButton` / `sheetVoiceIcon` at 38px / 14px. The portion slider uses
+`portionSliderThumbSize` (32px), `portionSliderTrackHeight` (4px),
+`portionSliderShadowRadius` (18px), and `portionSliderElevation` (4). These values implement the
+29d, 31a, and 36a sheet geometry without component-local size literals.
 
 ## 4. Material — "liquid glass on sky"
 

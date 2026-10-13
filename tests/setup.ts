@@ -40,6 +40,11 @@ jest.mock('react-native-reanimated', () => {
       <T extends (...args: never[]) => unknown>(fn: T) =>
       (...args: Parameters<T>) =>
         fn(...args),
+    // `react-native-gesture-handler`'s `GestureDetector` (used by `SliderRow` and any other
+    // drag component built the same way) reads `Reanimated.useEvent` from this same package at
+    // render time, even in a plain (non-Animated) mount — without a stub, mounting any such
+    // component throws "Reanimated.useEvent is not a function" before a single gesture fires.
+    useEvent: () => undefined,
   };
 });
 

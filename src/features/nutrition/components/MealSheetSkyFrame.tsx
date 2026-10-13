@@ -17,6 +17,7 @@ type MealSheetSkyFrameProps = PropsWithChildren<{
   visible: boolean;
   title: string;
   subtitle: string;
+  centeredHeader?: boolean;
   onClose: () => void;
 }>;
 
@@ -24,6 +25,7 @@ export function MealSheetSkyFrame({
   visible,
   title,
   subtitle,
+  centeredHeader = false,
   onClose,
   children,
 }: MealSheetSkyFrameProps) {
@@ -55,8 +57,10 @@ export function MealSheetSkyFrame({
         <GlassCard variant="sheet" padded={false}>
           <View style={styles.content}>
             <View style={styles.grabber} />
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.subtitle}>{subtitle}</Text>
+            <Text style={[styles.title, centeredHeader && styles.centeredHeader]}>{title}</Text>
+            <Text style={[styles.subtitle, centeredHeader && styles.centeredHeader]}>
+              {subtitle}
+            </Text>
             {children}
           </View>
         </GlassCard>
@@ -94,5 +98,8 @@ const styles = StyleSheet.create({
     ...textStyle('sheetSubtitle'),
     color: colors.ink55,
     marginTop: spacing.sheetSubtitleGap,
+  },
+  centeredHeader: {
+    textAlign: 'center',
   },
 });
