@@ -28,7 +28,10 @@ import {
   useSkipPlannedMealMutation,
 } from '@/features/nutrition/api/mealPlanApi';
 import { todayISO } from '@/features/nutrition/api/nutritionApi';
+import { FeedbackSheet } from '@/features/nutrition/components/FeedbackSheet';
+import { OutsideSheet } from '@/features/nutrition/components/OutsideSheet';
 import { QuotaBanner } from '@/features/nutrition/components/QuotaBanner';
+import { buildAteSomethingElsePayload } from '@/features/nutrition/lib/ateSomethingElsePayload';
 import { quotaErrorFrom } from '@/features/nutrition/lib/quotaError';
 import type { FeedbackType, PlannedMeal, ReplacePreviewAlternative } from '@/shared/types/mealPlan';
 
@@ -47,19 +50,6 @@ const PORTIONS = [
   { label: 'More', value: 1.25 },
   { label: 'Double', value: 1.5 },
 ];
-
-const FEEDBACK_OPTIONS: { label: string; value: FeedbackType }[] = [
-  { label: 'Loved it', value: 'like' },
-  { label: 'Not for me', value: 'dislike' },
-  { label: 'Too heavy', value: 'too_heavy' },
-  { label: 'Too light', value: 'too_light' },
-  { label: 'Too much cooking', value: 'too_much_cooking' },
-  { label: 'Too expensive', value: 'too_expensive' },
-  { label: "Couldn't find items", value: 'not_available' },
-  { label: 'Something else', value: 'other' },
-];
-
-const CALORIE_CHIPS = [300, 500, 700];
 
 function mealStatusCopy(status: PlannedMeal['status']): string {
   if (status === 'logged_as_planned') return 'Logged as planned';
@@ -177,13 +167,7 @@ export default function MealDetailScreen() {
   const logOutside = () => {
     if (!meal || !outsideDescription.trim()) return;
     ateSomethingElse.mutate(
-      {
-        meal_type: meal.meal_type,
-        planned_meal_id: meal.id,
-        description: outsideDescription.trim(),
-        approx_calories: outsideCalories,
-        approx_protein_g: Math.max(0, Math.round(outsideCalories * 0.08)),
-      },
+      buildAteSomethingElsePayload(meal, outsideDescription, outsideCalories),
       { onSuccess: () => showSaved('Logged. I adjusted what is left today.') },
     );
   };
@@ -339,16 +323,19 @@ export default function MealDetailScreen() {
         onClose={closeSheet}
         onSubmit={submitFeedback}
       />
-      <OutsideSheet
-        visible={sheet === 'outside'}
-        description={outsideDescription}
-        calories={outsideCalories}
-        busy={ateSomethingElse.isPending}
-        onDescription={setOutsideDescription}
-        onCalories={setOutsideCalories}
-        onClose={closeSheet}
-        onSubmit={logOutside}
-      />
+      {meal ? (
+        <OutsideSheet
+          visible={sheet === 'outside'}
+          mealType={meal.meal_type}
+          description={outsideDescription}
+          calories={outsideCalories}
+          busy={ateSomethingElse.isPending}
+          onDescription={setOutsideDescription}
+          onCalories={setOutsideCalories}
+          onClose={closeSheet}
+          onSubmit={logOutside}
+        />
+      ) : null}
     </View>
   );
 }
@@ -514,97 +501,6 @@ function ReplaceSheet({
         busy={busy}
         onPress={previewed ? onConfirm : onPreview}
       />
-    </SheetFrame>
-  );
-}
-
-function FeedbackSheet({
-  visible,
-  value,
-  note,
-  busy,
-  onValue,
-  onNote,
-  onClose,
-  onSubmit,
-}: {
-  visible: boolean;
-  value: FeedbackType;
-  note: string;
-  busy: boolean;
-  onValue: (value: FeedbackType) => void;
-  onNote: (value: string) => void;
-  onClose: () => void;
-  onSubmit: () => void;
-}) {
-  return (
-    <SheetFrame visible={visible} title="How did this land?" onClose={onClose}>
-      <View style={styles.chipRow}>
-        {FEEDBACK_OPTIONS.map((item) => (
-          <SelectableChip
-            key={item.value}
-            label={item.label}
-            selected={value === item.value}
-            onPress={() => onValue(item.value)}
-          />
-        ))}
-      </View>
-      <TextInput
-        value={note}
-        onChangeText={onNote}
-        placeholder="Optional note"
-        placeholderTextColor={colors.ink40}
-        style={styles.input}
-      />
-      <SheetButton label="Save feedback" busy={busy} onPress={onSubmit} />
-    </SheetFrame>
-  );
-}
-
-function OutsideSheet({
-  visible,
-  description,
-  calories,
-  busy,
-  onDescription,
-  onCalories,
-  onClose,
-  onSubmit,
-}: {
-  visible: boolean;
-  description: string;
-  calories: number;
-  busy: boolean;
-  onDescription: (value: string) => void;
-  onCalories: (value: number) => void;
-  onClose: () => void;
-  onSubmit: () => void;
-}) {
-  return (
-    <SheetFrame
-      visible={visible}
-      title="Ate something else?"
-      body="No problem. Give me a quick estimate and I will adjust the rest of today."
-      onClose={onClose}
-    >
-      <TextInput
-        value={description}
-        onChangeText={onDescription}
-        placeholder="What did you have?"
-        placeholderTextColor={withAlpha(colors.fog, 0.58)}
-        style={styles.darkInput}
-      />
-      <View style={styles.chipRow}>
-        {CALORIE_CHIPS.map((value) => (
-          <SelectableChip
-            key={value}
-            label={`~${value} kcal`}
-            selected={calories === value}
-            onPress={() => onCalories(value)}
-          />
-        ))}
-      </View>
-      <SheetButton label="Log it" busy={busy} disabled={!description.trim()} onPress={onSubmit} />
     </SheetFrame>
   );
 }
@@ -885,17 +781,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
     borderWidth: 1,
     color: colors.ink,
-    marginBottom: spacing.lg,
-    minHeight: 58,
-    paddingHorizontal: spacing.lg,
-  },
-  darkInput: {
-    ...textStyle('bodyLg'),
-    backgroundColor: withAlpha(colors.midnight, 0.76),
-    borderColor: withAlpha(colors.white, 0.18),
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    color: colors.onNight,
     marginBottom: spacing.lg,
     minHeight: 58,
     paddingHorizontal: spacing.lg,
