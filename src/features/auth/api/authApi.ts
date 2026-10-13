@@ -4,7 +4,7 @@ import { apiClient } from '@/shared/api/client';
 import { ApiError } from '@/shared/api/errors';
 import type { LoginFormValues, RegisterFormValues } from '@/features/auth/schemas';
 import type { SessionTokens } from '@/features/auth/store/sessionStore';
-import type { Gender } from '@/shared/types/user';
+import type { ActivePillar, Gender, InterviewGoal } from '@/shared/types/user';
 
 type LoginResponse = {
   success: true;
@@ -52,11 +52,13 @@ function fieldErrorsFromRecord(value: unknown): Record<string, string[]> | null 
   return Object.keys(result).length > 0 ? result : null;
 }
 
-/** `RegisterFormValues` plus the two optional fields `SaveScreen` derives from the onboarding
- * draft (D3 in onboarding-v2-flow-plan.md) rather than asks the user to type — never user-typed,
- * so they don't go through the Zod form resolver like the rest of `RegisterFormValues` does. */
+/** `RegisterFormValues` plus the interview answers collected before account creation. */
 export type RegisterRequestValues = RegisterFormValues & {
-  dateOfBirth?: string;
+  goal: InterviewGoal;
+  activePillars: ActivePillar[];
+  age?: number;
+  heightCm?: number;
+  weightKg?: number;
   gender?: Gender;
 };
 
@@ -76,9 +78,17 @@ export function useRegisterMutation() {
           password: values.password,
           password_confirm: values.password,
           first_name: values.firstName,
-          last_name: values.lastName,
-          ...(values.dateOfBirth ? { date_of_birth: values.dateOfBirth } : {}),
-          ...(values.gender ? { gender: values.gender } : {}),
+          ...(values.lastName ? { last_name: values.lastName } : {}),
+          goal: values.goal,
+          active_pillars: values.activePillars,
+          ...(values.activePillars.includes('diet')
+            ? {
+                age: values.age,
+                height_cm: values.heightCm,
+                weight_kg: values.weightKg,
+                gender: values.gender,
+              }
+            : {}),
         },
         { auth: false },
       ),

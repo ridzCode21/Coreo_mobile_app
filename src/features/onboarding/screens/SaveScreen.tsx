@@ -29,15 +29,13 @@ import {
   onboardingTitleStyles,
 } from '@/features/onboarding/components/OnboardingStepScaffold';
 import { WaveChart } from '@/shared/components/WaveChart';
-import { GOAL_TYPE_LABEL } from '@/features/onboarding/lib/dietQuestions';
-import { resolveGoalType } from '@/features/onboarding/lib/resolveGoalType';
-import { useUpdateDietProfileMutation } from '@/features/onboarding/api/dietProfileApi';
+import { INTERVIEW_GOAL_LABEL } from '@/features/onboarding/lib/interviewGoalLabels';
 import {
   useOnboardingStore,
   type OnboardingDraft,
   type OnboardingPillar,
 } from '@/features/onboarding/store/onboardingStore';
-import type { DietProfilePatch } from '@/shared/types/dietProfile';
+import type { InterviewGoal } from '@/shared/types/user';
 
 const PILLAR_LABEL: Record<OnboardingPillar, string> = {
   fitness: 'fitness',
@@ -48,46 +46,38 @@ const PILLAR_LABEL: Record<OnboardingPillar, string> = {
 function buildSummaryLine(draft: OnboardingDraft): string {
   const bits: string[] = [];
   if (draft.name) bits.push(draft.name);
-  if (draft.dietProfile.goal_type)
-    bits.push(GOAL_TYPE_LABEL[draft.dietProfile.goal_type].toLowerCase());
+  if (draft.goal) bits.push(INTERVIEW_GOAL_LABEL[draft.goal].toLowerCase());
   if (draft.pillars.length > 0) {
     bits.push(draft.pillars.map((pillar) => PILLAR_LABEL[pillar]).join(' + '));
   }
   return bits.join(' · ');
 }
 
-/**
- * `register` wants a `date_of_birth`; the interview only collects an age slider
- * (onboarding-v2-flow-plan.md D3, default chosen: keep the age slider, convert here). This is a
- * labeled approximation (January 1st of the birth year), not a real date of birth — fine for the
- * mock estimate this feeds, not something to treat as accurate elsewhere.
- */
-function ageToApproxDob(ageYears: number): string {
-  const birthYear = new Date().getFullYear() - Math.round(ageYears);
-  return `${birthYear}-01-01`;
-}
-
-/** Assembles the minimal signed-up starter profile (onboarding-v3-minimal-drip-plan.md §3):
- * only the core facts asked before account creation. Diet preference, activity, allergies, and
- * cuisine are collected later from inside the Diet tab via partial `PUT`s. */
-function buildDietProfilePatch(draft: OnboardingDraft): DietProfilePatch {
+function interviewFieldsFromDraft(
+  draft: OnboardingDraft,
+): Pick<
+  RegisterRequestValues,
+  'goal' | 'activePillars' | 'age' | 'heightCm' | 'weightKg' | 'gender'
+> {
   return {
-    goal_type: draft.dietProfile.goal_type ?? resolveGoalType(draft.dietProfile.health_conditions),
-    weight_kg: draft.weightKg,
-    height_cm: draft.heightCm,
+    goal: draft.goal as InterviewGoal,
+    activePillars: draft.pillars,
+    age: draft.ageYears,
+    heightCm: draft.heightCm,
+    weightKg: draft.weightKg,
+    ...(draft.gender ? { gender: draft.gender } : {}),
   };
 }
 
 /**
  * Splits the single onboarding "name" answer (7a·1) into the `first_name`/`last_name` the
  * register contract requires (API_REFERENCE.md §3). The design only ever collects one name
- * field, so this is a labeled assumption, not a contract deviation: a missing surname falls back
- * to "Member" rather than blocking the mocked social buttons on a field the user was never asked.
+ * field, and the backend accepts an omitted surname.
  */
 function splitName(name: string): { firstName: string; lastName: string } {
   const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return { firstName: 'Friend', lastName: 'Member' };
-  if (parts.length === 1) return { firstName: parts[0], lastName: 'Member' };
+  if (parts.length === 0) return { firstName: 'Friend', lastName: '' };
+  if (parts.length === 1) return { firstName: parts[0], lastName: '' };
   return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
 }
 
@@ -103,8 +93,7 @@ function slugify(value: string): string {
 /** Generates a unique, clearly-mock identity for the "Continue with Apple/Google" buttons — there
  * is no real OAuth here (F5/implementation-plan.md §3: social sign-in is visual-only, backend is
  * mocked). Each tap gets a fresh email so re-tapping never collides with the mock "email already
- * exists" validation. Carries the same derived `dateOfBirth`/`gender` as the email path so the
- * mock estimate behaves identically regardless of which button created the account. */
+ * exists" validation. Carries the same interview answers as the email path. */
 function buildMockSocialIdentity(
   provider: 'apple' | 'google',
   draft: OnboardingDraft,
@@ -116,8 +105,7 @@ function buildMockSocialIdentity(
     lastName,
     email: `${slugify(draft.name)}.${provider}.${unique}@mock.coreo.app`,
     password: `Mock-${unique}-Aa1`,
-    dateOfBirth: ageToApproxDob(draft.ageYears),
-    ...(draft.gender ? { gender: draft.gender } : {}),
+    ...interviewFieldsFromDraft(draft),
   };
 }
 
@@ -149,17 +137,10 @@ export default function SaveScreen() {
   const signIn = useSessionStore((state) => state.signIn);
   const registerMutation = useRegisterMutation();
   const loginMutation = useLoginMutation();
-  const dietProfileMutation = useUpdateDietProfileMutation();
 
   const [activeProvider, setActiveProvider] = useState<SocialProvider | null>(null);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
-  // Set once register succeeds — lets a failed diet-profile PUT retry without registering again
-  // (already signed in at that point). A simplification of the plan's "retry from the persisted
-  // draft on next launch" rule (§3): this in-screen retry covers the same failure without needing
-  // launch-time detection of a half-committed account, at the cost of not surviving an app kill in
-  // that exact multi-second window between register and the PUT succeeding.
-  const [registered, setRegistered] = useState(false);
 
   const {
     control,
@@ -171,24 +152,13 @@ export default function SaveScreen() {
     defaultValues: { ...splitName(draft.name), email: '', password: '' },
   });
 
-  const commitDietProfile = () => {
-    setBanner(null);
-    dietProfileMutation.mutate(buildDietProfilePatch(draft), {
-      onSuccess: () => {
-        resetOnboarding();
-        router.replace('/(app)');
-      },
-      onError: () => setBanner("Your account is saved, but I couldn't save your plan yet — retry?"),
-    });
-  };
-
   const commit = (values: RegisterRequestValues) => {
     setBanner(null);
     registerMutation.mutate(values, {
       onSuccess: async (envelope) => {
         await signIn(envelope.data.tokens);
-        setRegistered(true);
-        commitDietProfile();
+        resetOnboarding();
+        router.replace('/(app)');
       },
       onError: (error) => {
         setActiveProvider(null);
@@ -200,8 +170,8 @@ export default function SaveScreen() {
             {
               onSuccess: async (envelope) => {
                 await signIn(envelope.data.tokens);
-                setRegistered(true);
-                commitDietProfile();
+                resetOnboarding();
+                router.replace('/(app)');
               },
               onError: () => {
                 setShowEmailForm(true);
@@ -237,8 +207,7 @@ export default function SaveScreen() {
   const handleEmailSubmit = (values: RegisterFormValues) => {
     commit({
       ...values,
-      dateOfBirth: ageToApproxDob(draft.ageYears),
-      ...(draft.gender ? { gender: draft.gender } : {}),
+      ...interviewFieldsFromDraft(draft),
     });
   };
 
@@ -248,8 +217,7 @@ export default function SaveScreen() {
     commit(buildMockSocialIdentity(provider, draft));
   };
 
-  const isBusy =
-    registerMutation.isPending || loginMutation.isPending || dietProfileMutation.isPending;
+  const isBusy = registerMutation.isPending || loginMutation.isPending;
 
   return (
     <OnboardingStepScaffold
@@ -384,16 +352,6 @@ export default function SaveScreen() {
           {banner ? (
             <View style={styles.bannerBlock}>
               <Text style={styles.banner}>{banner}</Text>
-              {registered ? (
-                <Pressable
-                  onPress={commitDietProfile}
-                  disabled={isBusy}
-                  accessibilityRole="button"
-                  accessibilityLabel="Retry saving your plan"
-                >
-                  <Text style={styles.retryText}>{isBusy ? 'Retrying…' : 'Retry'}</Text>
-                </Pressable>
-              ) : null}
             </View>
           ) : null}
 
@@ -508,11 +466,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     alignItems: 'center',
     gap: spacing.xs,
-  },
-  retryText: {
-    ...textStyle('bodySm'),
-    color: colors.coreBlue,
-    textDecorationLine: 'underline',
   },
   almostThere: {
     marginTop: spacing.lg,
