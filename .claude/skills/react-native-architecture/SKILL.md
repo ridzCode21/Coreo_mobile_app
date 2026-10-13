@@ -5,7 +5,6 @@ description: >-
   feature-based folder placement, TanStack Query vs. Zustand vs. RHF, Expo Router conventions,
   New Architecture and SecureStore rules. Use before writing files for any feature, and whenever
   unsure where something goes.
-disable-model-invocation: true
 ---
 
 # React Native Architecture

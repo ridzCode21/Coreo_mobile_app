@@ -4,7 +4,6 @@ description: >-
   Analyze a feature request or task like a product owner before any planning or coding happens —
   target user, job-to-be-done, competitive/market behavior in fitness apps, MVP slice vs. later
   iteration. Use at the start of any non-trivial feature or product request.
-disable-model-invocation: true
 ---
 
 # Product Analysis

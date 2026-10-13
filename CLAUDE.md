@@ -71,9 +71,10 @@ lint, components): [`docs/coding-standards.md`](docs/coding-standards.md).
 ## 4. Playbooks (`.claude/skills/`)
 
 Task playbooks: `product-analysis`, `feature-planning`, `react-native-architecture`,
-`responsive-ui`, `security-review`, `design-alignment`, `pr-review`, `testing`. Each is
-`.claude/skills/<name>/SKILL.md`. Claude Code runs them as `/<name>` skills (most are manual-only,
-so invoke them yourself at the right step in §5); other tools must open the file by path.
+`responsive-ui`, `app-security-review`, `design-alignment`, `pr-review`, `testing`. Each is
+`.claude/skills/<name>/SKILL.md`. Claude Code runs them as `/<name>` skills; all but `testing`
+(manual until test infra exists, §7) can be invoked with the Skill tool at the right step in §5.
+Other tools must open the file by path.
 
 ## 5. How to approach every task
 
@@ -89,8 +90,8 @@ genuinely trivial changes (typos, copy tweaks, config values) and say so.
 3. **Before creating files or choosing a state tool** → `react-native-architecture`. Also
    `responsive-ui` before building or editing any screen or component.
 4. **Implement** — follow `docs/coding-standards.md`; extend existing feature modules.
-5. **Change touches auth, tokens, storage, permissions, or network** → `security-review`, before
-   finishing.
+5. **Change touches auth, tokens, storage, permissions, or network** → `app-security-review`,
+   before finishing.
 6. **Before every commit that touches UI** → `design-alignment`; warn the user on any difference
    (§13).
 7. **Before saying "done"** → `pr-review`, always. Writing or reviewing tests → `testing` (once

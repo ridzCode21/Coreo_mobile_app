@@ -12,7 +12,7 @@ Playbooks — open the one that matches your task: `.claude/skills/<name>/SKILL.
 
 - `product-analysis`, `feature-planning` — before planning a new feature
 - `react-native-architecture`, `responsive-ui` — where code lives; building any screen
-- `security-review`, `pr-review` — before calling a task done
+- `app-security-review`, `pr-review` — before calling a task done
 - `design-alignment` — before every commit that touches UI
 - `testing` — once test tooling exists
 

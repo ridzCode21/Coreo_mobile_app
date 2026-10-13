@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 
 /**
  * The only place auth tokens / sensitive small values are persisted — see docs/architecture.md
- * §2 and the security-review skill. Never read/write SecureStore directly from feature code; go
+ * §2 and the app-security-review skill. Never read/write SecureStore directly from feature code; go
  * through this module so there's one seam to audit.
  *
  * Web has no real fallback here: this app's target platforms are iOS and Android only
