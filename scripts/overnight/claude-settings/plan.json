@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(Coreo Design System Rebuild/**)",
+      "Edit(designs/**)",
+      "Edit(CLAUDE.md)",
+      "Edit(AGENTS.md)",
+      "Edit(.husky/**)",
+      "Edit(.github/**)",
+      "Edit(.claude/**)",
+      "Edit(scripts/overnight/**)",
+      "Edit(package.json)",
+      "Edit(package-lock.json)",
+      "Edit(.git/**)",
+      "Edit(src/**)",
+      "Edit(docs/**)",
+      "Edit(assets/**)",
+      "Edit(app.config.ts)"
+    ]
+  }
+}

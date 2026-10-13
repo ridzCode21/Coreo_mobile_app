@@ -1,0 +1,65 @@
+# Order the runner works in. Columns: issue number <TAB> tier <TAB> why (free text)
+# tier run     = do the whole issue
+# tier partial = do everything that is possible; what needs the owner, a new dependency or backend data
+#                that does not exist is reported as PARTIAL (the rest of the issue stays open)
+# tier hold    = skipped unless the runner is started with --include-hold (then treated as partial)
+# Foundation first: later screens use the new tokens, background and glass
+52	run	theme tokens: every screen issue is smaller once tokens exist
+53	run	shared sky background + glass cards (needs the tokens)
+8	run	signup contract: real backend returns 400 without goal/active_pillars
+# Bugs
+35	run	replace flow: lands on "Meal not found" after a swap
+36	run	regenerate flow: wrong state while building, quota banner hidden
+34	run	feedback + ate-something-else sheets, invented protein number
+33	run	portion sheet slider, wrong "Double" and success copy
+23	run	nutrition label uses the label scanner
+21	run	invented wave on placeholder tabs
+# Onboarding and auth
+9	run	onboarding name/goal/pillars (uses backend goal values)
+10	run	about you step
+11	run	first open + link to sign in
+12	partial	save screen: Apple button is a Phase 2 owner decision
+14	run	create account + sign in screens
+15	run	password reset screens (design uses red in the error state: use the attention token)
+# Home and navigation
+17	partial	home header/greeting/petals: extra cards need an owner decision (leave them as they are)
+19	run	home calibrating state
+20	run	glass dock sizes
+18	partial	home score/wave/nudge: some data does not exist in the backend
+# Diet
+22	run	diet home
+24	run	check my math
+25	run	after the snap
+26	run	label scan screens
+27	run	plate could not be read
+28	run	usuals
+29	run	week in review
+30	partial	diet questions: some diet types and the pace field have no backend value
+# Meal planner
+31	partial	plan states: quota-usage line and meal times are not in the API
+32	partial	full plan + meal detail: meal times are not in the API
+37	partial	plan check: 33b doable, 33a needs a backend flag
+38	partial	my foods: list endpoint does not exist, add and search are doable
+# Fitness, wellness, chat, profile, notebook, others
+39	run	fitness interview
+40	partial	fitness home: coach headline and start-session flow are undesigned
+41	run	wellness interview
+42	partial	wellness home + right now: start-wind-down flow is undesigned
+51	run	pillar tabs start the right interview (needs 39 and 41)
+43	partial	chat: confirm/undo is not in the design
+44	partial	profile: some lines have no data, export/delete placement undesigned
+45	partial	notebook: empty state undesigned
+48	partial	source went quiet: Whoop is Phase 2, no quiet flag in the API
+50	partial	patterns: only 37a is possible, 37b numbers are not in the API
+# Held back: need new dependencies, native modules, accounts, devices or backend work that does not exist
+13	hold	Google sign-in: client ids + new library
+16	hold	arrival screen: design versus v3 flow owner decision
+46	hold	evening check-in: backend (Self_dev#51) does not exist yet
+47	hold	notifications: new dependency + development build
+49	hold	offline: new packages
+54	hold	iOS HealthKit: native module, physical device, Phase 2 iOS
+55	hold	Android Health Connect: native module, physical device
+56	hold	Strava OAuth: account + keys
+57	hold	sources onboarding screen (depends on 54-56)
+58	hold	profile connected sources (depends on 54-56)
+59	hold	permission explanations (depends on 54-56)
