@@ -6,7 +6,7 @@
  */
 
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
-export type FoodSource = 'photo' | 'barcode' | 'manual' | 'import' | 'plan';
+export type FoodSource = 'photo' | 'barcode' | 'manual' | 'import' | 'quick_add' | 'label_ocr';
 
 /** A logged food entry — API_REFERENCE.md §8 `<FoodEntry>`. */
 export type FoodEntry = {
@@ -19,7 +19,7 @@ export type FoodEntry = {
   protein_g: number;
   carbs_g: number;
   fat_g: number;
-  source: FoodSource;
+  source: FoodSource | 'plan';
   /** ISO timestamp. */
   created_at: string;
 };
@@ -64,4 +64,13 @@ export type PhotoEstimate = {
   est_protein_g: number;
   est_carbs_g: number;
   est_fat_g: number;
+};
+
+/** A per-serving nutrition-label estimate — §8 `POST /food/label-ocr/`. */
+export type LabelEstimate = PhotoEstimate & {
+  servings_per_container: number;
+  confidence: number;
+  guessed: boolean;
+  guess_note: string | null;
+  remembered: boolean;
 };

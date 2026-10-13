@@ -15,6 +15,7 @@ import type { DailyLog } from '@/shared/types/dailyLog';
 import { SEED_FOOD_ITEMS } from '@/features/nutrition/mocks/fixtures';
 
 const PHOTO_DAILY_LIMIT = 10; // free tier — API_REFERENCE.md §8/§16
+const LABEL_DAILY_LIMIT = 10; // independent backend quota — views.py label_ocr
 
 const UNAUTHORIZED = {
   status: 401 as const,
@@ -234,6 +235,40 @@ registerMock('POST', '/food/photo/', (request) => {
       est_protein_g: 32,
       est_carbs_g: 74,
       est_fat_g: 22,
+    }),
+  };
+});
+
+// POST /food/label-ocr/ — nutrition-label estimate (multipart; the mock ignores the file).
+// Its 10/day quota is independent of the photo quota, matching the backend's separate Redis key.
+registerMock('POST', '/food/label-ocr/', (request) => {
+  const user = requireMockUser(request);
+  if (!user) return UNAUTHORIZED;
+  const key = `${user.id}:${todayISO()}`;
+  const used = mockDb.labelOcrQuotaByUserDate[key] ?? 0;
+  if (used >= LABEL_DAILY_LIMIT) {
+    return {
+      status: 429,
+      delayMs: 200,
+      body: { error: 'Daily label scan limit reached. Enter meal manually.' },
+    };
+  }
+  mockDb.labelOcrQuotaByUserDate[key] = used + 1;
+  return {
+    status: 200,
+    delayMs: 900,
+    body: styleB({
+      name: 'Protein bar',
+      portion_grams: 60,
+      est_calories: 210,
+      est_protein_g: 20,
+      est_carbs_g: 22,
+      est_fat_g: 6,
+      servings_per_container: 2.5,
+      confidence: 0.95,
+      guessed: false,
+      guess_note: null,
+      remembered: false,
     }),
   };
 });

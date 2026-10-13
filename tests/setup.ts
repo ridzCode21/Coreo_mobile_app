@@ -2,7 +2,51 @@
  * every test needs because a native module has no JS implementation under Jest. */
 
 jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
+  jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'),
+);
+
+// The upstream `react-native-reanimated/mock` re-imports the real `./index`, which requires
+// `react-native-worklets`' native module and crashes under Jest. This small stub covers exactly the
+// API the app uses today (WaveChart, AnimatedSplash, SliderRow): extend it when the app starts
+// using more, not before.
+jest.mock('react-native-reanimated', () => {
+  const { View, Text } = jest.requireActual<typeof import('react-native')>('react-native');
+  const { useRef } = jest.requireActual<typeof import('react')>('react');
+  const identity = (value: unknown) => value;
+  // Real shared values keep their identity across renders, so back the stub with a ref.
+  const useStableValue = (initial: unknown) => useRef({ value: initial }).current;
+  // The animation finishes immediately; completion callbacks run so code that chains on them works.
+  const withTiming = (
+    toValue: unknown,
+    _config?: unknown,
+    callback?: (finished: boolean) => void,
+  ) => {
+    callback?.(true);
+    return toValue;
+  };
+
+  return {
+    __esModule: true,
+    default: { View, Text, createAnimatedComponent: identity },
+    Easing: {
+      cubic: identity,
+      out: (easing?: unknown) => easing ?? identity,
+    },
+    useSharedValue: useStableValue,
+    useAnimatedStyle: (factory?: () => unknown) => (factory ? factory() : {}),
+    useAnimatedProps: (factory?: () => unknown) => (factory ? factory() : {}),
+    withTiming,
+    runOnJS:
+      <T extends (...args: never[]) => unknown>(fn: T) =>
+      (...args: Parameters<T>) =>
+        fn(...args),
+  };
+});
+
+jest.mock(
+  'react-native-safe-area-context',
+  () =>
+    jest.requireActual<{ default: unknown }>('react-native-safe-area-context/jest/mock').default,
 );
 
 jest.mock('expo-secure-store', () => {
