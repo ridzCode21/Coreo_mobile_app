@@ -4,8 +4,7 @@ import { useRouter, type Href } from 'expo-router';
 
 import { GlassCard } from '@/shared/components/GlassCard';
 import { Screen } from '@/shared/components/Screen';
-import { WaveChart } from '@/shared/components/WaveChart';
-import { colors, fontFamily, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
 
 const COREO_ROUTE = '/core' as Href;
 
@@ -29,14 +28,11 @@ export default function PillarComingSoonScreen({
       />
       <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
         <Text style={styles.eyebrow}>{pillar}</Text>
-        <Text style={styles.title}>
-          {title} <Text style={styles.titleAccent}>No fake data.</Text>
-        </Text>
+        <Text style={styles.title}>{title}</Text>
 
         <GlassCard variant="light" radius={radii.xl}>
-          <Text style={styles.cardLabel}>Phase 6</Text>
+          <Text style={styles.cardLabel}>Coming soon</Text>
           <Text style={styles.body}>{body}</Text>
-          <WaveChart progress={0.36} height={58} color={colors.ink} />
         </GlassCard>
 
         <Pressable
@@ -67,9 +63,6 @@ const styles = StyleSheet.create({
     ...textStyle('pageTitle'),
     color: colors.ink,
     marginBottom: spacing.xxl,
-  },
-  titleAccent: {
-    fontFamily: fontFamily.poppins500,
   },
   cardLabel: {
     ...textStyle('label'),
