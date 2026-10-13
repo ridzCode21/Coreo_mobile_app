@@ -8,7 +8,11 @@ import { ApiError } from '@/shared/api/errors';
 import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
 import { LoggingOptionTile } from '@/features/nutrition/components/LoggingOptionTile';
 import { FoodSearchList } from '@/features/nutrition/components/FoodSearchList';
-import { useAnalyzePhotoMutation } from '@/features/nutrition/api/nutritionApi';
+import {
+  useAnalyzeLabelMutation,
+  useAnalyzePhotoMutation,
+  type PhotoUploadFile,
+} from '@/features/nutrition/api/nutritionApi';
 import {
   captureMealPhotoFromCamera,
   pickMealPhotoFromLibrary,
@@ -78,11 +82,11 @@ function apiMessage(error: unknown, fallback: string): string {
 }
 
 /**
- * "What are we logging?" sheet (14b) — the four logging paths plus the describe/search bar. Photo
- * (snap + nutrition label) is wired to §8 `/food/photo/`; barcode opens the live camera scanner
- * (`/diet/scan`, Layer 1.1). Each path degrades to manual entry on failure with the API's own
- * calm copy (design spec §10). Every successful capture/pick routes to the confirm screen — nothing
- * is committed without a look.
+ * "What are we logging?" sheet (14b) — the four logging paths plus the describe/search bar. Plate
+ * photos and nutrition labels use their matching §8 analysis endpoints; barcode opens the live
+ * camera scanner (`/diet/scan`, Layer 1.1). Each path degrades to manual entry on failure with the
+ * API's own calm copy (design spec §10). Every successful capture/pick routes to the confirm screen
+ * — nothing is committed without a look.
  */
 export function LogMealSheet({ visible, onClose }: LogMealSheetProps) {
   const router = useRouter();
@@ -90,7 +94,8 @@ export function LogMealSheet({ visible, onClose }: LogMealSheetProps) {
   const [notice, setNotice] = useState<string | null>(null);
   const [autoFocusInput, setAutoFocusInput] = useState(false);
 
-  const analyze = useAnalyzePhotoMutation();
+  const analyzePhoto = useAnalyzePhotoMutation();
+  const analyzeLabel = useAnalyzeLabelMutation();
 
   const reset = () => {
     setQuery('');
@@ -135,25 +140,28 @@ export function LogMealSheet({ visible, onClose }: LogMealSheetProps) {
     goConfirm('manual', { food_name: typed });
   };
 
-  const runPhoto = async () => {
+  const captureAndAnalyze = async (
+    permissionNotice: string,
+    analyzeFile: (file: PhotoUploadFile) => void,
+  ) => {
     setNotice(null);
     const capture = await captureMealPhotoFromCamera();
     if (capture.status === 'permission_denied') {
-      // Simulators have no camera — offer the library so the flow is still demoable.
+      // Simulators have no camera — offer the library so both flows remain demoable.
       const fromLibrary = await pickMealPhotoFromLibrary();
       if (fromLibrary.status !== 'ok') {
-        setNotice('I need camera access to read a plate. You can describe it instead.');
+        setNotice(permissionNotice);
         return;
       }
-      analyzeAndConfirm(fromLibrary.file);
+      analyzeFile(fromLibrary.file);
       return;
     }
     if (capture.status === 'cancelled') return;
-    analyzeAndConfirm(capture.file);
+    analyzeFile(capture.file);
   };
 
-  const analyzeAndConfirm = (file: { uri: string; name: string; type: string }) => {
-    analyze.mutate(file, {
+  const analyzePhotoAndConfirm = (file: PhotoUploadFile) => {
+    analyzePhoto.mutate(file, {
       onSuccess: (estimate) =>
         goConfirm('photo', {
           food_name: estimate.name,
@@ -166,6 +174,35 @@ export function LogMealSheet({ visible, onClose }: LogMealSheetProps) {
         setNotice(apiMessage(error, "I couldn't read that one. Describe it and I'll do the math.")),
     });
   };
+
+  const analyzeLabelAndConfirm = (file: PhotoUploadFile) => {
+    analyzeLabel.mutate(file, {
+      onSuccess: (estimate) =>
+        goConfirm('label_ocr', {
+          food_name: estimate.name,
+          calories: estimate.est_calories,
+          protein_g: estimate.est_protein_g,
+          carbs_g: estimate.est_carbs_g,
+          fat_g: estimate.est_fat_g,
+        }),
+      onError: (error) =>
+        setNotice(
+          apiMessage(error, "I couldn't read that label. Describe it and I'll do the math."),
+        ),
+    });
+  };
+
+  const runPhoto = () =>
+    captureAndAnalyze(
+      'I need camera access to read a plate. You can describe it instead.',
+      analyzePhotoAndConfirm,
+    );
+
+  const runLabel = () =>
+    captureAndAnalyze(
+      'I need camera access to read a label. You can describe it instead.',
+      analyzeLabelAndConfirm,
+    );
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={close}>
@@ -198,7 +235,7 @@ export function LogMealSheet({ visible, onClose }: LogMealSheetProps) {
                 title="Nutrition label"
                 subtitle="I digitize the fine print"
                 icon={<LabelIcon stroke={iconStroke} />}
-                onPress={runPhoto}
+                onPress={runLabel}
               />
               <LoggingOptionTile
                 title="Describe it"
@@ -209,10 +246,12 @@ export function LogMealSheet({ visible, onClose }: LogMealSheetProps) {
             </View>
           </View>
 
-          {analyze.isPending ? (
+          {analyzePhoto.isPending || analyzeLabel.isPending ? (
             <View style={styles.pendingRow}>
               <ActivityIndicator color={colors.ink40} />
-              <Text style={styles.pendingText}>Reading your plate…</Text>
+              <Text style={styles.pendingText}>
+                {analyzeLabel.isPending ? 'Reading the label…' : 'Reading your plate…'}
+              </Text>
             </View>
           ) : null}
 

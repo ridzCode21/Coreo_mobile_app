@@ -33,7 +33,7 @@ export type ManualEntryValues = z.infer<typeof manualEntrySchema>;
  * optional JSON blob the caller stringifies.
  */
 export const confirmRouteParamsSchema = z.object({
-  source: z.enum(['manual', 'photo', 'barcode']).default('manual'),
+  source: z.enum(['manual', 'photo', 'barcode', 'label_ocr']).default('manual'),
   prefill: z.string().optional(),
 });
 export type ConfirmRouteParams = z.infer<typeof confirmRouteParamsSchema>;

@@ -46,6 +46,8 @@ type MockDb = {
   foodItems: FoodItem[];
   /** AI-photo usage counter, keyed `${userId}:${date}`, enforcing the 10/day free limit. §8/§16. */
   photoQuotaByUserDate: Record<string, number>;
+  /** Label-scan usage counter, keyed `${userId}:${date}`, independently enforcing 10/day. §8. */
+  labelOcrQuotaByUserDate: Record<string, number>;
   /** Keyed `${userId}:${date}`. One plan per user per day (§12). */
   mealPlans: Record<string, MealPlanDetail>;
   /** GET poll counts for async meal-plan status progression. */
@@ -93,6 +95,7 @@ function createEmptyDb(): MockDb {
     dailyLogs: {},
     foodItems: [],
     photoQuotaByUserDate: {},
+    labelOcrQuotaByUserDate: {},
     mealPlans: {},
     mealPlanPollCounts: {},
     replacePreviews: {},
@@ -116,6 +119,7 @@ export function __resetMockDbForTests(): void {
   mockDb.dailyLogs = {};
   mockDb.foodItems = [];
   mockDb.photoQuotaByUserDate = {};
+  mockDb.labelOcrQuotaByUserDate = {};
   mockDb.mealPlans = {};
   mockDb.mealPlanPollCounts = {};
   mockDb.replacePreviews = {};

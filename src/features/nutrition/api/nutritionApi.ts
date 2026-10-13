@@ -13,6 +13,7 @@ import type {
   FoodEntry,
   FoodItem,
   FoodSource,
+  LabelEstimate,
   MacroSummary,
   PhotoEstimate,
 } from '@/shared/types/food';
@@ -85,6 +86,17 @@ export function useBarcodeLookup(code: string, enabled: boolean) {
 
 export type PhotoUploadFile = { uri: string; name: string; type: string };
 
+function imageFormData(image: PhotoUploadFile): FormData {
+  const form = new FormData();
+  // RN's fetch accepts this file-part shape on FormData for multipart uploads.
+  form.append('image', {
+    uri: image.uri,
+    name: image.name,
+    type: image.type,
+  } as unknown as Blob);
+  return form;
+}
+
 /**
  * `POST /food/photo/` (multipart) — returns an ESTIMATE only (§8). The caller routes the user to the
  * confirm screen with this prefill; it does NOT create an entry. 422/429 surface as `ApiError` and
@@ -92,16 +104,16 @@ export type PhotoUploadFile = { uri: string; name: string; type: string };
  */
 export function useAnalyzePhotoMutation() {
   return useMutation({
-    mutationFn: (image: PhotoUploadFile) => {
-      const form = new FormData();
-      // RN's fetch accepts this file-part shape on FormData for multipart uploads.
-      form.append('image', {
-        uri: image.uri,
-        name: image.name,
-        type: image.type,
-      } as unknown as Blob);
-      return apiClient.post<PhotoEstimate>('/food/photo/', form, { multipart: true });
-    },
+    mutationFn: (image: PhotoUploadFile) =>
+      apiClient.post<PhotoEstimate>('/food/photo/', imageFormData(image), { multipart: true }),
+  });
+}
+
+/** `POST /food/label-ocr/` (multipart) — returns a per-serving label estimate only (§8). */
+export function useAnalyzeLabelMutation() {
+  return useMutation({
+    mutationFn: (image: PhotoUploadFile) =>
+      apiClient.post<LabelEstimate>('/food/label-ocr/', imageFormData(image), { multipart: true }),
   });
 }
 
