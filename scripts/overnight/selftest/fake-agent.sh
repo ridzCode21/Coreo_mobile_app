@@ -14,7 +14,8 @@ case "$tag" in
   plan)
     if [ "${FAKE_SCENARIO:-ok}" = blocked ] && [ "$num" = "$FAKE_BLOCK_NUM" ]; then echo "BLOCKED: needs a new native module" > "$work/blocked.txt"; emit_ok; fi
     mkdir -p "$wt/tests/regression/fake"; echo "// test for $num" > "$wt/tests/regression/fake/f$num.test.ts"
-    printf '# Plan for #%s\n## Decision log\nx\n## Test plan\nx\nTEST_FILES:\n- tests/regression/fake/f%s.test.ts\n## Acceptance checklist\n1. works\n## Out of scope / Blocked\nnone\n' "$num" "$num" > "$work/plan.md"
+    printf '# Plan for #%s\n## Decision log\nx\n## Backend alignment\napps/x/urls.py:1\n## Test plan\nx\nTEST_FILES:\n- tests/regression/fake/f%s.test.ts\n## Acceptance checklist\n1. works\n## Out of scope / Blocked\nnone\n' "$num" "$num" > "$work/plan.md"
+    [ "${FAKE_SCENARIO:-ok}" = no_backend_section ] && sed -i '' '/Backend alignment/,+1d' "$work/plan.md"
     if [ "${FAKE_SCENARIO:-ok}" = partial ] && [ "$num" = "$FAKE_BLOCK_NUM" ]; then echo "PARTIAL: backend list endpoint missing" > "$work/blocked.txt"; fi
     emit_ok ;;
   impl-*)

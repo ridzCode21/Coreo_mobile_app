@@ -63,7 +63,8 @@ INTEG_BRANCH="${INTEG_BRANCH:-chore/overnight-runner}"
 WORKTREE_DIR="${WORKTREE_DIR:-$(dirname "$ROOT")/$(basename "$ROOT")-overnight}"
 DESIGN_DIR_NAME="${DESIGN_DIR_NAME:-Coreo Design System Rebuild}"
 DESIGN_SRC="${DESIGN_SRC:-$ROOT/$DESIGN_DIR_NAME}"
-BACKEND_DOCS="${BACKEND_DOCS:-$(dirname "$ROOT")/django_app/django_app/docs}"
+BACKEND_REPO="${BACKEND_REPO:-$(dirname "$ROOT")/django_app/django_app}"   # the Django backend git repo (read only)
+BACKEND_BRANCH="${BACKEND_BRANCH:-feat/initial}"                           # branch every frontend issue must align with
 SKIP_BASELINE="${SKIP_BASELINE:-0}"
 FAKE_AGENTS="${FAKE_AGENTS:-0}"               # self-test only
 COMMIT_TRAILER1="Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
@@ -161,7 +162,7 @@ if [ "$DRY_RUN" = 1 ]; then
     python3 -I "$OVN/lib/render.py" "$PROMPTS/01-plan-and-red-tests.md" "$PROMPTS/common.md" "$STATE/dry/plan.md" \
       WT="$WORKTREE_DIR" BRANCH="feature/$(num3 "$first")-<slug>" NUM="$first" TITLE="$(title_of "$(issue_file "$first")")" \
       ISSUE_FILE="$(issue_file "$first")" WORK="$WORK_ROOT/$(num3 "$first")" DESIGN_FILE="$DESIGN_SRC/Coreo App Screens.dc.html" \
-      REFS="$REFS" TODAY="$(date +%Y-%m-%d)" ROUND=1 MAX_ROUNDS="$MAX_ROUNDS" TIER="$(tier_of "$first")" TIER_NOTE="" INTEG_BRANCH="$INTEG_BRANCH" STATE="$STATE"
+      REFS="$REFS" BACKEND_DIR="$REFS/backend" BACKEND_BRANCH="$BACKEND_BRANCH" BACKEND_SHA="(snapshot taken at start)" TODAY="$(date +%Y-%m-%d)" ROUND=1 MAX_ROUNDS="$MAX_ROUNDS" TIER="$(tier_of "$first")" TIER_NOTE="" INTEG_BRANCH="$INTEG_BRANCH" STATE="$STATE"
     head -22 "$STATE/dry/plan.md"
   else
     echo "Nothing runnable."
@@ -180,7 +181,7 @@ fi
 [ -f "$QUEUE" ] || fail_pre "missing $QUEUE"
 [ -n "$(ls "$ISSUES_DIR"/*.md 2>/dev/null)" ] || fail_pre "no issue files; run: bash scripts/overnight/run-all-tasks.sh --sync"
 [ -f "$DESIGN_SRC/Coreo App Screens.dc.html" ] || fail_pre "design file not found: $DESIGN_SRC/Coreo App Screens.dc.html"
-[ -f "$BACKEND_DOCS/API_REFERENCE.md" ] || fail_pre "backend docs not found in $BACKEND_DOCS (set BACKEND_DOCS=...)"
+git -C "$BACKEND_REPO" rev-parse --verify "$BACKEND_BRANCH^{commit}" >/dev/null 2>&1 || fail_pre "backend branch '$BACKEND_BRANCH' not found in $BACKEND_REPO (set BACKEND_REPO / BACKEND_BRANCH)"
 for f in scripts/overnight/run-all-tasks.sh jest.config.js tests/setup.ts; do
   git ls-files --error-unmatch "$f" >/dev/null 2>&1 || fail_pre "$f is not committed. Commit the setup first (README: scripts/overnight/README.md, 'Before the first run')."
 done
@@ -234,8 +235,34 @@ for f in "Coreo App Screens.dc.html" "Coreo Brand Book.dc.html"; do
   [ -f "$DESIGN_SRC/$f" ] && { cp -f "$DESIGN_SRC/$f" "$REFS/design/$f" && chmod a-w "$REFS/design/$f"; }
 done
 DESIGN_FILE="$REFS/design/Coreo App Screens.dc.html"
-cp -f "$BACKEND_DOCS/API_REFERENCE.md" "$BACKEND_DOCS/mvp.md" "$REFS/" 2>/dev/null
-chmod a-w "$REFS/API_REFERENCE.md" "$REFS/mvp.md" 2>/dev/null
+BACKEND_DIR="$REFS/backend"; BACKEND_SHA=""
+
+# Read-only snapshot of the backend CODE and docs, exported straight from git (the backend working tree is never
+# touched, whatever branch it is on). Refreshed whenever the branch moves. Docs for the prompts come from here too,
+# so the docs and the code the agents read always belong to the same commit.
+snapshot_backend() {
+  local sha parts p
+  sha="$(git -C "$BACKEND_REPO" rev-parse --verify "$BACKEND_BRANCH^{commit}" 2>/dev/null)" || { log "WARNING: backend branch $BACKEND_BRANCH not found; keeping the last snapshot."; return 0; }
+  if [ "$sha" = "$(cat "$REFS/backend.sha" 2>/dev/null)" ] && [ -d "$BACKEND_DIR" ]; then BACKEND_SHA="$sha"; return 0; fi
+  [ -d "$BACKEND_DIR" ] && { chmod -R u+w "$BACKEND_DIR" 2>/dev/null; rm -rf "$BACKEND_DIR"; }
+  mkdir -p "$BACKEND_DIR"
+  parts=""
+  for p in apps med_app docs requirements.txt manage.py pyproject.toml TODOS.md; do
+    git -C "$BACKEND_REPO" cat-file -e "$sha:$p" 2>/dev/null && parts="$parts $p"
+  done
+  # shellcheck disable=SC2086
+  git -C "$BACKEND_REPO" archive "$sha" -- $parts | tar -x -C "$BACKEND_DIR"
+  ( cd "$BACKEND_DIR" && grep -rn -E "path\(|re_path\(|\.register\(" --include=urls.py . | sed 's#^\./##' > "$REFS/backend-urls.txt" )
+  [ -f "$BACKEND_DIR/docs/API_REFERENCE.md" ] && { cp -f "$BACKEND_DIR/docs/API_REFERENCE.md" "$REFS/API_REFERENCE.md.tmp" && mv -f "$REFS/API_REFERENCE.md.tmp" "$REFS/API_REFERENCE.md"; }
+  [ -f "$BACKEND_DIR/docs/mvp.md" ] && { cp -f "$BACKEND_DIR/docs/mvp.md" "$REFS/mvp.md.tmp" && mv -f "$REFS/mvp.md.tmp" "$REFS/mvp.md"; }
+  chmod a-w "$REFS/API_REFERENCE.md" "$REFS/mvp.md" "$REFS/backend-urls.txt" 2>/dev/null
+  chmod -R a-w "$BACKEND_DIR"
+  echo "$sha" > "$REFS/backend.sha"
+  BACKEND_SHA="$sha"
+  log "Backend snapshot: $BACKEND_BRANCH @ ${sha:0:9} ($(git -C "$BACKEND_REPO" log -1 --format=%s "$sha" | cut -c1-70)) -> $BACKEND_DIR"
+}
+rm -f "$REFS/API_REFERENCE.md" "$REFS/mvp.md" 2>/dev/null
+snapshot_backend
 
 [ "$FAKE_AGENTS" = 1 ] && [ ! -e "$WT/node_modules" ] && ln -s "$ROOT/node_modules" "$WT/node_modules"   # self-test only: stub binaries
 wt() { ( cd "$WT" && "$@" ); }
@@ -330,7 +357,8 @@ run_agent() {
     if [ "$role" = plan ] && [ -f "$CUR_WORK/previous-failure.md" ]; then note_arg=(${note_arg[@]+"${note_arg[@]}"} --note "$PROMPTS/previous-failure-note.md"); fi
     python3 -I "$OVN/lib/render.py" "$tpl" "$PROMPTS/common.md" "$prompt" ${note_arg[@]+"${note_arg[@]}"} \
       WT="$WT" BRANCH="$CUR_BRANCH" NUM="$CUR_NUM" TITLE="$CUR_TITLE" ISSUE_FILE="$CUR_ISSUE_FILE" WORK="$CUR_WORK" \
-      DESIGN_FILE="$DESIGN_FILE" REFS="$REFS" TODAY="$(date +%Y-%m-%d)" TIER="$CUR_TIER" TIER_NOTE="$CUR_TIER_NOTE" \
+      DESIGN_FILE="$DESIGN_FILE" REFS="$REFS" BACKEND_DIR="$BACKEND_DIR" BACKEND_BRANCH="$BACKEND_BRANCH" BACKEND_SHA="${BACKEND_SHA:0:9}" \
+      TODAY="$(date +%Y-%m-%d)" TIER="$CUR_TIER" TIER_NOTE="$CUR_TIER_NOTE" \
       INTEG_BRANCH="$INTEG_BRANCH" STATE="$STATE" MAX_ROUNDS="$MAX_ROUNDS" ROUND="$CUR_ROUND" FEEDBACK_FILE="$CUR_FEEDBACK" "$@"
     log "[$role/$prov] fresh session for #$CUR_NUM ($tag)"
     if [ "$FAKE_AGENTS" = 1 ]; then "$OVN/selftest/fake-agent.sh" "$prov" "$role" "$prompt" "$out" "$err" "$WT" "$CUR_WORK"; code=$?
@@ -417,6 +445,7 @@ pipeline() { # sets RESULT = done | partial | blocked | failed | paused
     enforce_plan_scope
     if [ -f "$CUR_WORK/blocked.txt" ] && head -1 "$CUR_WORK/blocked.txt" | grep -q '^BLOCKED'; then RESULT=blocked; RESULT_NOTE="$(head -1 "$CUR_WORK/blocked.txt")"; return; fi
     if [ ! -s "$CUR_WORK/plan.md" ] || ! grep -q '^## Acceptance checklist' "$CUR_WORK/plan.md"; then RESULT=failed; RESULT_NOTE="plan.md missing or incomplete"; return; fi
+    if ! grep -q '^## Backend alignment' "$CUR_WORK/plan.md"; then RESULT=failed; RESULT_NOTE="plan.md has no '## Backend alignment' section (every issue must be checked against the backend code)"; return; fi
     if ! grep -q '^TEST_EXEMPT:' "$CUR_WORK/plan.md"; then
       local tf files=""; files="$(sed -n '/^TEST_FILES:/,/^## /p' "$CUR_WORK/plan.md" | grep -E '^- tests/' | sed 's/^- //')"
       [ -z "$files" ] && { RESULT=failed; RESULT_NOTE="plan lists no TEST_FILES (and no TEST_EXEMPT)"; return; }
@@ -524,6 +553,7 @@ gh_comment() { # status-line
 
 run_issue() { # num tier
   CUR_NUM="$1"; CUR_TIER="$2"; CUR_ISSUE_FILE="$(issue_file "$1")"; CUR_TITLE="$(title_of "$CUR_ISSUE_FILE")"
+  snapshot_backend   # picks up a moved backend branch between issues
   CUR_WORK="$WORK_ROOT/$(num3 "$1")"; mkdir -p "$CUR_WORK"; CUR_COMMIT=""
   cp -f "$CUR_ISSUE_FILE" "$CUR_WORK/issue.md"; CUR_ISSUE_FILE="$CUR_WORK/issue.md"   # inside the readable state folder
   CUR_BRANCH="feature/$1-$(slug_of "$CUR_TITLE")"

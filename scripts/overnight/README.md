@@ -45,11 +45,11 @@ bash scripts/overnight/selftest/run-selftest.sh      # no tokens: fake agents, w
 bash scripts/overnight/run-all-tasks.sh --dry-run    # shows the order and the first prompt
 ```
 
-Agents read the design and backend docs from read-only snapshots in `.state/refs/` (refreshed at each start), never from the real folders.
+Agents read the design and the backend from read-only snapshots in `.state/refs/` (refreshed at each start, and the backend again before every issue if its branch moved), never from the real folders.
 
 Needs: `claude` and `codex` logged in, `gh` logged in (issue comments), the design folder
-`Coreo Design System Rebuild/` next to the code, the backend docs at `../django_app/django_app/docs`
-(`BACKEND_DOCS=...` to change). `/ralph-loop` state in `.claude/ralph-loop.local.md` is ignored by the runner;
+`Coreo Design System Rebuild/` next to the code, the backend repo at `../django_app/django_app` with the branch `feat/initial`
+(`BACKEND_REPO=...` / `BACKEND_BRANCH=...` to change). `/ralph-loop` state in `.claude/ralph-loop.local.md` is ignored by the runner;
 cancel an old loop with `/ralph-loop:cancel-ralph` if one is still active.
 
 First real trial: `/run-all-tasks trial` (issue #21, small). Read its commit and `.state/work/021/`, then run everything.
@@ -76,7 +76,22 @@ tail -f scripts/overnight/.state/runner.log              # watch live
 `CLAUDE_MODEL`, `CLAUDE_EFFORT`, `CODEX_MODEL` (empty = your defaults), `BUDGET_USD` (cap per Claude session),
 `MAX_ATTEMPTS` (2), `MAX_ROUNDS` (4), `ALLOW_FALLBACK` (1), `LIMIT_WAIT_MINUTES` (30), `LIMIT_WAIT_MAX_HOURS` (7),
 `POLISH_MINOR` (1), `GH_COMMENT` (1: comment on each GitHub issue, never closes it), `BASE_BRANCH`, `INTEG_BRANCH`
-(`chore/overnight-runner`), `WORKTREE_DIR` (`../django_frontend-overnight`), `REPO_SLUG`, `BACKEND_DOCS`.
+(`chore/overnight-runner`), `WORKTREE_DIR` (`../django_frontend-overnight`), `REPO_SLUG`, `BACKEND_REPO` (`../django_app/django_app`), `BACKEND_BRANCH` (`feat/initial`).
+
+## The alignment rule (most important)
+
+Every issue is built to match **both** the Claude Design and the real backend code, strictly:
+
+- The runner exports the backend branch (`feat/initial`) with `git archive` into `.state/refs/backend` (read-only; your
+  backend working tree is never touched, whatever branch it is on) and indexes every route in `backend-urls.txt`.
+  Its docs (`API_REFERENCE.md`, `mvp.md`) come from the same commit, so docs and code always agree.
+- Every prompt puts this rule first. The **planner** must read the backend code for every endpoint, field, enum, error
+  and limit the issue touches and write a `## Backend alignment` section with `file:line` evidence (the runner rejects a
+  plan without it) plus contract tests against the exact backend field names. The **implementer** matches types, Zod
+  schemas, hooks, error mapping and the mock handlers to the code. The **reviewer** checks backend alignment with the
+  same weight as design alignment: a mismatch is MAJOR, an invented endpoint, field or number is a BLOCKER.
+- If the design needs something the backend code does not provide, or the two conflict, nothing is faked: the issue ends
+  as PARTIAL or BLOCKED with the exact backend file and change that is needed.
 
 ## Which issues run
 
@@ -112,4 +127,4 @@ tokens (#52), shared background and glass (#53), signup contract (#8).
 
 `run-all-tasks.sh` (runner), `prompts/` (what each role is told; edit to change behaviour), `queue.tsv`, `issues/`
 (synced from GitHub, `--sync`), `claude-settings/` (per-role permissions), `lib/` (helpers), `selftest/`,
-`.state/` (git-ignored: `status.tsv`, `runner.log`, `logs/`, `work/NNN/` hand-off files, `refs/` backend doc snapshot).
+`.state/` (git-ignored: `status.tsv`, `runner.log`, `logs/`, `work/NNN/` hand-off files, `refs/` read-only snapshots: design, backend code + docs, `backend-urls.txt`).

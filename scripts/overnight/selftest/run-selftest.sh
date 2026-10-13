@@ -3,8 +3,12 @@
 #   bash scripts/overnight/selftest/run-selftest.sh
 set -u
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-T="$(mktemp -d)"; trap '[ "${KEEP:-0}" = 1 ] || rm -rf "$T"' EXIT; [ "${KEEP:-0}" = 1 ] && echo "keeping $T"
+T="$(mktemp -d)"; trap '[ "${KEEP:-0}" = 1 ] || { chmod -R u+w "$T" 2>/dev/null; rm -rf "$T"; }' EXIT; [ "${KEEP:-0}" = 1 ] && echo "keeping $T"
 PASS=0; FAIL=0
+BK="$T/backend"; mkdir -p "$BK/docs" "$BK/apps/x"
+( cd "$BK" && git init -q -b feat/initial . && git config user.email t@t && git config user.name t \
+  && echo api > docs/API_REFERENCE.md && echo mvp > docs/mvp.md && printf 'urlpatterns = [path("x/", view)]\n' > apps/x/urls.py \
+  && git add -A && git commit -q -m "fake backend" )
 ok() { echo "  ok   - $1"; PASS=$((PASS+1)); }
 bad() { echo "  FAIL - $1"; FAIL=$((FAIL+1)); }
 check() { if eval "$2"; then ok "$1"; else bad "$1  [$2]"; fi; }
@@ -34,7 +38,7 @@ P
   git add -A >/dev/null; git commit -q -m base
 }
 run() { # extra env assignments are passed via the environment of the caller
-  ( cd "$R" && FAKE_AGENTS=1 GH_COMMENT=0 PAUSE_SECONDS=0 SKIP_BASELINE=0 WORKTREE_DIR="$T/wt-$NAME" BACKEND_DOCS="$T/docs-$$" bash scripts/overnight/run-all-tasks.sh "$@" ) > "$T/$NAME.out" 2>&1
+  ( cd "$R" && FAKE_AGENTS=1 GH_COMMENT=0 PAUSE_SECONDS=0 SKIP_BASELINE=0 WORKTREE_DIR="$T/wt-$NAME" BACKEND_REPO="$BK" BACKEND_BRANCH="${BACKEND_BRANCH:-feat/initial}" bash scripts/overnight/run-all-tasks.sh "$@" ) > "$T/$NAME.out" 2>&1
 }
 
 echo "== scenario 1: normal run, review fails once, gate fails once, partial + hold tiers"
@@ -57,6 +61,9 @@ check "test index row added for the new test" "grep -q 'fake/f1.test.ts' $T/wt-s
 check "main working tree untouched (still on development, clean)" "[ \"\$(git -C $R branch --show-current)\" = development ] && [ -z \"\$(git -C $R status --porcelain --untracked-files=no)\" ]"
 check "nothing pushed (no remotes)" "[ -z \"\$(git -C $R remote)\" ]"
 check "report written" "[ -s $R/scripts/overnight/.state/REPORT.md ]"
+check "backend code snapshot exported read-only" "[ -f $R/scripts/overnight/.state/refs/backend/apps/x/urls.py ] && ! touch $R/scripts/overnight/.state/refs/backend/apps/x/new 2>/dev/null"
+check "backend routes indexed" "grep -q 'apps/x/urls.py' $R/scripts/overnight/.state/refs/backend-urls.txt"
+check "prompts carry the backend branch and the snapshot path" "grep -q 'feat/initial' $W/plan.prompt.md && grep -q '.state/refs/backend' $W/impl-1.prompt.md && grep -q 'Backend alignment' $W/review-1.prompt.md"
 
 echo "== scenario 2: gate fails once (runner-run gates catch it) and PARTIAL result"
 NAME=s2; R="$T/repo-$NAME"; new_repo "$R" 2>/dev/null; cd "$R"
@@ -101,5 +108,13 @@ check "a polish pass that breaks the gates is reverted, issue still done" "grep 
 NAME=s7c; R="$T/repo-s7c"; new_repo "$R" 2>/dev/null; cd "$R"
 FAKE_SCENARIO=minor_findings POLISH_MINOR=0 run --only 1
 check "POLISH_MINOR=0 skips the polish pass" "! grep -q 'impl-1-polish' $R/scripts/overnight/.state/work/001/fake-calls.txt"
+
+echo "== scenario 8: backend alignment is enforced"
+NAME=s8; R="$T/repo-$NAME"; new_repo "$R" 2>/dev/null; cd "$R"
+BACKEND_BRANCH=nope run --only 1; rc=$?
+check "missing backend branch is refused at pre-flight" "[ $rc != 0 ] && grep -q \"backend branch 'nope' not found\" $T/s8.out"
+NAME=s8b; R="$T/repo-s8b"; new_repo "$R" 2>/dev/null; cd "$R"
+FAKE_SCENARIO=no_backend_section run --only 1
+check "a plan without a Backend alignment section is rejected" "grep -q 'no .## Backend alignment. section' $T/s8b.out && ! grep -q '^001	done' $R/scripts/overnight/.state/status.tsv"
 
 echo; echo "passed: $PASS   failed: $FAIL"; [ "$FAIL" = 0 ]

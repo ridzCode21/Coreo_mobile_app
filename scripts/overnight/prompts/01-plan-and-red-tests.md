@@ -18,7 +18,12 @@ a third fresh session will review the result against the design. Your plan and t
    Claude Design, note the choice), `superpowers:writing-plans`, and the repo playbooks in CLAUDE.md §5:
    `product-analysis`, `feature-planning`, `react-native-architecture`, `responsive-ui`. For issues touching
    auth, tokens, storage, permissions or network also read `app-security-review` now and plan for it.
-3. Design extraction: for every screen and state the issue lists, write the exact copy, element order,
+3. Backend alignment (mandatory, before design extraction is finished): for every endpoint, field, enum, error
+   and limit this issue touches, open the backend CODE in `{{BACKEND_DIR}}` (use `{{REFS}}/backend-urls.txt`, then
+   view, serializer, model, permissions, throttles) and write down what it really does, with `file:line`. Compare
+   with the issue, the docs and the current frontend client, schemas and mocks, and list every mismatch. This
+   decides what is buildable now and what is Partial/Blocked.
+   3b. Design extraction: for every screen and state the issue lists, write the exact copy, element order,
    every state the design shows (empty, loading, error, offline, success, calibrating, quota reached...),
    what each tap does and where it goes, and the tokens/sizes. Compare with the backend contract and say
    which data comes from which endpoint (or mock). Decide anything the issue leaves open and record it.
@@ -28,7 +33,9 @@ a third fresh session will review the result against the design. Your plan and t
    `tests/regression/<feature>/` (named after what they protect, `.test.ts` for pure logic, `.test.tsx` for
    components and screens). Cover: every exact copy string and element the design requires, every state and
    error path, every interaction (what a tap calls/navigates to), data mapping/derivation rules, and the
-   regressions the issue describes (for a bug issue, a test that reproduces the bug). Use React Native
+   regressions the issue describes (for a bug issue, a test that reproduces the bug). Add contract tests for every
+   request and response the change touches: assert the exact request payload and the response mapping against the
+   field names, types and error codes found in the backend code (cite the backend `file:line` in a comment). Use React Native
    Testing Library for UI (query by text/role, never by implementation details; no snapshots of whole
    screens), mock the API at the mock layer or the hook, and add small test helpers in `tests/` if several
    tests need them. Tests must be deterministic and fast.
@@ -44,6 +51,9 @@ a third fresh session will review the result against the design. Your plan and t
 # Plan for #{{NUM}}
 ## Decision log            (choices made, conflicts between issue/design/docs and how resolved)
 ## Design requirements     (per screen/state: exact copy table, order, interactions, tokens)
+## Backend alignment       (REQUIRED, per endpoint: method + URL, backend `file:line` (urls, view, serializer),
+                            request/response fields and errors as the CODE defines them, mismatches with the
+                            docs / the current frontend client / the mocks, what the backend does NOT provide)
 ## Data and API            (endpoint or mock per datum; mock changes needed; what is NOT available)
 ## Files to create or change   (path: what and why; keep inside the right feature folder)
 ## Test plan               (what each test file protects)

@@ -13,6 +13,8 @@ The previous round did not pass. Fix what the feedback says, nothing more.
    If you disagree with a finding, check the design and the API; if you are right, say so with evidence in
    the hand-off instead of changing the code; if the reviewer is right, fix it. For a finding that proves a
    test is wrong, do not edit the test: report it under "Test disputes" (the next review decides).
+   2b. For any finding about the backend contract, re-open the backend code in `{{BACKEND_DIR}}` and fix the
+   frontend (types, schemas, hooks, errors, mocks) to match the code exactly; never bend the backend facts.
 3. TDD still applies: a bug found by the reviewer gets a failing test first (add it), then the fix. Never
    delete, skip or loosen tests.
 4. Re-run the gates until green and read the output: `npm run typecheck`, `npm run lint`,

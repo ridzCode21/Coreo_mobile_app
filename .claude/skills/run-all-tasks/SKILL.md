@@ -18,7 +18,8 @@ sessions (Claude plans and writes the failing tests, Codex implements, the runne
 and all tests, Claude reviews strictly against the Claude Design, Codex fixes, repeat until the review passes),
 then commits on a local branch and merges it into the local integration branch. It never pushes. It stops by
 itself when both usage limits are hit and resumes from the first open issue when started again.
-Details: `scripts/overnight/README.md`.
+Every issue must align with both the Claude Design and the backend code (branch `feat/initial`, read as a snapshot);
+the runner enforces this in the plan step and the review. Details: `scripts/overnight/README.md`.
 
 Requested action: `$ARGUMENTS` (empty means "run everything").
 
