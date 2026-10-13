@@ -446,9 +446,10 @@ pipeline() { # sets RESULT = done | partial | blocked | failed | paused
     if [ -f "$CUR_WORK/blocked.txt" ] && head -1 "$CUR_WORK/blocked.txt" | grep -q '^BLOCKED'; then RESULT=blocked; RESULT_NOTE="$(head -1 "$CUR_WORK/blocked.txt")"; return; fi
     if [ ! -s "$CUR_WORK/plan.md" ] || ! grep -q '^## Acceptance checklist' "$CUR_WORK/plan.md"; then RESULT=failed; RESULT_NOTE="plan.md missing or incomplete"; return; fi
     if ! grep -q '^## Backend alignment' "$CUR_WORK/plan.md"; then RESULT=failed; RESULT_NOTE="plan.md has no '## Backend alignment' section (every issue must be checked against the backend code)"; return; fi
-    if ! grep -q '^TEST_EXEMPT:' "$CUR_WORK/plan.md"; then
-      local tf files=""; files="$(sed -n '/^TEST_FILES:/,/^## /p' "$CUR_WORK/plan.md" | grep -E '^- tests/' | sed 's/^- //')"
-      [ -z "$files" ] && { RESULT=failed; RESULT_NOTE="plan lists no TEST_FILES (and no TEST_EXEMPT)"; return; }
+    # The RED check runs whenever tests are listed. A TEST_EXEMPT line only counts when NO test files are
+    # listed (otherwise a partial exemption, e.g. for a type-only change, would switch the check off).
+    local tf files=""; files="$(sed -n '/^TEST_FILES:/,/^## /p' "$CUR_WORK/plan.md" | grep -E '^- tests/' | sed 's/^- //')"
+    if [ -n "$files" ]; then
       for tf in $files; do [ -f "$WT/$tf" ] || { RESULT=failed; RESULT_NOTE="planned test file missing: $tf"; return; }; done
       # RED check: the new tests must fail now (otherwise they prove nothing)
       if ( cd "$WT" && CI=1 npx jest --ci $files > "$CUR_WORK/red.txt" 2>&1 ); then
@@ -457,6 +458,8 @@ pipeline() { # sets RESULT = done | partial | blocked | failed | paused
       else
         grep -qE 'No tests found|Cannot find module|SyntaxError' "$CUR_WORK/red.txt" && log "WARNING: red tests fail for a possibly wrong reason (see $CUR_WORK/red.txt)."
       fi
+    elif ! grep -q '^TEST_EXEMPT:' "$CUR_WORK/plan.md"; then
+      RESULT=failed; RESULT_NOTE="plan lists no TEST_FILES (and no TEST_EXEMPT)"; return
     fi
     touch "$plan_ok"
   fi

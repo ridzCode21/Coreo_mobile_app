@@ -41,9 +41,11 @@ a third fresh session will review the result against the design. Your plan and t
    tests need them. Tests must be deterministic and fast.
 6. Run the new tests with `npx jest <files>` and confirm they FAIL for the right reason (missing behaviour,
    not a typo or a broken import). Fix the tests until they fail correctly. Paste the failing summary into the
-   plan. Purely visual token/size changes that cannot be asserted may use `TEST_EXEMPT: <reason>` in the plan
-   (use sparingly: copy, structure and state are almost always testable; token values can be asserted from
-   `src/shared/theme/tokens.ts`).
+   plan. A `TEST_EXEMPT: <reason>` line is only for an issue with NO testable behaviour at all (then list no
+   TEST_FILES). It does not apply to part of an issue: if some parts are untestable (for example a type-only
+   change), say so in plain prose, not as a `TEST_EXEMPT:` line, and still list the tests for the rest. The runner
+   always runs the RED check on listed test files. Copy, structure, state and token values are almost always
+   testable (token values can be asserted from `src/shared/theme/tokens.ts`).
 
 ## Output: `{{WORK}}/plan.md` (exactly these headings)
 

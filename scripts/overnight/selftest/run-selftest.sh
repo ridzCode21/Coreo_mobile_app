@@ -17,7 +17,7 @@ new_repo() { # dir
   local R="$1"; mkdir -p "$R" && cd "$R" && git init -q -b development .
   git config user.email t@t; git config user.name t
   mkdir -p scripts tests/regression/foundation src node_modules/.bin "Coreo Design System Rebuild" "../docs-$$"
-  cp -R "$SRC/scripts/overnight" scripts/overnight; rm -rf scripts/overnight/.state scripts/overnight/issues/*
+  tar -C "$SRC/scripts" --exclude=overnight/.state -cf - overnight | tar -C scripts -xf -; rm -rf scripts/overnight/issues/*   # never copy a real run's read-only .state
   cat > scripts/overnight/queue.tsv <<'Q'
 1	run	first
 2	partial	second
@@ -61,6 +61,7 @@ check "test index row added for the new test" "grep -q 'fake/f1.test.ts' $T/wt-s
 check "main working tree untouched (still on development, clean)" "[ \"\$(git -C $R branch --show-current)\" = development ] && [ -z \"\$(git -C $R status --porcelain --untracked-files=no)\" ]"
 check "nothing pushed (no remotes)" "[ -z \"\$(git -C $R remote)\" ]"
 check "report written" "[ -s $R/scripts/overnight/.state/REPORT.md ]"
+check "RED check ran for the listed tests" "[ -f $W/red.txt ]"
 check "backend code snapshot exported read-only" "[ -f $R/scripts/overnight/.state/refs/backend/apps/x/urls.py ] && ! touch $R/scripts/overnight/.state/refs/backend/apps/x/new 2>/dev/null"
 check "backend routes indexed" "grep -q 'apps/x/urls.py' $R/scripts/overnight/.state/refs/backend-urls.txt"
 check "prompts carry the backend branch and the snapshot path" "grep -q 'feat/initial' $W/plan.prompt.md && grep -q '.state/refs/backend' $W/impl-1.prompt.md && grep -q 'Backend alignment' $W/review-1.prompt.md"
@@ -116,5 +117,10 @@ check "missing backend branch is refused at pre-flight" "[ $rc != 0 ] && grep -q
 NAME=s8b; R="$T/repo-s8b"; new_repo "$R" 2>/dev/null; cd "$R"
 FAKE_SCENARIO=no_backend_section run --only 1
 check "a plan without a Backend alignment section is rejected" "grep -q 'no .## Backend alignment. section' $T/s8b.out && ! grep -q '^001	done' $R/scripts/overnight/.state/status.tsv"
+
+echo "== scenario 9: a partial TEST_EXEMPT line does not switch the RED check off"
+NAME=s9; R="$T/repo-$NAME"; new_repo "$R" 2>/dev/null; cd "$R"
+FAKE_SCENARIO=partial_exempt run --only 1
+check "RED check still ran (red.txt written) and the issue completed" "[ -f $R/scripts/overnight/.state/work/001/red.txt ] && grep -q '^001	done' $R/scripts/overnight/.state/status.tsv"
 
 echo; echo "passed: $PASS   failed: $FAIL"; [ "$FAIL" = 0 ]
