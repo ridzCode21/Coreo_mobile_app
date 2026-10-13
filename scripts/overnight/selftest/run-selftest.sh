@@ -3,7 +3,7 @@
 #   bash scripts/overnight/selftest/run-selftest.sh
 set -u
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
+T="$(mktemp -d)"; trap '[ "${KEEP:-0}" = 1 ] || rm -rf "$T"' EXIT; [ "${KEEP:-0}" = 1 ] && echo "keeping $T"
 PASS=0; FAIL=0
 ok() { echo "  ok   - $1"; PASS=$((PASS+1)); }
 bad() { echo "  FAIL - $1"; FAIL=$((FAIL+1)); }
@@ -27,9 +27,10 @@ Q
 P
   echo "const fs=require('fs');for(const f of fs.readdirSync('src').filter(x=>x.endsWith('.ts'))){if(fs.readFileSync('src/'+f,'utf8').includes('BROKEN')){console.error('BROKEN in '+f);process.exit(1);}}" > check.js
   printf '#!/bin/sh\n[ -f .impl-done ] && exit 0 || exit 1\n' > node_modules/.bin/jest; chmod +x node_modules/.bin/jest
+  printf '#!/bin/sh\nexit 0\n' > node_modules/.bin/eslint; chmod +x node_modules/.bin/eslint
   echo "module.exports={};" > jest.config.js; echo "" > tests/setup.ts
   printf '# Regression suite index\n\n| Test file | Feature | Protects | Issue | Added |\n| --- | --- | --- | --- | --- |\n' > tests/regression/INDEX.md
-  echo "node_modules/" > .gitignore; echo "src/.keep" > src/.keep
+  echo "node_modules" > .gitignore; echo "src/.keep" > src/.keep
   git add -A >/dev/null; git commit -q -m base
 }
 run() { # extra env assignments are passed via the environment of the caller
@@ -50,8 +51,8 @@ check "implement ran on codex" "grep -q 'codex implement impl-1' $W/fake-calls.t
 check "review failed once then a fix round ran on codex" "grep -q 'codex implement impl-2' $W/fake-calls.txt && grep -q 'claude review review-2' $W/fake-calls.txt"
 check "plan.md exists" "[ -s $W/plan.md ]"
 check "design spec extracted the screen" "grep -q 'Save your core' $W/design-spec.md"
-check "merge commit on the integration branch" "git -C $T/wt-s1 log --oneline overnight/design-gaps | grep -q 'Merge #1'"
-check "feature commit message has both co-authors" "git -C $T/wt-s1 log -1 --format=%B overnight/design-gaps^2 | grep -q 'Codex'"
+check "merge commit on the integration branch" "git -C $T/wt-s1 log --oneline chore/overnight-runner | grep -q 'Merge #1'"
+check "feature commit message has both co-authors" "git -C $T/wt-s1 log -1 --format=%B chore/overnight-runner^2 | grep -q 'Codex'"
 check "test index row added for the new test" "grep -q 'fake/f1.test.ts' $T/wt-s1/tests/regression/INDEX.md"
 check "main working tree untouched (still on development, clean)" "[ \"\$(git -C $R branch --show-current)\" = development ] && [ -z \"\$(git -C $R status --porcelain --untracked-files=no)\" ]"
 check "nothing pushed (no remotes)" "[ -z \"\$(git -C $R remote)\" ]"
@@ -68,7 +69,7 @@ check "gate failure triggers a fix round, then done" "grep -q '^001	done' $R/scr
 echo "== scenario 3: blocked at planning"
 NAME=s3; R="$T/repo-$NAME"; new_repo "$R" 2>/dev/null; cd "$R"
 FAKE_SCENARIO=blocked FAKE_BLOCK_NUM=1 run --only 1
-check "blocked recorded, nothing merged" "grep -q '^001	blocked' $R/scripts/overnight/.state/status.tsv && ! git -C $T/wt-s3 log --oneline overnight/design-gaps | grep -q 'Merge #1'"
+check "blocked recorded, nothing merged" "grep -q '^001	blocked' $R/scripts/overnight/.state/status.tsv && ! git -C $T/wt-s3 log --oneline chore/overnight-runner | grep -q 'Merge #1'"
 
 echo "== scenario 4: Claude usage limit -> Codex takes over (degraded), and reviewer edits are undone"
 NAME=s4; R="$T/repo-$NAME"; new_repo "$R" 2>/dev/null; cd "$R"
@@ -89,5 +90,16 @@ NAME=s6; R="$T/repo-$NAME"; new_repo "$R" 2>/dev/null; cd "$R"
 run --dry-run; check "dry run lists issues without running agents" "grep -q 'Would work on' $T/s6.out && [ ! -d $T/wt-s6 ]"
 echo "x" >> package.json; run; rc=$?
 check "dirty tracked file is refused" "[ $rc != 0 ] && grep -q 'PRE-FLIGHT FAILED' $T/s6.out"
+
+echo "== scenario 7: polish pass applies MINOR fixes, and is reverted when it breaks the gates"
+NAME=s7; R="$T/repo-$NAME"; new_repo "$R" 2>/dev/null; cd "$R"
+FAKE_SCENARIO=minor_findings run --only 1
+check "polish pass ran and was applied" "grep -q 'impl-1-polish' $R/scripts/overnight/.state/work/001/fake-calls.txt && grep -q 'POLISH applied' $T/s7.out && grep -q '^001	done' $R/scripts/overnight/.state/status.tsv"
+NAME=s7b; R="$T/repo-s7b"; new_repo "$R" 2>/dev/null; cd "$R"
+FAKE_SCENARIO=polish_breaks run --only 1
+check "a polish pass that breaks the gates is reverted, issue still done" "grep -q 'POLISH reverted' $T/s7b.out && grep -q '^001	done' $R/scripts/overnight/.state/status.tsv && ! grep -q BROKEN $T/wt-s7b/src/fake-1.ts"
+NAME=s7c; R="$T/repo-s7c"; new_repo "$R" 2>/dev/null; cd "$R"
+FAKE_SCENARIO=minor_findings POLISH_MINOR=0 run --only 1
+check "POLISH_MINOR=0 skips the polish pass" "! grep -q 'impl-1-polish' $R/scripts/overnight/.state/work/001/fake-calls.txt"
 
 echo; echo "passed: $PASS   failed: $FAIL"; [ "$FAIL" = 0 ]

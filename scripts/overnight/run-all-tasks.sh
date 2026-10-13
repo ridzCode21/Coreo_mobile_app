@@ -19,6 +19,7 @@
 #   3 GATES             runner  typecheck + lint + format + all tests (never trusts an agent's word)
 #   4 REVIEW            Claude  strict, independent review + design alignment, VERDICT: PASS|FAIL
 #   5 FIX               Codex   fixes the findings; steps 3-5 repeat (a ralph-style loop) up to MAX_ROUNDS
+#   5b POLISH           Codex   one pass for MINOR findings after a PASS (reverted if any gate breaks; POLISH_MINOR=0 to skip)
 #   6 FINALIZE          runner  gates again, scope check, regression INDEX, commit, local merge, GitHub comment
 # If one provider hits its usage limit the other takes over; if both are limited the runner waits and retries.
 # Nothing is ever pushed. Works with macOS bash 3.2. Progress truth = status.tsv + git, safe to stop/restart.
@@ -55,9 +56,10 @@ LIMIT_WAIT_MINUTES="${LIMIT_WAIT_MINUTES:-30}"   # sleep between retries when BO
 LIMIT_WAIT_MAX_HOURS="${LIMIT_WAIT_MAX_HOURS:-7}" # give up (exit 75) after waiting this long in total
 TRANSIENT_RETRIES="${TRANSIENT_RETRIES:-3}"
 PAUSE_SECONDS="${PAUSE_SECONDS:-5}"
+POLISH_MINOR="${POLISH_MINOR:-1}"             # 1 = one extra fix pass for MINOR review findings (reverted if the gates break)
 GH_COMMENT="${GH_COMMENT:-1}"                 # 1 = comment on the GitHub issue after each issue (never closes it)
 BASE_BRANCH="${BASE_BRANCH:-}"                # branch the integration branch starts from (default: current branch)
-INTEG_BRANCH="${INTEG_BRANCH:-overnight/design-gaps}"
+INTEG_BRANCH="${INTEG_BRANCH:-chore/overnight-runner}"
 WORKTREE_DIR="${WORKTREE_DIR:-$(dirname "$ROOT")/$(basename "$ROOT")-overnight}"
 DESIGN_DIR_NAME="${DESIGN_DIR_NAME:-Coreo Design System Rebuild}"
 DESIGN_SRC="${DESIGN_SRC:-$ROOT/$DESIGN_DIR_NAME}"
@@ -235,6 +237,7 @@ DESIGN_FILE="$REFS/design/Coreo App Screens.dc.html"
 cp -f "$BACKEND_DOCS/API_REFERENCE.md" "$BACKEND_DOCS/mvp.md" "$REFS/" 2>/dev/null
 chmod a-w "$REFS/API_REFERENCE.md" "$REFS/mvp.md" 2>/dev/null
 
+[ "$FAKE_AGENTS" = 1 ] && [ ! -e "$WT/node_modules" ] && ln -s "$ROOT/node_modules" "$WT/node_modules"   # self-test only: stub binaries
 wt() { ( cd "$WT" && "$@" ); }
 if [ "$FAKE_AGENTS" != 1 ]; then
   lockhash="$(shasum "$WT/package-lock.json" | cut -d' ' -f1)"
@@ -253,6 +256,8 @@ run_gates() { # outfile -> 0 if every gate passes
     echo "### npm run $name" >> "$out"
     if ( cd "$WT" && CI=1 npm run "$name" >> "$out" 2>&1 ); then echo "=> PASS $name" >> "$out"; else echo "=> FAIL $name" >> "$out"; ok=1; fi
   done
+  echo "### npx eslint . --max-warnings 0   (npm run lint skips tests/ and ignores warnings)" >> "$out"
+  if ( cd "$WT" && CI=1 npx eslint . --max-warnings 0 >> "$out" 2>&1 ); then echo "=> PASS eslint-strict" >> "$out"; else echo "=> FAIL eslint-strict" >> "$out"; ok=1; fi
   echo "### npm test" >> "$out"
   if ( cd "$WT" && CI=1 npm test -- --ci --forceExit >> "$out" 2>&1 ); then echo "=> PASS test" >> "$out"; else echo "=> FAIL test" >> "$out"; ok=1; fi
   return $ok
@@ -321,6 +326,7 @@ run_agent() {
     AGENT_PROVIDER="$prov"
     prompt="$CUR_WORK/$tag.prompt.md"; out="$LOGS/$(num3 "$CUR_NUM")-$tag-$(date +%H%M%S).jsonl"; err="$out.err"
     local note_arg=(); [ "$prov" = codex ] && note_arg=(--note "$PROMPTS/codex-note.md")
+    [ -n "${EXTRA_NOTE:-}" ] && note_arg=(${note_arg[@]+"${note_arg[@]}"} --note "$EXTRA_NOTE")
     if [ "$role" = plan ] && [ -f "$CUR_WORK/previous-failure.md" ]; then note_arg=(${note_arg[@]+"${note_arg[@]}"} --note "$PROMPTS/previous-failure-note.md"); fi
     python3 -I "$OVN/lib/render.py" "$tpl" "$PROMPTS/common.md" "$prompt" ${note_arg[@]+"${note_arg[@]}"} \
       WT="$WT" BRANCH="$CUR_BRANCH" NUM="$CUR_NUM" TITLE="$CUR_TITLE" ISSUE_FILE="$CUR_ISSUE_FILE" WORK="$CUR_WORK" \
@@ -375,6 +381,26 @@ CUR_NUM=""; CUR_TITLE=""; CUR_ISSUE_FILE=""; CUR_WORK=""; CUR_BRANCH=""; CUR_TIE
 RESULT=""; RESULT_NOTE=""
 
 write_feedback_from_gates() { { echo "# Gate failures (runner output, round $1)"; echo; gates_tail "$CUR_WORK/gates-last.txt"; echo; echo "Full output: $CUR_WORK/gates-last.txt"; } > "$CUR_WORK/feedback-$1.md"; }
+
+# After a PASS: one extra pass for MINOR findings. It only keeps its changes if every gate still passes;
+# otherwise the reviewed state is restored. There is no second review, so the prompt limits it to safe fixes.
+polish_minor() { # round
+  [ "$POLISH_MINOR" = 1 ] || return 0
+  local rv="$CUR_WORK/review-$1.md" n
+  n="$(grep -cE '^[0-9]+\.[[:space:]]+(\*\*)?MINOR' "$rv" 2>/dev/null || true)"
+  [ "${n:-0}" -gt 0 ] || return 0
+  log "POLISH: $n MINOR finding(s) from review $1; running one polish pass."
+  snapshot_tree "pre-polish-$1"
+  CUR_ROUND="$1-polish"; CUR_FEEDBACK="$rv"
+  EXTRA_NOTE="$PROMPTS/polish-note.md" run_agent implement "$PROMPTS/04-fix.md" "impl-$1-polish"
+  if [ "$AGENT_STATUS" != ok ]; then log "POLISH skipped ($AGENT_NOTE); keeping the reviewed state."; restore_snapshot "pre-polish-$1"; CUR_ROUND="$1"; return 0; fi
+  if run_gates "$CUR_WORK/gates-polish.txt"; then
+    cp "$CUR_WORK/gates-polish.txt" "$CUR_WORK/gates-last.txt"; log "POLISH applied; all gates still pass."
+  else
+    log "POLISH reverted: gates failed after the polish pass; keeping the reviewed state."; restore_snapshot "pre-polish-$1"
+  fi
+  CUR_ROUND="$1"
+}
 
 pipeline() { # sets RESULT = done | partial | blocked | failed | paused
   local plan_ok="$CUR_WORK/plan.ok" round prevhash="" hash impl_role verdict
@@ -434,11 +460,11 @@ pipeline() { # sets RESULT = done | partial | blocked | failed | paused
       if [ "$AGENT_STATUS" = giveup ]; then RESULT=paused; RESULT_NOTE="$AGENT_NOTE"; return; fi
       if tree_changed_since "pre-review-$round"; then log "SCOPE: reviewer modified the tree; restoring it."; restore_snapshot "pre-review-$round"; fi
       verdict="$(head -1 "$CUR_WORK/review-$round.md" 2>/dev/null | tr -d '\r')"
-      if [ "$AGENT_STATUS" = ok ] && [ "$verdict" = "VERDICT: PASS" ]; then RESULT=reviewed; RESULT_NOTE="review passed in round $round"; echo "$round" > "$CUR_WORK/round.n"; return; fi
+      if [ "$AGENT_STATUS" = ok ] && [ "$verdict" = "VERDICT: PASS" ]; then polish_minor "$round"; RESULT=reviewed; RESULT_NOTE="review passed in round $round"; echo "$round" > "$CUR_WORK/round.n"; return; fi
       if [ "$AGENT_STATUS" != ok ] || [ -z "$verdict" ]; then log "Review step gave no usable verdict ($AGENT_NOTE); retrying the review once.";
         run_agent review "$PROMPTS/03-review.md" "review-$round-retry"; verdict="$(head -1 "$CUR_WORK/review-$round.md" 2>/dev/null)"
         if tree_changed_since "pre-review-$round"; then restore_snapshot "pre-review-$round"; fi
-        [ "$verdict" = "VERDICT: PASS" ] && { RESULT=reviewed; RESULT_NOTE="review passed in round $round"; echo "$round" > "$CUR_WORK/round.n"; return; }
+        [ "$verdict" = "VERDICT: PASS" ] && { polish_minor "$round"; RESULT=reviewed; RESULT_NOTE="review passed in round $round"; echo "$round" > "$CUR_WORK/round.n"; return; }
       fi
       CUR_FEEDBACK="$CUR_WORK/review-$round.md"
       log "Review round $round: $verdict"
@@ -489,7 +515,7 @@ gh_comment() { # status-line
   { echo "**Overnight run: $1**"; echo
     echo "- Branch: \`$CUR_BRANCH\` (local only, not pushed), merged locally into \`$INTEG_BRANCH\`"
     [ -n "${CUR_COMMIT:-}" ] && echo "- Commit: \`${CUR_COMMIT:0:9}\`"
-    echo "- Review rounds: $(cat "$CUR_WORK/round.n" 2>/dev/null || echo '?'); gates (typecheck, lint, format, tests): $(grep -c '^=> PASS' "$CUR_WORK/gates-final.txt" 2>/dev/null || echo 0)/4 passed"
+    echo "- Review rounds: $(cat "$CUR_WORK/round.n" 2>/dev/null || echo '?'); gates (typecheck, lint, strict eslint, format, tests): $(grep -c '^=> PASS' "$CUR_WORK/gates-final.txt" 2>/dev/null || echo 0)/5 passed"
     echo "- New regression tests: $(cd "$WT" 2>/dev/null && git show --stat --format= --diff-filter=A "${CUR_COMMIT:-HEAD}" -- tests/regression 2>/dev/null | grep -c '\.test\.' || echo 0)"
     [ -f "$CUR_WORK/blocked.txt" ] && { echo; echo "Needs the owner:"; echo; sed 's/^/> /' "$CUR_WORK/blocked.txt" | head -25; }
     echo; echo "_Not closed automatically: it closes when the branch is reviewed and merged._"; } > "$f"

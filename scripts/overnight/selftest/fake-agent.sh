@@ -20,6 +20,7 @@ case "$tag" in
   impl-*)
     n="${tag#impl-}"
     mkdir -p "$wt/src"
+    if [ "$n" = "1-polish" ] && [ "${FAKE_SCENARIO:-ok}" = polish_breaks ]; then echo "export const x = 'BROKEN';" > "$wt/src/fake-$num.ts"; touch "$wt/.impl-done"; echo "polish" > "$work/impl-$n.md"; emit_ok; fi
     if [ "$n" = 1 ] && [ "${FAKE_SCENARIO:-ok}" = review_fail_once ]; then echo "export const x = 'FLAW';" > "$wt/src/fake-$num.ts"
     elif [ "$n" = 1 ] && [ "${FAKE_SCENARIO:-ok}" = gate_fail_once ]; then echo "export const x = 'BROKEN';" > "$wt/src/fake-$num.ts"
     else echo "export const x = 'good';" > "$wt/src/fake-$num.ts"; fi
@@ -27,6 +28,7 @@ case "$tag" in
   review-*)
     n="${tag#review-}"; n="${n%%-*}"
     if grep -q FLAW "$wt/src/fake-$num.ts" 2>/dev/null; then printf 'VERDICT: FAIL\n1. MAJOR src/fake-%s.ts:1 remove FLAW\n' "$num" > "$work/review-$n.md"
+    elif [ "${FAKE_SCENARIO:-ok}" = minor_findings ] || [ "${FAKE_SCENARIO:-ok}" = polish_breaks ]; then printf 'VERDICT: PASS\n## Findings\n1. MINOR - tidy x\n' > "$work/review-$n.md"
     else printf 'VERDICT: PASS\nall good\n' > "$work/review-$n.md"; fi
     if [ "${FAKE_SCENARIO:-ok}" = reviewer_edits ]; then echo "tampered" >> "$wt/src/fake-$num.ts"; fi
     emit_ok ;;

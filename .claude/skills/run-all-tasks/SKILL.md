@@ -47,7 +47,7 @@ Requested action: `$ARGUMENTS` (empty means "run everything").
    - what was started (or why not) and which issue it is on,
    - watch: `tail -f scripts/overnight/.state/runner.log`; table: `/run-all-tasks status`,
    - stop: `/run-all-tasks stop`; morning summary: `/run-all-tasks report`,
-   - that results are on the local branch `overnight/design-gaps` (worktree `../django_frontend-overnight`),
+   - that results are on the local branch `chore/overnight-runner` (worktree `../django_frontend-overnight`),
      nothing is pushed, and blocked or partial issues are listed in the report with what is needed from the user.
 7. If the runner is not RUNNING after the start, say so and give the fallback to run in a normal terminal:
    `cd /Users/Nuvo/Vipin/vipin/django_frontend && bash scripts/overnight/run-all-tasks.sh`
