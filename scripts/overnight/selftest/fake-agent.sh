@@ -10,23 +10,34 @@ emit_ok() {
 if [ "$provider" = claude ] && [ "${FAKE_LIMIT_CLAUDE:-0}" = 1 ]; then echo '{"type":"result","is_error":true,"result":"You have hit your usage limit","subtype":"error"}' > "$out"; echo "usage limit reached" > "$err"; exit 1; fi
 if [ "$provider" = codex ] && [ "${FAKE_LIMIT_CODEX:-0}" = 1 ]; then echo '{"type":"error","message":"usage limit reached"}' > "$out"; echo "usage limit reached" > "$err"; exit 1; fi
 echo "$provider $role $tag" >> "$work/fake-calls.txt"
+move_dev() { # someone else pushes to development while this issue is being built
+  d="$(mktemp -d)"; git clone -q -b development "$FAKE_REMOTE" "$d" 2>/dev/null
+  case "$1" in clean) echo "other" > "$d/other.txt" ;; conflict) mkdir -p "$d/src"; echo "export const x = 'theirs';" > "$d/src/fake-$num.ts" ;; esac
+  git -C "$d" add -A; git -C "$d" -c user.email=o@o -c user.name=other commit -qm "someone else"; git -C "$d" push -q origin development; rm -rf "$d"
+}
 case "$tag" in
   plan)
+    case "${FAKE_SCENARIO:-ok}" in dev_moves) move_dev clean ;; dev_conflict) move_dev conflict ;; esac
     if [ "${FAKE_SCENARIO:-ok}" = blocked ] && [ "$num" = "$FAKE_BLOCK_NUM" ]; then echo "BLOCKED: needs a new native module" > "$work/blocked.txt"; emit_ok; fi
     mkdir -p "$wt/tests/regression/fake"; echo "// test for $num" > "$wt/tests/regression/fake/f$num.test.ts"
-    printf '# Plan for #%s\n## Decision log\nx\n## Test plan\nx\nTEST_FILES:\n- tests/regression/fake/f%s.test.ts\n## Acceptance checklist\n1. works\n## Out of scope / Blocked\nnone\n' "$num" "$num" > "$work/plan.md"
+    printf '# Plan for #%s\n## Decision log\nx\n## Backend alignment\napps/x/urls.py:1\n## Test plan\nx\nTEST_FILES:\n- tests/regression/fake/f%s.test.ts\n## Acceptance checklist\n1. works\n## Out of scope / Blocked\nnone\n' "$num" "$num" > "$work/plan.md"
+    [ "${FAKE_SCENARIO:-ok}" = partial_exempt ] && printf 'TEST_EXEMPT: the type-only part has no runtime branch\n' >> "$work/plan.md"
+    [ "${FAKE_SCENARIO:-ok}" = no_backend_section ] && sed -i '' '/Backend alignment/,+1d' "$work/plan.md"
     if [ "${FAKE_SCENARIO:-ok}" = partial ] && [ "$num" = "$FAKE_BLOCK_NUM" ]; then echo "PARTIAL: backend list endpoint missing" > "$work/blocked.txt"; fi
     emit_ok ;;
   impl-*)
     n="${tag#impl-}"
     mkdir -p "$wt/src"
+    if [ "$n" = "1-polish" ] && [ "${FAKE_SCENARIO:-ok}" = polish_breaks ]; then echo "export const x = 'BROKEN';" > "$wt/src/fake-$num.ts"; touch "$wt/.impl-done"; echo "polish" > "$work/impl-$n.md"; emit_ok; fi
     if [ "$n" = 1 ] && [ "${FAKE_SCENARIO:-ok}" = review_fail_once ]; then echo "export const x = 'FLAW';" > "$wt/src/fake-$num.ts"
     elif [ "$n" = 1 ] && [ "${FAKE_SCENARIO:-ok}" = gate_fail_once ]; then echo "export const x = 'BROKEN';" > "$wt/src/fake-$num.ts"
     else echo "export const x = 'good';" > "$wt/src/fake-$num.ts"; fi
     touch "$wt/.impl-done"; echo "impl $n done" > "$work/impl-$n.md"; emit_ok ;;
   review-*)
     n="${tag#review-}"; n="${n%%-*}"
-    if grep -q FLAW "$wt/src/fake-$num.ts" 2>/dev/null; then printf 'VERDICT: FAIL\n1. MAJOR src/fake-%s.ts:1 remove FLAW\n' "$num" > "$work/review-$n.md"
+    if [ "${FAKE_SCENARIO:-ok}" = review_always_fail ]; then printf 'VERDICT: FAIL\n1. MAJOR still wrong\n' > "$work/review-$n.md"
+    elif grep -q FLAW "$wt/src/fake-$num.ts" 2>/dev/null; then printf 'VERDICT: FAIL\n1. MAJOR src/fake-%s.ts:1 remove FLAW\n' "$num" > "$work/review-$n.md"
+    elif [ "${FAKE_SCENARIO:-ok}" = minor_findings ] || [ "${FAKE_SCENARIO:-ok}" = polish_breaks ]; then printf 'VERDICT: PASS\n## Findings\n1. MINOR - tidy x\n' > "$work/review-$n.md"
     else printf 'VERDICT: PASS\nall good\n' > "$work/review-$n.md"; fi
     if [ "${FAKE_SCENARIO:-ok}" = reviewer_edits ]; then echo "tampered" >> "$wt/src/fake-$num.ts"; fi
     emit_ok ;;

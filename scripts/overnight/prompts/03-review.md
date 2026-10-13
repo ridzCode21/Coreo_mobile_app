@@ -20,6 +20,13 @@ PASS means a senior engineer and the designer would both sign off.
    copy character by character, element order, counts, states, interactions and destinations, tokens, sizes,
    spacing, radius, glass treatment, font weights. Open the design markup when the spec is not enough. Any
    visible difference is MAJOR unless the plan's Decision log records an approved reason. Never red.
+   3b. **Backend alignment (strict, equal in weight to design alignment).** Open the backend CODE files cited in the
+   plan's "Backend alignment" section in `{{BACKEND_DIR}}`, and check the change endpoint by endpoint: URL, method,
+   auth, request fields/types/required/allowed values, response shape and envelope, error and status codes, quotas
+   and throttles, async behaviour. Check the frontend types, Zod schemas, hooks, error mapping and the mock handlers
+   against that code (not against the docs). Any mismatch is MAJOR, and BLOCKER if it would fail against the real
+   backend. Any invented endpoint, field, enum value or number is a BLOCKER. Check that every design-versus-backend
+   conflict is recorded in the Decision log and `blocked.txt`, not silently resolved.
 4. **Correctness and contract:** every acceptance item met? Data matches `API_REFERENCE.md`? Edge cases,
    error paths and loading/empty states? No invented numbers? Mock layer consistent? Race conditions, stale
    state, leaks, accessibility, small-phone layout?
@@ -43,9 +50,10 @@ FIRST LINE must be exactly `VERDICT: PASS` or `VERDICT: FAIL`. Then:
                       fix. Design differences: quote design copy/value vs code.)
 ## Acceptance checklist result   (each plan item: MET / NOT MET + evidence)
 ## Design alignment  (screen by screen: MATCH or the differences)
+## Backend alignment (endpoint by endpoint: MATCH or the difference, with backend file:line)
 ## Notes for the owner (anything decided that a human should confirm; or "none")
 ```
 
-Verdict rule: PASS only with zero BLOCKER and zero MAJOR findings, every acceptance item MET, and the gates
-green. MINOR findings are allowed on PASS but list them. Be concrete: the fixer is a different agent with no
+Verdict rule: PASS only with zero BLOCKER and zero MAJOR findings, every acceptance item MET, design alignment
+AND backend alignment both strict, and the gates green. MINOR findings are allowed on PASS but list them. Be concrete: the fixer is a different agent with no
 memory of your thinking. Final message: 3 lines (verdict, counts, top issue).

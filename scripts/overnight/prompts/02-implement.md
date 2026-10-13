@@ -15,7 +15,12 @@ on purpose: they are the contract.
    green. You may ADD tests for behaviour you introduce or edge cases you find (same folder rules). If a
    planned test is wrong (contradicts the design or the API), do not change it: record it in the hand-off file
    under "Test disputes" with evidence and implement to the design.
-3. Build strictly to the design: exact copy, element order, all states, tokens only (add missing tokens to
+3. Backend alignment: re-open every backend file cited in the plan's "Backend alignment" section (in
+   `{{BACKEND_DIR}}`) while you write the API client, Zod schemas, hooks, error mapping and the mock handlers, and
+   match field names, types, required/optional, enums, status and error codes exactly. If you find the plan
+   wrong or incomplete, trust the code, fix the plan note in your hand-off, and implement what the code does.
+   Never invent an endpoint, field or value.
+   3b. Build strictly to the design: exact copy, element order, all states, tokens only (add missing tokens to
    `src/shared/theme/tokens.ts` and document them in `docs/design-system.md`), spacing and sizes from the
    spec. Keep the mock API in step with the contract. Handle loading/empty/error. Add accessible labels.
 4. Keep it simple and readable: small functions, pure logic in `lib/` (testable), no logic in route files,
