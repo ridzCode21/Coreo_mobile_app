@@ -13,7 +13,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { GlassCard } from '@/shared/components/GlassCard';
 import { Screen } from '@/shared/components/Screen';
-import { SelectableChip } from '@/shared/components/SelectableChip';
 import { SkyBackground } from '@/shared/components/SkyBackground';
 import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 import {
@@ -30,8 +29,10 @@ import {
 import { todayISO } from '@/features/nutrition/api/nutritionApi';
 import { FeedbackSheet } from '@/features/nutrition/components/FeedbackSheet';
 import { OutsideSheet } from '@/features/nutrition/components/OutsideSheet';
+import { PortionSheet } from '@/features/nutrition/components/PortionSheet';
 import { QuotaBanner } from '@/features/nutrition/components/QuotaBanner';
 import { buildAteSomethingElsePayload } from '@/features/nutrition/lib/ateSomethingElsePayload';
+import { resolvePortionBase } from '@/features/nutrition/lib/portionEstimate';
 import { quotaErrorFrom } from '@/features/nutrition/lib/quotaError';
 import type { FeedbackType, PlannedMeal, ReplacePreviewAlternative } from '@/shared/types/mealPlan';
 
@@ -43,13 +44,6 @@ const MEAL_LABEL: Record<PlannedMeal['meal_type'], string> = {
   snack: 'Snack',
   dinner: 'Dinner',
 };
-
-const PORTIONS = [
-  { label: 'Less', value: 0.75 },
-  { label: 'As planned', value: 1 },
-  { label: 'More', value: 1.25 },
-  { label: 'Double', value: 1.5 },
-];
 
 function mealStatusCopy(status: PlannedMeal['status']): string {
   if (status === 'logged_as_planned') return 'Logged as planned';
@@ -73,6 +67,7 @@ export default function MealDetailScreen() {
     () => planQuery.data?.meals.find((item) => item.id === mealId),
     [mealId, planQuery.data?.meals],
   );
+  const portionBase = useMemo(() => (meal ? resolvePortionBase(meal) : null), [meal]);
 
   const recipeQuery = useMealRecipeQuery(date, mealId, Number.isFinite(mealId) && Boolean(meal));
   const logMeal = useLogPlannedMealMutation(date);
@@ -134,7 +129,7 @@ export default function MealDetailScreen() {
     if (!meal) return;
     adjustMeal.mutate(
       { mealId: meal.id, portion_multiplier: portion },
-      { onSuccess: () => showSaved('Portion updated and logged.') },
+      { onSuccess: () => showSaved("Portion updated. Today's macros reflect it.") },
     );
   };
 
@@ -235,7 +230,14 @@ export default function MealDetailScreen() {
                   )}
                 </LinearGradient>
               </Pressable>
-              <ActionButton label="Portion" onPress={() => setSheet('portion')} disabled={busy} />
+              <ActionButton
+                label="Portion"
+                onPress={() => {
+                  setPortion(meal.portion_multiplier);
+                  setSheet('portion');
+                }}
+                disabled={busy}
+              />
               <ActionButton label="Replace" onPress={() => setSheet('replace')} disabled={busy} />
               <ActionButton
                 label="Skip"
@@ -291,14 +293,17 @@ export default function MealDetailScreen() {
         )}
       </Screen>
 
-      <PortionSheet
-        visible={sheet === 'portion'}
-        portion={portion}
-        busy={adjustMeal.isPending}
-        onPortion={setPortion}
-        onClose={closeSheet}
-        onSubmit={savePortion}
-      />
+      {portionBase ? (
+        <PortionSheet
+          visible={sheet === 'portion'}
+          multiplier={portion}
+          baseMacros={portionBase}
+          busy={adjustMeal.isPending}
+          onMultiplier={setPortion}
+          onClose={closeSheet}
+          onSubmit={savePortion}
+        />
+      ) : null}
       <ReplaceSheet
         visible={sheet === 'replace'}
         preference={replacePreference}
@@ -396,43 +401,6 @@ function SheetFrame({
         </View>
       </View>
     </Modal>
-  );
-}
-
-function PortionSheet({
-  visible,
-  portion,
-  busy,
-  onPortion,
-  onClose,
-  onSubmit,
-}: {
-  visible: boolean;
-  portion: number;
-  busy: boolean;
-  onPortion: (value: number) => void;
-  onClose: () => void;
-  onSubmit: () => void;
-}) {
-  return (
-    <SheetFrame
-      visible={visible}
-      title="How much did you have?"
-      body="Update the portion and I will log the adjusted meal."
-      onClose={onClose}
-    >
-      <View style={styles.chipRow}>
-        {PORTIONS.map((item) => (
-          <SelectableChip
-            key={item.value}
-            label={item.label}
-            selected={portion === item.value}
-            onPress={() => onPortion(item.value)}
-          />
-        ))}
-      </View>
-      <SheetButton label="Save portion" busy={busy} onPress={onSubmit} />
-    </SheetFrame>
   );
 }
 
@@ -766,12 +734,6 @@ const styles = StyleSheet.create({
   sheetBody: {
     ...textStyle('body'),
     color: colors.ink62,
-    marginBottom: spacing.lg,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
     marginBottom: spacing.lg,
   },
   input: {

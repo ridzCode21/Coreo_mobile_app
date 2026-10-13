@@ -12,6 +12,7 @@ export const colors = {
   ink55: 'rgba(23,25,29,0.55)',
   ink60: 'rgba(23,25,29,0.6)',
   ink62: 'rgba(23,25,29,0.62)',
+  ink70: 'rgba(23,25,29,0.7)',
   ink75: 'rgba(23,25,29,0.75)',
   label: '#5F6B76',
 
@@ -109,6 +110,7 @@ export const tracking = {
 
 export const spacing = {
   xs: 4,
+  sliderCaptionGap: 6,
   sm: 8,
   ms: 10,
   md: 12,
@@ -118,6 +120,7 @@ export const spacing = {
   xl: 20,
   xxl: 24,
   xxxl: 32,
+  portionReadoutGap: 22,
   screenPadX: 26,
   screenPadXCompact: 22,
   screenPadTop: 64,
@@ -128,6 +131,7 @@ export const spacing = {
 export const radii = {
   xs: 12,
   sm: 15,
+  control: 18,
   md: 20,
   ml: 22,
   lg: 23,
@@ -146,6 +150,10 @@ export const componentSizes = {
   sheetControlHeight: 52,
   sheetVoiceButton: 38,
   sheetVoiceIcon: 14,
+  portionSliderThumbSize: 32,
+  portionSliderTrackHeight: 4,
+  portionSliderShadowRadius: 18,
+  portionSliderElevation: 4,
 } as const;
 
 export const fontFamily = {
@@ -179,6 +187,7 @@ export const typography = {
   questionTitle: { fontSize: 30, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.4 },
   greeting: { fontSize: 28, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.35 },
   cardValue: { fontSize: 22, fontWeight: '300', letterSpacing: 0 },
+  portionReadout: { fontSize: 44, fontWeight: '200', letterSpacing: -1 },
   cardTitle: { fontSize: 19, fontWeight: '300', letterSpacing: -0.3 },
   sheetSubtitle: { fontSize: 11.5, fontWeight: '300', letterSpacing: 0 },
   sheetTitle: { fontSize: 25, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.4 },
@@ -186,6 +195,7 @@ export const typography = {
   button: { fontSize: 14, fontWeight: '500', letterSpacing: 0 },
   buttonSm: { fontSize: 13.5, fontWeight: '500', letterSpacing: 0 },
   body: { fontSize: 13, fontWeight: '300', letterSpacing: 0, lineHeight: 1.8 },
+  portionEstimate: { fontSize: 13, fontWeight: '400', letterSpacing: 0 },
   bodySm: { fontSize: 12.5, fontWeight: '300', letterSpacing: 0, lineHeight: 1.6 },
   small: { fontSize: 12, fontWeight: '300', letterSpacing: 0, lineHeight: 1.6 },
   caption: { fontSize: 11, fontWeight: '400', letterSpacing: 0 },

@@ -1,3 +1,4 @@
+import { MIN_PORTION_MULTIPLIER } from '@/features/nutrition/lib/portionEstimate';
 import { requireMockUser } from '@/shared/api/mock/auth';
 import { advanceOnPoll } from '@/shared/api/mock/asyncJob';
 import { mockDb, type MockUser } from '@/shared/api/mock/db';
@@ -483,7 +484,7 @@ registerMock('POST', '/meal-plans/:date/meals/:mealId/adjust-quantity/', (reques
   if (meal.status === 'replaced') return { status: 409, body: styleB({ error: 'meal_replaced' }) };
   const body = (request.body ?? {}) as { portion_multiplier?: number };
   const multiplier = Number(body.portion_multiplier);
-  if (!Number.isFinite(multiplier) || multiplier < 0.01 || multiplier > 3) {
+  if (!Number.isFinite(multiplier) || multiplier < MIN_PORTION_MULTIPLIER) {
     return { status: 400, body: styleB({ error: 'invalid_portion_multiplier' }) };
   }
   meal.portion_multiplier = multiplier;

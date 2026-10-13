@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  type LayoutChangeEvent,
+  type ViewStyle,
+} from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
@@ -29,51 +36,44 @@ function rawFromPct(pct: number, min: number, max: number, step: number): number
   'worklet';
   const raw = min + pct * (max - min);
   const stepped = Math.round(raw / step) * step;
-  return Math.min(max, Math.max(min, stepped));
+  return Math.min(max, Math.max(min, Math.round(stepped * 100) / 100));
 }
 
+type DragOnlySliderOptions = {
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (value: number) => void;
+  onLiveChange?: (value: number) => void;
+};
+
 /**
- * Draggable glass-card slider — docs/design-system.md §7 `SliderRow`. Used for onboarding's
- * numeric answers (age/height/weight, diet target weight) where dragging is faster than typing.
- * Drag-only (no tap-to-jump) — a deliberate scope cut, not a missing feature.
- *
- * Every pixel of drag used to call `onChange` synchronously (via `runOnJS`), which for callers
- * backed by a Zustand store re-rendered this component on every single touch-move frame. Because
- * the `Gesture.Pan()` object was rebuilt fresh on every render (not memoized), that feedback loop
- * tore down and rebuilt the *active* native gesture handler mid-drag — the real cause of the
- * "error when the slider is moved" crash. Fixed by: (1) building the gesture exactly once via
- * `useMemo`, (2) driving the visual fill/thumb/live-value purely from a UI-thread shared value
- * while dragging (no JS bridge crossings per frame), and (3) only calling `onChange` once, on
- * release — a `useEffect` still lets an *external* value change (e.g. hydration) resync the
- * visual position without fighting an in-progress drag.
+ * Keeps the native pan object stable while dragging. Visual shared values and the optional live
+ * callback update during the gesture; `onChange` remains release-only so store-backed callers do
+ * not rebuild their component tree on every touch frame. Rebuilding the gesture or committing on
+ * every frame previously caused native crashes, so the pan stays memoized and commits on release.
  */
-export function SliderRow({
-  label,
+export function useDragOnlySlider({
   value,
   min,
   max,
-  step = 1,
-  unit,
+  step,
   onChange,
-  style,
-}: SliderRowProps) {
+  onLiveChange,
+}: DragOnlySliderOptions) {
   const trackWidth = useSharedValue(1);
   const pct = useSharedValue(toPct(value, min, max));
-  // Computed the same way as `pct` above, rather than read from `pct.value` — reading a shared
-  // value's `.value` during render (as opposed to inside a worklet/effect) is what Reanimated's
-  // strict mode warns about ("Reading from `value` during component render"); both are the same
-  // number on first mount, so this sidesteps the warning without changing behavior.
   const startPct = useSharedValue(toPct(value, min, max));
   const isDragging = useSharedValue(false);
   const [liveValue, setLiveValue] = useState(value);
 
-  // Keeps `onChange` reachable from the once-created gesture below without needing to rebuild it
-  // (a stable `useCallback` identity is required there) — reading `.current` at call time always
-  // gets the latest prop.
   const onChangeRef = useRef(onChange);
+  const onLiveChangeRef = useRef(onLiveChange);
   useEffect(() => {
     onChangeRef.current = onChange;
-  }, [onChange]);
+    onLiveChangeRef.current = onLiveChange;
+  }, [onChange, onLiveChange]);
 
   useEffect(() => {
     if (isDragging.value) return;
@@ -82,7 +82,10 @@ export function SliderRow({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- shared values are stable refs
   }, [value, min, max]);
 
-  const reportLive = useCallback((raw: number) => setLiveValue(raw), []);
+  const reportLive = useCallback((raw: number) => {
+    setLiveValue(raw);
+    onLiveChangeRef.current?.(raw);
+  }, []);
   const reportFinal = useCallback((raw: number) => onChangeRef.current(raw), []);
 
   const pan = useMemo(
@@ -102,14 +105,43 @@ export function SliderRow({
           isDragging.value = false;
           runOnJS(reportFinal)(rawFromPct(pct.value, min, max, step));
         }),
-    // `pct`/`startPct`/`trackWidth`/`isDragging` are stable shared-value refs; `reportLive`/
-    // `reportFinal` are stable (empty-dep `useCallback`s reading the latest prop via a ref) — so
-    // this gesture is truly built once per mounted slider, not on every render.
-    [pct, startPct, trackWidth, isDragging, reportLive, reportFinal, min, max, step],
+    [isDragging, max, min, pct, reportFinal, reportLive, startPct, step, trackWidth],
   );
 
   const fillStyle = useAnimatedStyle(() => ({ width: `${pct.value * 100}%` }));
   const thumbStyle = useAnimatedStyle(() => ({ left: `${pct.value * 100}%` }));
+  const onTrackLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      trackWidth.value = event.nativeEvent.layout.width;
+    },
+    [trackWidth],
+  );
+
+  return { fillStyle, liveValue, onTrackLayout, pan, thumbStyle };
+}
+
+/**
+ * Draggable glass-card slider — docs/design-system.md §7 `SliderRow`. Used for onboarding's
+ * numeric answers (age/height/weight, diet target weight) where dragging is faster than typing.
+ * Drag-only (no tap-to-jump) — a deliberate scope cut, not a missing feature.
+ */
+export function SliderRow({
+  label,
+  value,
+  min,
+  max,
+  step = 1,
+  unit,
+  onChange,
+  style,
+}: SliderRowProps) {
+  const { fillStyle, liveValue, onTrackLayout, pan, thumbStyle } = useDragOnlySlider({
+    value,
+    min,
+    max,
+    step,
+    onChange,
+  });
 
   return (
     <GlassCard variant="light" radius={radii.lg} style={style}>
@@ -121,12 +153,7 @@ export function SliderRow({
         </Text>
       </View>
       <GestureDetector gesture={pan}>
-        <View
-          style={styles.track}
-          onLayout={(event) => {
-            trackWidth.value = event.nativeEvent.layout.width;
-          }}
-        >
+        <View style={styles.track} onLayout={onTrackLayout}>
           <View style={styles.trackBg} />
           <Animated.View style={[styles.trackFill, fillStyle]} />
           <Animated.View style={[styles.thumb, thumbStyle]} />
