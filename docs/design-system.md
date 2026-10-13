@@ -28,27 +28,36 @@ these rules, it's probably the wrong component, not an exception to add.
 
 ## 1. Color tokens
 
-| Token                       | Hex                   | Role                                                                                                        |
-| --------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `ink`                       | `#17191D`             | Primary text, primary icon stroke                                                                           |
-| `ink60`                     | `rgba(23,25,29,.62)`  | Secondary text                                                                                              |
-| `ink40`                     | `rgba(23,25,29,.42)`  | Tertiary text, eyebrow labels                                                                               |
-| `ink45`                     | `rgba(23,25,29,.45)`  | Screen/chip caption labels (very common in practice)                                                        |
-| `label`                     | `#5F6B76`             | Muted caption/label color used inside light glass cards (e.g. field labels)                                 |
-| `zenith`                    | `#EDF4FB`             | Atmosphere · highest/lightest (morning)                                                                     |
-| `day`                       | `#D3E6F8`             | Atmosphere · high                                                                                           |
-| `air`                       | `#9EC3E8`             | Atmosphere · mid                                                                                            |
-| `sky`                       | `#7FA0C6`             | Atmosphere · mid                                                                                            |
-| `dusk`                      | `#5D80A9`             | Atmosphere · low                                                                                            |
-| `horizon`                   | `#466687`             | Atmosphere · low                                                                                            |
-| `evening`                   | `#48678C`             | Night ramp                                                                                                  |
-| `night`                     | `#2E4666`             | Night ramp · dark glass base                                                                                |
-| `midnight`                  | `#152741`             | Night ramp · deepest                                                                                        |
-| `coreBlue` / `coreBlueDeep` | `#35689E` → `#16395E` | **Primary action only** — one circular button per screen, max. Never on charts, tints, text, or decoration. |
-| `white`                     | `#FFFFFF`             | Interactive glass, highlights, active states                                                                |
-| `onNight`                   | `#EFF4F9` / `#F0F4F8` | Text/icon color on dark glass or night atmosphere                                                           |
-| `success`                   | `#2F5D3A`             | Status tint · "on track" — always paired with a word, never used alone                                      |
-| `attention`                 | `#7A5220`             | Status tint · "needs a look" — always paired with a word, never used as a raw error/red                     |
+| Token                       | Hex                   | Role                                                                                    |
+| --------------------------- | --------------------- | --------------------------------------------------------------------------------------- |
+| `ink`                       | `#17191D`             | Primary text, primary icon stroke                                                       |
+| `ink40`                     | `rgba(23,25,29,.42)`  | Tertiary text, eyebrow labels                                                           |
+| `ink45`                     | `rgba(23,25,29,.45)`  | Screen/chip caption labels (very common in practice)                                    |
+| `ink50`                     | `rgba(23,25,29,.5)`   | Half-strength secondary text                                                            |
+| `ink55`                     | `rgba(23,25,29,.55)`  | Secondary text                                                                          |
+| `ink60`                     | `rgba(23,25,29,.6)`   | Strong secondary text and slider fills                                                  |
+| `ink62`                     | `rgba(23,25,29,.62)`  | Secondary text at the pre-existing .62 strength                                         |
+| `ink75`                     | `rgba(23,25,29,.75)`  | High-emphasis secondary text                                                            |
+| `label`                     | `#5F6B76`             | Muted caption/label color used inside light glass cards (e.g. field labels)             |
+| `zenith`                    | `#EDF4FB`             | Atmosphere · highest/lightest (morning)                                                 |
+| `day`                       | `#D3E6F8`             | Atmosphere · high                                                                       |
+| `air`                       | `#9EC3E8`             | Atmosphere · mid                                                                        |
+| `sky`                       | `#7FA0C6`             | Atmosphere · mid                                                                        |
+| `dusk`                      | `#5D80A9`             | Atmosphere · low                                                                        |
+| `horizon`                   | `#466687`             | Atmosphere · low                                                                        |
+| `evening`                   | `#48678C`             | Night ramp                                                                              |
+| `night`                     | `#2E4666`             | Night ramp · dark glass base                                                            |
+| `midnight`                  | `#152741`             | Night ramp · deepest                                                                    |
+| `nightShadow`               | `rgba(8,24,44,.3)`    | Neutral shadow under solid-ink primary controls                                         |
+| `coreBlue` / `coreBlueDeep` | `#35689E` → `#16395E` | First-open blue circle; legacy primary CTAs still use it pending migration              |
+| `white`                     | `#FFFFFF`             | Interactive glass, highlights, active states                                            |
+| `onNight`                   | `#F0F4F8`             | Text/icon color on dark glass or night atmosphere                                       |
+| `success`                   | `#3E8E63`             | Status tint · "Verified" — always paired with a word, never used alone                  |
+| `attention`                 | `#7A5220`             | Status tint · "needs a look" — always paired with a word, never used as a raw error/red |
+
+**Sky gradients:** `skyGradient` is `168deg`, `#D3E6F8` at 0%, `#9EC3E8` at 48%, and
+`#6F9CCE` at 100%. `sheetSkyGradient` is `168deg`, `#A3C4E5` at 0%, `#7299C6` at 52%, and
+`#54779F` at 100%.
 
 **Four laws of color** (from brand system, non-negotiable):
 
@@ -57,7 +66,12 @@ these rules, it's probably the wrong component, not an exception to add.
 2. Sky colors are neutral. Meaning-color is reserved for `success`/`attention` tints, always
    paired with text, never alone.
 3. Interactive surfaces are white glass.
-4. `coreBlue` is the primary action — the one door on a screen. One per screen, maximum.
+4. Primary buttons are solid `ink`. `coreBlue` is reserved for the single blue circle on the
+   first-open design, not a general button fill.
+
+Existing `coreBlue` primary actions are legacy implementation debt pending a separate
+screen-migration issue. This rule describes the current design target; it does not claim those
+existing screens already comply.
 
 **Contrast constraints:** `ink` on `zenith`/light glass and `onNight` on `midnight` are ~14:1
 (AAA). White on `dusk`/`sky` is only ~2.7–4.1:1 — **any text under 18px sitting directly on
@@ -74,16 +88,20 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `heroMarketing` | 52–64px   | 200              | −1.5 to −2px              | Marketing/brand moments only                                          |
 | `wordmark`      | 38px      | 300              | +6px                      | Logo wordmark exactly — never reuse this size for anything else       |
 | `pageTitle`     | 34px      | 200(+500 accent) | −1px                      | Section/page headers                                                  |
-| `questionTitle` | 30px      | 200(+400 accent) | −0.5px                    | Onboarding question headline                                          |
-| `greeting`      | 26–28px   | 200(+400 accent) | −0.5px                    | "Morning, {name}." home greeting                                      |
+| `questionTitle` | 30px      | 200(+400 accent) | −0.5px, line-height 1.4   | Onboarding question headline                                          |
+| `greeting`      | 28px      | 200(+400 accent) | −0.5px, line-height 1.35  | "Morning, {name}." home greeting                                      |
 | `cardValue`     | 22–24px   | 300              | normal                    | Stat values inside cards (age/height/weight, profile name)            |
-| `sheetTitle`    | 25px      | 200              | −0.4px                    | Bottom-sheet titles (e.g. paywall)                                    |
+| `cardTitle`     | 19px      | 300              | −0.3px                    | Card and confirmation titles                                          |
+| `sheetTitle`    | 25px      | 200              | −0.5px, line-height 1.4   | Bottom-sheet titles (e.g. paywall)                                    |
 | `bodyLg`        | 14–15px   | 300              | normal                    | Assistant responses, emphasized body text                             |
-| `body`          | 13–13.5px | 300              | normal, line-height 1.85  | Default body copy                                                     |
+| `button`        | 14px      | 500              | normal                    | Primary button labels                                                 |
+| `buttonSm`      | 13.5px    | 500              | normal                    | Compact button labels                                                 |
+| `body`          | 13px      | 300              | normal, line-height 1.8   | Default body copy                                                     |
 | `bodySm`        | 12–12.5px | 300              | normal, line-height ~1.6  | Card descriptions, insight text                                       |
-| `caption`       | 11–11.5px | 300–400          | normal                    | Chip text, secondary metadata                                         |
+| `small`         | 12px      | 300              | normal, line-height 1.6   | Small supporting text                                                 |
+| `caption`       | 11px      | 400              | normal                    | Chip text, secondary metadata                                         |
 | `label`         | 10–10.5px | 500              | +1.6 to +2.6px, uppercase | Field labels, section eyebrows, nav captions                          |
-| `micro`         | 8.5–9.5px | 500              | +1 to +1.6px, uppercase   | Tiny axis labels, timestamps inside charts                            |
+| `micro`         | 9px       | 500              | +1.4px, uppercase         | Tiny axis labels, timestamps inside charts                            |
 
 Rules:
 
@@ -95,7 +113,7 @@ Rules:
 
 ## 3. Spacing & radius
 
-**Screen padding convention:** horizontal `26px` (small variants use `22px`), top `64–76px`
+**Screen padding convention:** horizontal `26px` (small variants use `22px`), default top `64px`
 (clears status bar + breathing room for a large title), bottom `30–40px`. Use safe-area insets
 plus these as additional padding, not instead of them.
 
@@ -105,23 +123,28 @@ plus these as additional padding, not instead of them.
 | ------------------ | -------------------------- |
 | `space.xs`         | 4                          |
 | `space.sm`         | 8                          |
+| `space.ms`         | 10                         |
 | `space.md`         | 12                         |
+| `space.ml`         | 14                         |
 | `space.lg`         | 16                         |
 | `space.xl`         | 20                         |
 | `space.xxl`        | 24                         |
 | `space.xxxl`       | 32                         |
 | `screen.padX`      | 26 (22 on compact layouts) |
-| `screen.padTop`    | 64–76                      |
+| `screen.padTop`    | 64                         |
 | `screen.padBottom` | 30–40                      |
 
 **Radius scale:**
 
 | Token           | px                      | Use                                                                   |
 | --------------- | ----------------------- | --------------------------------------------------------------------- |
+| `radius.xs`     | 12                      | Compact badges and controls                                           |
 | `radius.sm`     | 14–16                   | Small chips/tags                                                      |
 | `radius.md`     | 20                      | Compact rows, small cards                                             |
+| `radius.ml`     | 22                      | Compact glass rows                                                    |
 | `radius.lg`     | 22–24                   | Standard glass card (default)                                         |
 | `radius.xl`     | 26–30                   | Hero/primary glass card, nav dock                                     |
+| `radius.xxl`    | 36                      | Large sheet and dock corners                                          |
 | `radius.pill`   | `height / 2`            | Any full pill button/bar — compute from actual height, don't hardcode |
 | `radius.circle` | `50%`                   | Icon buttons, avatars, orb                                            |
 | `radius.petal`  | 125 (outer corner only) | Petal-cluster cells, see §6                                           |
@@ -148,7 +171,7 @@ box-shadow: 0 16–28px 32–56px rgba(18,42,70,.1–.18),
 background: linear-gradient(150–160deg, rgba(34,66,102,.5–.6) 0%, rgba(12,28,48,.62–.7) 100%)
 backdrop-filter: blur(20–30px) saturate(1.7)
 border: 1px solid rgba(255,255,255,.2)
-color: #EFF4F9 / #F0F4F8
+color: #F0F4F8
 box-shadow: 0 20–24px 44–48px rgba(8,24,44,.3–.36), inset 0 1px 0 rgba(255,255,255,.2–.25)
 ```
 
@@ -233,9 +256,9 @@ the `data-screen-label` text shown).
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `WaveMark`          | The wave logo (`react-native-svg` `Path`, exact path in `shared/components/WaveMark.tsx`), optional `coreo` wordmark alongside it                                                                                                                                                                                                                                                                 | app icon, splash, first-open, headers, empty states                                                                      |
 | `GlassCard`         | Light/night glass container, see §4                                                                                                                                                                                                                                                                                                                                                               | nearly every screen                                                                                                      |
-| `PrimaryIconButton` | Circular, 44–64px, `coreBlue` gradient fill, white icon, one per screen max                                                                                                                                                                                                                                                                                                                       | first-open CTA, onboarding confirm                                                                                       |
+| `PrimaryIconButton` | Circular, 44–64px, solid `ink` fill, white icon, one per screen max                                                                                                                                                                                                                                                                                                                               | first-open CTA, onboarding confirm                                                                                       |
 | `VoiceInputBar`     | Full-width night-glass pill (~60px tall): placeholder/typed text, circular mic button, circular white confirm/arrow button                                                                                                                                                                                                                                                                        | onboarding steps 7A1–7A8, chat entry points                                                                              |
-| `SelectableChip`    | Pill, `radius.pill`; **selected** = white fill + shadow + weight 500; **unselected** = translucent glass + border + weight 300, `ink60` text                                                                                                                                                                                                                                                      | 7A2 goals, 12A1–12A6 diet interview, 16A/17A setup flows                                                                 |
+| `SelectableChip`    | Pill, `radius.pill`; **selected** = white fill + shadow + weight 500; **unselected** = translucent glass + border + weight 300, `ink62` text                                                                                                                                                                                                                                                      | 7A2 goals, 12A1–12A6 diet interview, 16A/17A setup flows                                                                 |
 | `ProgressDots`      | Row of 8 pill/dot segments; active = 24×4px white pill with glow, inactive = 10×4px `rgba(255,255,255,.45)`                                                                                                                                                                                                                                                                                       | all onboarding step screens                                                                                              |
 | `SliderRow`         | Glass card containing: label + value header, track (`rgba(ink,.16)`), filled portion (`rgba(ink,.6)`), 18px white glowing thumb                                                                                                                                                                                                                                                                   | 7A3 about you (age/height/weight)                                                                                        |
 | `ToggleRow`         | Full-width selectable row, `radii.xl` corners, ~70px min height, top sheen highlight, `cardValue` (18–20/300) title; `selectionMode: 'radio' \| 'check'` prop picks a dot (single-select) or check (multi-select) trailing mark on the same chassis — not in the original spec, promoted to shared after appearing 2×+ (see §12)                                                                  | 7A4 pillars, 7A5 sources, all 12A diet-interview single/multi cards                                                      |
@@ -328,13 +351,13 @@ acute situations to real care immediately and clearly.
 **Don't:**
 
 - Use dials, gauges, or rings for any reading — waves only.
-- Use `coreBlue` anywhere except the single primary action.
+- Use `coreBlue` for new primary actions; the current design reserves it for the first-open circle.
 - Introduce saturated accents, red error states, font weights above 500, or a second typeface.
 
 ## 11. Responsiveness — phone sizes, tablet, and orientation
 
 The design source is **phone-portrait mockups only**, authored at a single reference frame
-(390×844 — iPhone 14/15/16-class, safe-area padding already baked into the `64–76px` top /
+(390×844 — iPhone 14/15/16-class, safe-area padding already baked into the `64px` top /
 `30–40px` bottom screen padding in §3). There is no tablet or landscape design reference, so the
 rules below are implementation guidance to fill that gap, not a translation of existing designs.
 `product-context.md` §8 requires phone **and tablet** support with a responsive (not
@@ -565,7 +588,17 @@ Centralize this instead of scattering `Dimensions`/`useWindowDimensions` calls t
     `SliderRow`'s documented ink track/fill (§6). Bars, never wave charts (§6.1 hard rule). If this
     treatment recurs, promote those two values to named tokens.
   - Over-budget calories render **neutrally** (the number can go negative) — never red, per the
-    "nothing turns red here" voice (§10). The one `coreBlue` primary action per screen is the
-    confirm "Looks right" / barcode "Look it up" button.
+    "nothing turns red here" voice (§10). At v1.9, the confirm "Looks right" and barcode "Look it
+    up" actions were implemented with `coreBlue`; v1.10 supersedes that as a design rule, while
+    migrating existing screens remains separate implementation work.
   - Photo + barcode logging moved into MVP scope (§9 update above, flag F-N1). `expo-image-picker`
     added as a dependency for camera capture (isolated to `features/nutrition/lib/photoCapture.ts`).
+- **v1.10 (issue #52 — design-token alignment):** Added the two canonical sky gradients; the
+  missing ink alpha, 10/14px spacing, and 12/22/36px radius steps; and the 19/300 card-title,
+  14/500 and 13.5/500 button, 12/300 small-text, and 11/400 caption styles. Corrected the
+  design-backed `onNight`, `success`, headline/body line heights, title/micro tracking, and
+  default screen-top padding. Renamed the old .62-valued `ink60` to `ink62` without changing its
+  consumers' rendered color, and made `PrimaryIconButton` use the design's solid-ink primary fill.
+  Existing `coreBlue` primary actions are documented as legacy migration debt rather than as
+  design-compliant. `attention` and the Brand Book-only Fog/Mist/Ember palette remain owner
+  decisions because the current app-screen design supplies no supported mapping for them.

@@ -803,7 +803,7 @@ const styles = StyleSheet.create({
   },
   ingredientQty: {
     ...textStyle('caption'),
-    color: colors.ink60,
+    color: colors.ink62,
     textAlign: 'right',
   },
   recipeSpinner: {
@@ -811,7 +811,7 @@ const styles = StyleSheet.create({
   },
   recipeNote: {
     ...textStyle('body'),
-    color: colors.ink60,
+    color: colors.ink62,
     marginBottom: spacing.md,
   },
   stepRow: {
@@ -836,7 +836,7 @@ const styles = StyleSheet.create({
   },
   mutedText: {
     ...textStyle('body'),
-    color: colors.ink60,
+    color: colors.ink62,
   },
   backdrop: {
     backgroundColor: 'rgba(21,39,65,0.42)',
@@ -871,7 +871,7 @@ const styles = StyleSheet.create({
   },
   sheetBody: {
     ...textStyle('body'),
-    color: colors.ink60,
+    color: colors.ink62,
     marginBottom: spacing.lg,
   },
   chipRow: {
@@ -922,7 +922,7 @@ const styles = StyleSheet.create({
   },
   replacementMeta: {
     ...textStyle('caption'),
-    color: colors.ink60,
+    color: colors.ink62,
     marginTop: spacing.xs,
   },
   sheetButtonWrap: {

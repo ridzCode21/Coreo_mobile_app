@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   },
   note: {
     ...textStyle('bodySm'),
-    color: colors.ink60,
+    color: colors.ink62,
     textAlign: 'center',
     marginTop: spacing.lg,
   },

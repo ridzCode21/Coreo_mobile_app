@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   },
   todayLabel: {
     ...textStyle('body'),
-    color: colors.ink60,
+    color: colors.ink62,
   },
   todayValue: {
     ...textStyle('bodyLg'),
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   },
   softCopy: {
     ...textStyle('bodySm'),
-    color: colors.ink60,
+    color: colors.ink62,
     marginTop: spacing.xs,
   },
   contextAction: {

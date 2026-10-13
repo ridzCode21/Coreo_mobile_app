@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   },
   tagline: {
     ...textStyle('body'),
-    color: colors.ink60,
+    color: colors.ink62,
     textAlign: 'center',
   },
   ctaCard: {

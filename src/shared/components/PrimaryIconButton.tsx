@@ -16,9 +16,8 @@ type PrimaryIconButtonProps = {
 };
 
 /**
- * The one primary action per screen (docs/design-system.md §1/§7 — `coreBlue` is reserved for
- * this single door on a screen, never reused for decoration). Circular, gradient-filled, white
- * icon. Don't render more than one of these on a screen at once.
+ * The one primary action per screen (docs/design-system.md §1/§7). Circular, solid-ink fill,
+ * white icon. Don't render more than one of these on a screen at once.
  */
 export function PrimaryIconButton({
   icon,
@@ -37,7 +36,7 @@ export function PrimaryIconButton({
       style={[styles.shadowWrap, { width: size, height: size, borderRadius: size / 2 }, style]}
     >
       <LinearGradient
-        colors={[colors.coreBlue, colors.coreBlueDeep]}
+        colors={[colors.ink, colors.ink]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.fill, { borderRadius: size / 2, opacity: disabled ? 0.5 : 1 }]}
@@ -51,7 +50,7 @@ export function PrimaryIconButton({
 const styles = StyleSheet.create({
   shadowWrap: Platform.select({
     ios: {
-      shadowColor: 'rgba(22,57,94,0.4)',
+      shadowColor: colors.nightShadow,
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: 1,
       shadowRadius: 16,

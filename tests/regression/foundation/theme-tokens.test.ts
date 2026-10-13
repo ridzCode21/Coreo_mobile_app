@@ -1,4 +1,12 @@
-import { colors, radii, spacing } from '@/shared/theme/tokens';
+import {
+  colors,
+  radii,
+  sheetSkyGradient,
+  skyGradient,
+  spacing,
+  textStyle,
+  typography,
+} from '@/shared/theme/tokens';
 
 describe('foundation: theme tokens', () => {
   it('keeps the brand ink colour used by primary text', () => {
@@ -20,6 +28,122 @@ describe('foundation: theme tokens', () => {
     [...Object.values(spacing), ...Object.values(radii)].forEach((value) => {
       expect(typeof value).toBe('number');
       expect(value).toBeGreaterThan(0);
+    });
+  });
+
+  // Issue #52 — align theme tokens with the Claude Design (`Coreo App Screens.dc.html`).
+  // These assertions preserve the design-backed values used by the app theme.
+
+  describe('ink alpha steps', () => {
+    it('keeps the two alpha steps that already matched the design', () => {
+      expect(colors.ink40).toBe('rgba(23,25,29,0.42)');
+      expect(colors.ink45).toBe('rgba(23,25,29,0.45)');
+    });
+
+    it("adds the design's missing alpha steps (.5, .55, .6 and .75)", () => {
+      expect(colors.ink50).toBe('rgba(23,25,29,0.5)');
+      expect(colors.ink55).toBe('rgba(23,25,29,0.55)');
+      expect(colors.ink60).toBe('rgba(23,25,29,0.6)');
+      expect(colors.ink75).toBe('rgba(23,25,29,0.75)');
+    });
+
+    it('renames the old .62-valued token to ink62, freeing ink60 for the real .6 value', () => {
+      // The old `ink60` was actually rgba(...,0.62) — a misleading name. It's renamed to
+      // `ink62` (same value, same rendered colour) so `ink60` can mean what it says.
+      expect(colors.ink62).toBe('rgba(23,25,29,0.62)');
+      expect(colors.ink60).not.toBe(colors.ink62);
+    });
+  });
+
+  it("matches the design's onNight text colour (#F0F4F8), not the old near-miss (#EFF4F9)", () => {
+    expect(colors.onNight).toBe('#F0F4F8');
+  });
+
+  it('matches the design\'s "Verified" status-tint green for success (#3E8E63)', () => {
+    expect(colors.success).toBe('#3E8E63');
+  });
+
+  it('keeps attention unchanged pending an owner decision (no caution tint exists in the design or brand book — see blocked.txt)', () => {
+    expect(colors.attention).toBe('#7A5220');
+  });
+
+  describe('sky gradients', () => {
+    it("defines the primary sky gradient with the design's exact 168deg stops", () => {
+      expect(skyGradient.colors).toEqual(['#D3E6F8', '#9EC3E8', '#6F9CCE']);
+      expect(skyGradient.locations).toEqual([0, 0.48, 1]);
+    });
+
+    it('defines the second "sheet" sky gradient with the design\'s exact 168deg stops', () => {
+      expect(sheetSkyGradient.colors).toEqual(['#A3C4E5', '#7299C6', '#54779F']);
+      expect(sheetSkyGradient.locations).toEqual([0, 0.52, 1]);
+    });
+  });
+
+  describe('spacing', () => {
+    it("adds the design's 10px and 14px gaps", () => {
+      expect(spacing.ms).toBe(10);
+      expect(spacing.ml).toBe(14);
+    });
+
+    it("settles screenPadTop on the design's default 64px value", () => {
+      expect(spacing.screenPadTop).toBe(64);
+    });
+  });
+
+  it('adds the missing 12px, 22px and 36px radii', () => {
+    expect(radii.xs).toBe(12);
+    expect(radii.ml).toBe(22);
+    expect(radii.xxl).toBe(36);
+  });
+
+  describe('typography', () => {
+    it('adds line heights the design specifies for questionTitle (1.4) and greeting (1.35)', () => {
+      expect(typography.questionTitle.lineHeight).toBe(1.4);
+      expect(typography.greeting.lineHeight).toBe(1.35);
+    });
+
+    it("fixes sheetTitle to the design's letter spacing (-0.5) and adds its line height (1.4)", () => {
+      expect(typography.sheetTitle.letterSpacing).toBe(-0.5);
+      expect(typography.sheetTitle.lineHeight).toBe(1.4);
+    });
+
+    it("fixes micro letter spacing to the design's value (1.4)", () => {
+      expect(typography.micro.letterSpacing).toBe(1.4);
+    });
+
+    it("fixes body line height to the design's dominant value (1.8)", () => {
+      expect(typography.body.lineHeight).toBe(1.8);
+    });
+
+    it("fixes caption font size to the design's 11px value", () => {
+      expect(typography.caption.fontSize).toBe(11);
+    });
+
+    it('adds the missing card-title style (19/300/-0.3, e.g. "Password reset")', () => {
+      expect(typography.cardTitle).toMatchObject({
+        fontSize: 19,
+        fontWeight: '300',
+        letterSpacing: -0.3,
+      });
+    });
+
+    it('adds the missing button text styles (14/500 primary CTA, 13.5/500 compact)', () => {
+      expect(typography.button).toMatchObject({ fontSize: 14, fontWeight: '500' });
+      expect(typography.buttonSm).toMatchObject({ fontSize: 13.5, fontWeight: '500' });
+    });
+
+    it('adds the missing 12/300 small-text style (line height 1.6)', () => {
+      expect(typography.small).toMatchObject({
+        fontSize: 12,
+        fontWeight: '300',
+        lineHeight: 1.6,
+      });
+    });
+
+    it('textStyle() resolves the new tokens to real fonts and absolute line heights', () => {
+      expect(textStyle('button').fontSize).toBe(14);
+      expect(textStyle('small').lineHeight).toBe(12 * 1.6);
+      expect(textStyle('cardTitle').fontSize).toBe(19);
     });
   });
 });
