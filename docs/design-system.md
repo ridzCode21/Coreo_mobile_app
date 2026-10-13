@@ -98,6 +98,7 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `greeting`      | 28px      | 200(+400 accent) | −0.5px, line-height 1.35  | "Morning, {name}." home greeting                                      |
 | `cardValue`     | 22–24px   | 300              | normal                    | Stat values inside cards (age/height/weight, profile name)            |
 | `cardTitle`     | 19px      | 300              | −0.3px                    | Card and confirmation titles                                          |
+| `sheetSubtitle` | 11.5px    | 300              | normal                    | Sheet question subtitles (e.g. "Helps me plan better tomorrow.")      |
 | `sheetTitle`    | 25px      | 200              | −0.5px, line-height 1.4   | Bottom-sheet titles (e.g. paywall)                                    |
 | `bodyLg`        | 14–15px   | 300              | normal                    | Assistant responses, emphasized body text                             |
 | `button`        | 14px      | 500              | normal                    | Primary button labels                                                 |
@@ -129,20 +130,22 @@ plus these as additional padding, not instead of them.
 
 **Spacing scale** (use these, not arbitrary values):
 
-| Token              | px                         |
-| ------------------ | -------------------------- |
-| `space.xs`         | 4                          |
-| `space.sm`         | 8                          |
-| `space.ms`         | 10                         |
-| `space.md`         | 12                         |
-| `space.ml`         | 14                         |
-| `space.lg`         | 16                         |
-| `space.xl`         | 20                         |
-| `space.xxl`        | 24                         |
-| `space.xxxl`       | 32                         |
-| `screen.padX`      | 26 (22 on compact layouts) |
-| `screen.padTop`    | 64                         |
-| `screen.padBottom` | 30–40                      |
+| Token               | px                         |
+| ------------------- | -------------------------- |
+| `space.xs`          | 4                          |
+| `space.sm`          | 8                          |
+| `space.ms`          | 10                         |
+| `space.md`          | 12                         |
+| `space.ml`          | 14                         |
+| `space.lg`          | 16                         |
+| `sheet.titleGap`    | 18                         |
+| `space.xl`          | 20                         |
+| `space.xxl`         | 24                         |
+| `space.xxxl`        | 32                         |
+| `screen.padX`       | 26 (22 on compact layouts) |
+| `screen.padTop`     | 64                         |
+| `screen.padBottom`  | 30–40                      |
+| `sheet.subtitleGap` | 2                          |
 
 **Radius scale:**
 
@@ -158,6 +161,11 @@ plus these as additional padding, not instead of them.
 | `radius.pill`   | `height / 2`            | Any full pill button/bar — compute from actual height, don't hardcode |
 | `radius.circle` | `50%`                   | Icon buttons, avatars, orb                                            |
 | `radius.petal`  | 125 (outer corner only) | Petal-cluster cells, see §6                                           |
+
+**Sheet control sizes:** `componentSizes.sheetGrabberWidth` / `sheetGrabberHeight` are 40×5px;
+`sheetChipHeight` is 42px; `sheetNoteHeight` is 48px; `sheetControlHeight` is 52px; and the compact
+voice affordance uses `sheetVoiceButton` / `sheetVoiceIcon` at 38px / 14px. These values implement
+the 29d and 31a sheet geometry without component-local size literals.
 
 ## 4. Material — "liquid glass on sky"
 
@@ -277,7 +285,7 @@ the `data-screen-label` text shown).
 | `GlassCard`         | Light/night glass container, see §4                                                                                                                                                                                                                                                                                                                                                               | nearly every screen                                                                                                      |
 | `PrimaryIconButton` | Circular, 44–64px, solid `ink` fill, white icon, one per screen max                                                                                                                                                                                                                                                                                                                               | first-open CTA, onboarding confirm                                                                                       |
 | `VoiceInputBar`     | Full-width night-glass pill (~60px tall): placeholder/typed text, circular mic button, circular white confirm/arrow button                                                                                                                                                                                                                                                                        | onboarding steps 7A1–7A8, chat entry points                                                                              |
-| `SelectableChip`    | Pill, `radius.pill`; **selected** = white fill + shadow + weight 500; **unselected** = translucent glass + border + weight 300, `ink62` text                                                                                                                                                                                                                                                      | 7A2 goals, 12A1–12A6 diet interview, 16A/17A setup flows                                                                 |
+| `SelectableChip`    | Pill, `radius.pill`; **selected** = white fill + shadow + weight 500; **unselected** = translucent glass + border + weight 300, `ink62` text. The `sheet` variant uses 12px labels and `ink75` for unselected labels.                                                                                                                                                                             | 7A2 goals, 12A1–12A6 diet interview, 16A/17A setup flows; 29d/31a sheets                                                 |
 | `ProgressDots`      | Row of 8 pill/dot segments; active = 24×4px white pill with glow, inactive = 10×4px `rgba(255,255,255,.45)`                                                                                                                                                                                                                                                                                       | all onboarding step screens                                                                                              |
 | `SliderRow`         | Glass card containing: label + value header, track (`rgba(ink,.16)`), filled portion (`rgba(ink,.6)`), 18px white glowing thumb                                                                                                                                                                                                                                                                   | 7A3 about you (age/height/weight)                                                                                        |
 | `ToggleRow`         | Full-width selectable row, `radii.xl` corners, ~70px min height, top sheen highlight, `cardValue` (18–20/300) title; `selectionMode: 'radio' \| 'check'` prop picks a dot (single-select) or check (multi-select) trailing mark on the same chassis — not in the original spec, promoted to shared after appearing 2×+ (see §12)                                                                  | 7A4 pillars, 7A5 sources, all 12A diet-interview single/multi cards                                                      |

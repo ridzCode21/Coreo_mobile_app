@@ -7,6 +7,7 @@ import { nutritionKeys } from '@/features/nutrition/api/nutritionApi';
 import type {
   AssistantPromptOption,
   AssistantResponse,
+  AteSomethingElseRequest,
   AteSomethingElseResponse,
   FeedbackType,
   MealActionStatusResponse,
@@ -16,7 +17,6 @@ import type {
   RegenerationReason,
   ReplacePreviewResponse,
 } from '@/shared/types/mealPlan';
-import type { MealType } from '@/shared/types/food';
 
 export const mealPlanKeys = {
   all: ['mealPlan'] as const,
@@ -153,13 +153,7 @@ export function useReplaceConfirmMutation(date: string) {
 export function useAteSomethingElseMutation(date: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (values: {
-      meal_type?: MealType;
-      planned_meal_id?: number;
-      description: string;
-      approx_calories: number;
-      approx_protein_g: number;
-    }) =>
+    mutationFn: (values: AteSomethingElseRequest) =>
       apiClient.post<AteSomethingElseResponse>(`/meal-plans/${date}/ate-something-else/`, values),
     onSuccess: () => invalidateMealPlan(queryClient, date),
   });

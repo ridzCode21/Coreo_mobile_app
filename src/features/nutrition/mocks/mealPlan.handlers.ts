@@ -583,8 +583,12 @@ registerMock('POST', '/meal-plans/:date/ate-something-else/', (request) => {
     approx_protein_g?: number;
   };
   const meal = body.planned_meal_id
-    ? findMeal(plan, Number(body.planned_meal_id))
-    : plan.meals.find((candidate) => candidate.meal_type === body.meal_type);
+    ? plan.meals.find(
+        (candidate) => candidate.id === Number(body.planned_meal_id) && !candidate.replaced_at,
+      )
+    : [...plan.meals]
+        .reverse()
+        .find((candidate) => candidate.meal_type === body.meal_type && !candidate.replaced_at);
   if (!meal) return { status: 404, body: styleB({ error: 'meal_not_found' }) };
   if (meal.status === 'eaten_outside') {
     return { status: 409, body: styleB({ error: 'already_eaten_outside' }) };
@@ -594,12 +598,12 @@ registerMock('POST', '/meal-plans/:date/ate-something-else/', (request) => {
     id: mockDb.nextFoodEntryId++,
     date: request.params.date,
     meal_type: meal.meal_type,
-    food_name: body.description ?? 'Something else',
-    calories: Math.round(body.approx_calories ?? 500),
-    protein_g: round1(body.approx_protein_g ?? 0),
+    food_name: body.description || 'Something else',
+    calories: round1(body.approx_calories || 0),
+    protein_g: round1(body.approx_protein_g || 0),
     carbs_g: 0,
     fat_g: 0,
-    source: 'plan',
+    source: 'manual',
     created_at: new Date().toISOString(),
   };
   mockDb.foodEntries.push(entry);

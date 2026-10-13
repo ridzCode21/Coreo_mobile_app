@@ -8,6 +8,7 @@ type SelectableChipProps = {
   selected: boolean;
   onPress: () => void;
   style?: ViewStyle;
+  variant?: 'default' | 'sheet';
 };
 
 /**
@@ -17,7 +18,13 @@ type SelectableChipProps = {
  * a full `GlassCard`/`BlurView` per chip isn't used since these render many-in-a-row (e.g.
  * multi-select goal lists) and a blur view per chip isn't worth the perf cost at this size.
  */
-export function SelectableChip({ label, selected, onPress, style }: SelectableChipProps) {
+export function SelectableChip({
+  label,
+  selected,
+  onPress,
+  style,
+  variant = 'default',
+}: SelectableChipProps) {
   if (selected) {
     return (
       <Pressable
@@ -26,7 +33,9 @@ export function SelectableChip({ label, selected, onPress, style }: SelectableCh
         accessibilityState={{ selected }}
         style={[styles.base, styles.selected, style]}
       >
-        <Text style={styles.selectedText}>{label}</Text>
+        <Text style={[styles.selectedText, variant === 'sheet' && styles.sheetSelectedText]}>
+          {label}
+        </Text>
       </Pressable>
     );
   }
@@ -39,7 +48,9 @@ export function SelectableChip({ label, selected, onPress, style }: SelectableCh
         end={{ x: 1, y: 1 }}
         style={[styles.base, styles.unselected, style]}
       >
-        <Text style={styles.unselectedText}>{label}</Text>
+        <Text style={[styles.unselectedText, variant === 'sheet' && styles.sheetUnselectedText]}>
+          {label}
+        </Text>
       </LinearGradient>
     </Pressable>
   );
@@ -63,8 +74,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: glass.chip.border,
   },
-  // Both states MUST share the exact same `fontSize`/`lineHeight` box (from `textStyle('body')`)
-  // — only `fontFamily` (weight) and `color` differ. The original code gave `selectedText` a
+  // Both states MUST share the exact same `fontSize`/`lineHeight` box within each variant — only
+  // `fontFamily` (weight) and `color` differ. The original code gave `selectedText` a
   // weight bump *without* `textStyle('body')`'s pinned `lineHeight`, so Poppins-Medium's own
   // (unpinned) default line box came out visibly shorter than Poppins-Light's explicit 1.85×
   // line-height the instant a chip was tapped — the whole pill appeared to resize on selection.
@@ -77,5 +88,13 @@ const styles = StyleSheet.create({
   unselectedText: {
     ...textStyle('body'),
     color: colors.ink62,
+  },
+  sheetSelectedText: {
+    ...textStyle('small'),
+    fontFamily: fontFamily.poppins500,
+  },
+  sheetUnselectedText: {
+    ...textStyle('small'),
+    color: colors.ink75,
   },
 });

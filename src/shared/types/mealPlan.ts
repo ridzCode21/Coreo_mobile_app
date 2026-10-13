@@ -162,6 +162,13 @@ export type ReplacePreviewResponse = {
   preview_token: string;
 };
 
+export type AteSomethingElseRequest = {
+  meal_type?: MealType;
+  planned_meal_id?: number;
+  description?: string;
+  approx_calories?: number;
+};
+
 export type AteSomethingElseResponse = {
   status: 'ok';
   remaining_calories: number;

@@ -114,6 +114,7 @@ export const spacing = {
   md: 12,
   ml: 14,
   lg: 16,
+  sheetTitleGap: 18,
   xl: 20,
   xxl: 24,
   xxxl: 32,
@@ -121,6 +122,7 @@ export const spacing = {
   screenPadXCompact: 22,
   screenPadTop: 64,
   screenPadBottom: 36,
+  sheetSubtitleGap: 2,
 } as const;
 
 export const radii = {
@@ -134,6 +136,16 @@ export const radii = {
   pill: 9999,
   petalOuter: 125,
   petalInner: 30,
+} as const;
+
+export const componentSizes = {
+  sheetGrabberWidth: 40,
+  sheetGrabberHeight: 5,
+  sheetChipHeight: 42,
+  sheetNoteHeight: 48,
+  sheetControlHeight: 52,
+  sheetVoiceButton: 38,
+  sheetVoiceIcon: 14,
 } as const;
 
 export const fontFamily = {
@@ -168,6 +180,7 @@ export const typography = {
   greeting: { fontSize: 28, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.35 },
   cardValue: { fontSize: 22, fontWeight: '300', letterSpacing: 0 },
   cardTitle: { fontSize: 19, fontWeight: '300', letterSpacing: -0.3 },
+  sheetSubtitle: { fontSize: 11.5, fontWeight: '300', letterSpacing: 0 },
   sheetTitle: { fontSize: 25, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.4 },
   bodyLg: { fontSize: 15, fontWeight: '300', letterSpacing: 0, lineHeight: 1.75 },
   button: { fontSize: 14, fontWeight: '500', letterSpacing: 0 },
