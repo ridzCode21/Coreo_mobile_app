@@ -16,7 +16,8 @@ You are only the SUPERVISOR. Do NOT fix any issue yourself, and do not edit code
 state folder or the runner. `scripts/overnight/run-all-tasks.sh` does the work: for every issue it starts brand-new
 sessions (Claude plans and writes the failing tests, Codex implements, the runner runs typecheck, lint, format
 and all tests, Claude reviews strictly against the Claude Design, Codex fixes, repeat until the review passes),
-then commits on a local branch and merges it into the local integration branch. It never pushes. It stops by
+then rebases onto the current `development`, pushes the issue branch, opens a pull request, merges it into `development`
+and deletes the branch (so no branches pile up). Only the runner pushes, never an agent. It stops by
 itself when both usage limits are hit and resumes from the first open issue when started again.
 Every issue must align with both the Claude Design and the backend code (branch `feat/initial`, read as a snapshot);
 the runner enforces this in the plan step and the review. Details: `scripts/overnight/README.md`.
@@ -48,7 +49,8 @@ Requested action: `$ARGUMENTS` (empty means "run everything").
    - what was started (or why not) and which issue it is on,
    - watch: `tail -f scripts/overnight/.state/runner.log`; table: `/run-all-tasks status`,
    - stop: `/run-all-tasks stop`; morning summary: `/run-all-tasks report`,
-   - that results are on the local branch `chore/overnight-runner` (worktree `../django_frontend-overnight`),
-     nothing is pushed, and blocked or partial issues are listed in the report with what is needed from the user.
+   - that each finished issue is merged into `development` through its own pull request and the branch is deleted
+     (work happens in the worktree `../django_frontend-overnight`; your own tree is untouched), and that blocked or
+     partial issues are listed in the report with what is needed from the user.
 7. If the runner is not RUNNING after the start, say so and give the fallback to run in a normal terminal:
    `cd /Users/Nuvo/Vipin/vipin/django_frontend && bash scripts/overnight/run-all-tasks.sh`

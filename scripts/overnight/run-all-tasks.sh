@@ -20,9 +20,11 @@
 #   4 REVIEW            Claude  strict, independent review + design alignment, VERDICT: PASS|FAIL
 #   5 FIX               Codex   fixes the findings; steps 3-5 repeat (a ralph-style loop) up to MAX_ROUNDS
 #   5b POLISH           Codex   one pass for MINOR findings after a PASS (reverted if any gate breaks; POLISH_MINOR=0 to skip)
-#   6 FINALIZE          runner  gates again, scope check, regression INDEX, commit, local merge, GitHub comment
+#   6 FINALIZE          runner  gates again, scope check, regression INDEX, commit, rebase on development, push, pull request,
+#                               merge into development, delete the branch (remote and local): no branches pile up
 # If one provider hits its usage limit the other takes over; if both are limited the runner waits and retries.
-# Nothing is ever pushed. Works with macOS bash 3.2. Progress truth = status.tsv + git, safe to stop/restart.
+# Only the runner pushes (never an agent), and only the issue branch it just verified; it merges through a pull request
+# (repo hooks and history rules apply). Works with macOS bash 3.2. Progress truth = status.tsv + git, safe to stop/restart.
 
 set -u
 
@@ -58,8 +60,12 @@ TRANSIENT_RETRIES="${TRANSIENT_RETRIES:-3}"
 PAUSE_SECONDS="${PAUSE_SECONDS:-5}"
 POLISH_MINOR="${POLISH_MINOR:-1}"             # 1 = one extra fix pass for MINOR review findings (reverted if the gates break)
 GH_COMMENT="${GH_COMMENT:-1}"                 # 1 = comment on the GitHub issue after each issue (never closes it)
-BASE_BRANCH="${BASE_BRANCH:-}"                # branch the integration branch starts from (default: current branch)
-INTEG_BRANCH="${INTEG_BRANCH:-chore/overnight-runner}"
+TARGET_BRANCH="${TARGET_BRANCH:-development}"  # every finished issue is merged here through a pull request; its branch is deleted
+BASE_REF="origin/$TARGET_BRANCH"               # each issue branches from the current tip of this ref
+MERGE_METHOD="${MERGE_METHOD:-merge}"          # merge | squash | rebase (gh pr merge)
+STRICT_REVIEW="${STRICT_REVIEW:-1}"            # 1 = the review step never falls back to Codex: it waits for Claude instead
+MERGE_TRIES="${MERGE_TRIES:-6}"; MERGE_RETRY_SLEEP="${MERGE_RETRY_SLEEP:-10}"   # a fresh PR can briefly report "not mergeable yet"
+MAX_CONSECUTIVE_FAILED="${MAX_CONSECUTIVE_FAILED:-3}"   # stop the run after this many failed issues in a row
 WORKTREE_DIR="${WORKTREE_DIR:-$(dirname "$ROOT")/$(basename "$ROOT")-overnight}"
 DESIGN_DIR_NAME="${DESIGN_DIR_NAME:-Coreo Design System Rebuild}"
 DESIGN_SRC="${DESIGN_SRC:-$ROOT/$DESIGN_DIR_NAME}"
@@ -151,7 +157,7 @@ runnable_list() { # prints "num<TAB>tier" in order for issues this run may work 
 }
 
 if [ "$DRY_RUN" = 1 ]; then
-  echo "DRY RUN. Repo: $REPO_SLUG   integration branch: $INTEG_BRANCH   worktree: $WORKTREE_DIR"
+  echo "DRY RUN. Repo: $REPO_SLUG   each issue is merged into $TARGET_BRANCH via a pull request (method: $MERGE_METHOD) and its branch deleted   worktree: $WORKTREE_DIR"
   echo "Providers: plan/review = claude (fallback codex), implement/fix = codex (fallback claude). Rounds per attempt: $MAX_ROUNDS, attempts: $MAX_ATTEMPTS"
   echo; echo "Would work on, in this order:"
   runnable_list | while IFS="$(printf '\t')" read -r n t; do printf '  #%-3s %-8s %s\n' "$n" "$t" "$(title_of "$(issue_file "$n")" | cut -c1-70)"; done
@@ -162,7 +168,7 @@ if [ "$DRY_RUN" = 1 ]; then
     python3 -I "$OVN/lib/render.py" "$PROMPTS/01-plan-and-red-tests.md" "$PROMPTS/common.md" "$STATE/dry/plan.md" \
       WT="$WORKTREE_DIR" BRANCH="feature/$(num3 "$first")-<slug>" NUM="$first" TITLE="$(title_of "$(issue_file "$first")")" \
       ISSUE_FILE="$(issue_file "$first")" WORK="$WORK_ROOT/$(num3 "$first")" DESIGN_FILE="$DESIGN_SRC/Coreo App Screens.dc.html" \
-      REFS="$REFS" BACKEND_DIR="$REFS/backend" BACKEND_BRANCH="$BACKEND_BRANCH" BACKEND_SHA="(snapshot taken at start)" TODAY="$(date +%Y-%m-%d)" ROUND=1 MAX_ROUNDS="$MAX_ROUNDS" TIER="$(tier_of "$first")" TIER_NOTE="" INTEG_BRANCH="$INTEG_BRANCH" STATE="$STATE"
+      REFS="$REFS" BACKEND_DIR="$REFS/backend" BACKEND_BRANCH="$BACKEND_BRANCH" BACKEND_SHA="(snapshot taken at start)" TODAY="$(date +%Y-%m-%d)" ROUND=1 MAX_ROUNDS="$MAX_ROUNDS" TIER="$(tier_of "$first")" TIER_NOTE="" INTEG_BRANCH="$BASE_REF" STATE="$STATE"
     head -22 "$STATE/dry/plan.md"
   else
     echo "Nothing runnable."
@@ -182,14 +188,13 @@ fi
 [ -n "$(ls "$ISSUES_DIR"/*.md 2>/dev/null)" ] || fail_pre "no issue files; run: bash scripts/overnight/run-all-tasks.sh --sync"
 [ -f "$DESIGN_SRC/Coreo App Screens.dc.html" ] || fail_pre "design file not found: $DESIGN_SRC/Coreo App Screens.dc.html"
 git -C "$BACKEND_REPO" rev-parse --verify "$BACKEND_BRANCH^{commit}" >/dev/null 2>&1 || fail_pre "backend branch '$BACKEND_BRANCH' not found in $BACKEND_REPO (set BACKEND_REPO / BACKEND_BRANCH)"
+command -v gh >/dev/null 2>&1 || fail_pre "GitHub CLI 'gh' not found (needed to open and merge pull requests)"
+gh auth status >/dev/null 2>&1 || fail_pre "gh is not logged in (run: gh auth login)"
+git remote get-url origin >/dev/null 2>&1 || fail_pre "no 'origin' remote"
+git fetch -q origin "$TARGET_BRANCH" 2>/dev/null || fail_pre "cannot fetch origin/$TARGET_BRANCH"
 for f in scripts/overnight/run-all-tasks.sh jest.config.js tests/setup.ts; do
-  git ls-files --error-unmatch "$f" >/dev/null 2>&1 || fail_pre "$f is not committed. Commit the setup first (README: scripts/overnight/README.md, 'Before the first run')."
+  git cat-file -e "$BASE_REF:$f" 2>/dev/null || fail_pre "$f is not on $BASE_REF. Merge the runner setup into $TARGET_BRANCH first: the worktree starts from it."
 done
-if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
-  fail_pre "uncommitted changes to tracked files in $ROOT. The worktree starts from the last commit, so commit or stash them first."
-fi
-BASE_BRANCH="${BASE_BRANCH:-$(git branch --show-current)}"
-[ -n "$BASE_BRANCH" ] || fail_pre "detached HEAD; check out a branch or set BASE_BRANCH"
 
 # ---- single-instance lock ----
 if ! mkdir "$LOCK" 2>/dev/null; then
@@ -224,9 +229,8 @@ done
 
 WT="$WORKTREE_DIR"
 if [ ! -e "$WT/.git" ]; then
-  log "Creating worktree $WT on branch $INTEG_BRANCH (from $BASE_BRANCH)."
-  if git show-ref --verify --quiet "refs/heads/$INTEG_BRANCH"; then git worktree add "$WT" "$INTEG_BRANCH" >/dev/null 2>&1 || fail_pre "git worktree add failed"
-  else git worktree add -b "$INTEG_BRANCH" "$WT" "$BASE_BRANCH" >/dev/null 2>&1 || fail_pre "git worktree add failed"; fi
+  log "Creating worktree $WT (detached at $BASE_REF; issues get their own short-lived branches)."
+  git worktree add --detach "$WT" "$BASE_REF" >/dev/null 2>&1 || fail_pre "git worktree add failed"
 fi
 # Agents read the design and the backend docs from read-only snapshots inside the state folder (which they are
 # allowed to read); the real design folder is never exposed to them.
@@ -292,8 +296,11 @@ run_gates() { # outfile -> 0 if every gate passes
 gates_tail() { grep -n -E '^=> FAIL|error TS|✕|●.*›|Error:|warning|\[warn\]|✖' "$1" | head -60; }
 
 # baseline: do not start on a broken tree (otherwise every issue would "fail")
-if [ "$SKIP_BASELINE" != 1 ]; then
-  log "Baseline gates on $INTEG_BRANCH..."
+if ( cd "$WT" && git symbolic-ref -q HEAD >/dev/null 2>&1 ); then
+  log "The worktree is on an issue branch (an interrupted issue): skipping the baseline, that issue resumes first."
+elif [ "$SKIP_BASELINE" != 1 ]; then
+  ( cd "$WT" && git checkout -q -- . 2>/dev/null; git clean -fdq -e node_modules . 2>/dev/null; git checkout -q --detach "$BASE_REF" )
+  log "Baseline gates on $BASE_REF..."
   if ! run_gates "$STATE/baseline-gates.txt"; then
     log "BASELINE FAILED. See $STATE/baseline-gates.txt. Fix the base branch first (or SKIP_BASELINE=1)."
     gates_tail "$STATE/baseline-gates.txt" | head -20
@@ -313,6 +320,7 @@ choose_provider() { # role -> echoes provider, or "" if both unavailable
   [ "${SWAP_ROLE:-0}" = 1 ] && [ "$1" = implement ] && pref="$(other_provider "$pref")"
   other="$(other_provider "$pref")"
   if have_provider "$pref" && ! is_limited "$pref"; then echo "$pref"; return; fi
+  if [ "$1" = review ] && [ "$STRICT_REVIEW" = 1 ]; then echo ""; return; fi   # the independent review is always Claude: wait, never degrade
   if [ "$ALLOW_FALLBACK" = 1 ] && have_provider "$other" && ! is_limited "$other"; then echo "$other"; return; fi
   echo ""
 }
@@ -359,7 +367,7 @@ run_agent() {
       WT="$WT" BRANCH="$CUR_BRANCH" NUM="$CUR_NUM" TITLE="$CUR_TITLE" ISSUE_FILE="$CUR_ISSUE_FILE" WORK="$CUR_WORK" \
       DESIGN_FILE="$DESIGN_FILE" REFS="$REFS" BACKEND_DIR="$BACKEND_DIR" BACKEND_BRANCH="$BACKEND_BRANCH" BACKEND_SHA="${BACKEND_SHA:0:9}" \
       TODAY="$(date +%Y-%m-%d)" TIER="$CUR_TIER" TIER_NOTE="$CUR_TIER_NOTE" \
-      INTEG_BRANCH="$INTEG_BRANCH" STATE="$STATE" MAX_ROUNDS="$MAX_ROUNDS" ROUND="$CUR_ROUND" FEEDBACK_FILE="$CUR_FEEDBACK" "$@"
+      INTEG_BRANCH="${CUR_BASE:-$BASE_REF}" STATE="$STATE" MAX_ROUNDS="$MAX_ROUNDS" ROUND="$CUR_ROUND" FEEDBACK_FILE="$CUR_FEEDBACK" "$@"
     log "[$role/$prov] fresh session for #$CUR_NUM ($tag)"
     if [ "$FAKE_AGENTS" = 1 ]; then "$OVN/selftest/fake-agent.sh" "$prov" "$role" "$prompt" "$out" "$err" "$WT" "$CUR_WORK"; code=$?
     elif [ "$prov" = claude ]; then invoke_claude "$role" "$prompt" "$out" "$err"; code=$?
@@ -511,14 +519,59 @@ pipeline() { # sets RESULT = done | partial | blocked | failed | paused
   { echo "# Why attempt $ATTEMPT failed"; echo; echo "$RESULT_NOTE"; echo; [ -n "$CUR_FEEDBACK" ] && { echo "Last feedback:"; echo; cat "$CUR_FEEDBACK"; }; } > "$CUR_WORK/previous-failure.md"
 }
 
-finalize() { # after a passed review: gates, scope, index, commit, merge, comment. sets RESULT done|partial|failed
+MERGE_FAILED=0; MERGED_SHA=""; PR_URL=""
+# On the committed issue branch: rebase if development moved, push, open a pull request, merge it, delete the
+# branch on GitHub and locally. Returns 0 when merged. On failure sets RESULT/RESULT_NOTE; MERGE_FAILED=1 means the
+# runner stops (the integration state is uncertain and a human should look).
+publish_and_merge() {
+  local pr tries=0 is_partial=0 plog="$CUR_WORK/publish.log"
+  PR_URL=""; MERGED_SHA=""; : > "$plog"
+  ( cd "$WT" && git fetch -q origin "$TARGET_BRANCH" ) >>"$plog" 2>&1 || { RESULT=failed; RESULT_NOTE="fetch of origin/$TARGET_BRANCH failed"; MERGE_FAILED=1; return 1; }
+  if [ "$(cd "$WT" && git merge-base HEAD "$BASE_REF")" != "$(cd "$WT" && git rev-parse "$BASE_REF")" ]; then
+    log "origin/$TARGET_BRANCH moved while #$CUR_NUM was built: rebasing onto it."
+    if ! ( cd "$WT" && git rebase -q "$BASE_REF" ) >>"$plog" 2>&1; then
+      ( cd "$WT" && git rebase --abort >/dev/null 2>&1 )
+      RESULT=failed; RESULT_NOTE="conflicts with $TARGET_BRANCH (it moved while this issue was built)"; return 1
+    fi
+    if ! run_gates "$CUR_WORK/gates-final.txt"; then RESULT=failed; RESULT_NOTE="gates failed after rebasing onto $TARGET_BRANCH"; return 1; fi
+  fi
+  if ! ( cd "$WT" && git push -q -u origin "$CUR_BRANCH" ) >>"$plog" 2>&1; then
+    RESULT=failed; RESULT_NOTE="git push failed (hooks or network): $(tail -2 "$plog" | tr '\n' ' ' | cut -c1-200)"; MERGE_FAILED=1; return 1
+  fi
+  [ -f "$CUR_WORK/blocked.txt" ] && head -1 "$CUR_WORK/blocked.txt" | grep -q '^PARTIAL' && is_partial=1
+  {
+    echo "Automated by the overnight runner (Claude plans, tests and reviews; Codex implements)."; echo
+    if [ "$is_partial" = 1 ]; then echo "Refs #$CUR_NUM (partial: the rest of the issue stays open)"; else echo "Closes #$CUR_NUM"; fi
+    echo
+    echo "- Review rounds: $(cat "$CUR_WORK/round.n" 2>/dev/null || echo '?'); gates (typecheck, lint, strict eslint, format, tests): $(grep -c '^=> PASS' "$CUR_WORK/gates-final.txt" 2>/dev/null || echo 0)/5 passed"
+    echo "- Plan, tests, review notes: scripts/overnight/.state/work/$(num3 "$CUR_NUM")/ (local)"
+    [ "$is_partial" = 1 ] && { echo; echo "Needs the owner:"; echo; sed 's/^/> /' "$CUR_WORK/blocked.txt" | head -25; }
+    echo; echo "🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+  } > "$CUR_WORK/pr-body.md"
+  PR_URL="$(gh pr create -R "$REPO_SLUG" --base "$TARGET_BRANCH" --head "$CUR_BRANCH" --title "Fix #$CUR_NUM: $CUR_TITLE" --body-file "$CUR_WORK/pr-body.md" 2>>"$plog" | tail -1)"
+  case "$PR_URL" in https://*) ;; *) RESULT=failed; RESULT_NOTE="could not open the pull request (branch $CUR_BRANCH is on GitHub)"; MERGE_FAILED=1; PR_URL=""; return 1 ;; esac
+  pr="${PR_URL##*/}"
+  until gh pr merge "$pr" -R "$REPO_SLUG" "--$MERGE_METHOD" >>"$plog" 2>&1; do
+    tries=$((tries+1))
+    if [ "$tries" -ge "$MERGE_TRIES" ]; then RESULT=failed; RESULT_NOTE="could not merge $PR_URL (left open for you)"; MERGE_FAILED=1; return 1; fi
+    sleep "$MERGE_RETRY_SLEEP"
+  done
+  ( cd "$WT" && git fetch -q origin "$TARGET_BRANCH" ) >>"$plog" 2>&1
+  MERGED_SHA="$(cd "$WT" && git rev-parse "$BASE_REF")"
+  # no branches pile up: GitHub first, then local
+  gh api -X DELETE "repos/$REPO_SLUG/git/refs/heads/$CUR_BRANCH" >>"$plog" 2>&1 || log "NOTE: could not delete the remote branch $CUR_BRANCH."
+  ( cd "$WT" && git checkout -q --detach "$BASE_REF" && git branch -q -D "$CUR_BRANCH" ) >>"$plog" 2>&1 || log "NOTE: could not delete the local branch $CUR_BRANCH."
+  return 0
+}
+
+finalize() { # after a passed review: gates, scope, index, commit, publish and merge. sets RESULT done|partial|failed
   local forbidden changed pf commit ntests
   changed="$(cd "$WT" && { git ls-files -m; git ls-files -o --exclude-standard; git ls-files -d; } | sort -u)"
   forbidden="$(echo "$changed" | grep -E "^($DESIGN_DIR_NAME/|designs/|CLAUDE.md|AGENTS.md|\.husky/|\.github/|\.claude/|scripts/overnight/|package.json|package-lock.json)" || true)"
   if [ -n "$forbidden" ]; then RESULT=failed; RESULT_NOTE="forbidden files changed: $(echo "$forbidden" | tr '\n' ' ')"; return; fi
   if ! run_gates "$CUR_WORK/gates-final.txt"; then RESULT=failed; RESULT_NOTE="final gates failed"; return; fi
   ( cd "$WT" && git add -A >/dev/null 2>&1 )
-  python3 -I "$OVN/lib/records.py" index "$WT" "$INTEG_BRANCH" "$CUR_NUM" "$CUR_TITLE" "$(date +%Y-%m-%d)" >/dev/null
+  python3 -I "$OVN/lib/records.py" index "$WT" "${CUR_BASE:-$BASE_REF}" "$CUR_NUM" "$CUR_TITLE" "$(date +%Y-%m-%d)" >/dev/null
   ( cd "$WT" && git add -A >/dev/null 2>&1 )
   ntests="$(cd "$WT" && git diff --cached --name-only --diff-filter=A -- tests/regression | grep -c '\.test\.' || true)"
   local kind="Fix"
@@ -531,33 +584,28 @@ finalize() { # after a passed review: gates, scope, index, commit, merge, commen
   if ! ( cd "$WT" && git commit -q -F "$body" ) >"$CUR_WORK/commit.log" 2>&1; then
     RESULT=failed; RESULT_NOTE="git commit failed (hooks?): $(tail -3 "$CUR_WORK/commit.log" | tr '\n' ' ')"; return
   fi
-  commit="$(cd "$WT" && git rev-parse HEAD)"
-  if ! ( cd "$WT" && git checkout -q "$INTEG_BRANCH" && git merge -q --no-ff "$CUR_BRANCH" -m "Merge #$CUR_NUM: $CUR_TITLE" ) >"$CUR_WORK/merge.log" 2>&1; then
-    ( cd "$WT" && git merge --abort >/dev/null 2>&1; git checkout -q "$CUR_BRANCH" >/dev/null 2>&1 )
-    RESULT=failed; RESULT_NOTE="merge into $INTEG_BRANCH failed"; return
-  fi
-  CUR_COMMIT="$commit"
+  publish_and_merge || return
+  CUR_COMMIT="$MERGED_SHA"
   RESULT=done; [ -f "$CUR_WORK/blocked.txt" ] && head -1 "$CUR_WORK/blocked.txt" | grep -q '^PARTIAL' && RESULT=partial
 }
 
-gh_comment() { # status-line
+gh_comment() { # status-line (only for partial / blocked / failed: a merged PR already closes or references the issue)
   [ "$GH_COMMENT" = 1 ] || return 0
   command -v gh >/dev/null 2>&1 || return 0
   local f="$CUR_WORK/gh-comment.md"
   { echo "**Overnight run: $1**"; echo
-    echo "- Branch: \`$CUR_BRANCH\` (local only, not pushed), merged locally into \`$INTEG_BRANCH\`"
-    [ -n "${CUR_COMMIT:-}" ] && echo "- Commit: \`${CUR_COMMIT:0:9}\`"
+    [ -n "${PR_URL:-}" ] && echo "- Pull request: $PR_URL"
+    [ -n "${CUR_COMMIT:-}" ] && echo "- Merged into \`$TARGET_BRANCH\` as \`${CUR_COMMIT:0:9}\`"
     echo "- Review rounds: $(cat "$CUR_WORK/round.n" 2>/dev/null || echo '?'); gates (typecheck, lint, strict eslint, format, tests): $(grep -c '^=> PASS' "$CUR_WORK/gates-final.txt" 2>/dev/null || echo 0)/5 passed"
-    echo "- New regression tests: $(cd "$WT" 2>/dev/null && git show --stat --format= --diff-filter=A "${CUR_COMMIT:-HEAD}" -- tests/regression 2>/dev/null | grep -c '\.test\.' || echo 0)"
     [ -f "$CUR_WORK/blocked.txt" ] && { echo; echo "Needs the owner:"; echo; sed 's/^/> /' "$CUR_WORK/blocked.txt" | head -25; }
-    echo; echo "_Not closed automatically: it closes when the branch is reviewed and merged._"; } > "$f"
+    [ -z "${CUR_COMMIT:-}" ] && { echo; echo "_Nothing was merged for this issue._ Reason: ${RESULT_NOTE:-see the runner log}"; }; } > "$f"
   gh issue comment "$CUR_NUM" -R "$REPO_SLUG" --body-file "$f" >/dev/null 2>&1 && log "Commented on GitHub issue #$CUR_NUM." || log "Could not comment on GitHub issue #$CUR_NUM (continuing)."
 }
 
 run_issue() { # num tier
   CUR_NUM="$1"; CUR_TIER="$2"; CUR_ISSUE_FILE="$(issue_file "$1")"; CUR_TITLE="$(title_of "$CUR_ISSUE_FILE")"
   snapshot_backend   # picks up a moved backend branch between issues
-  CUR_WORK="$WORK_ROOT/$(num3 "$1")"; mkdir -p "$CUR_WORK"; CUR_COMMIT=""
+  CUR_WORK="$WORK_ROOT/$(num3 "$1")"; mkdir -p "$CUR_WORK"; CUR_COMMIT=""; PR_URL=""; MERGE_FAILED=0
   cp -f "$CUR_ISSUE_FILE" "$CUR_WORK/issue.md"; CUR_ISSUE_FILE="$CUR_WORK/issue.md"   # inside the readable state folder
   CUR_BRANCH="feature/$1-$(slug_of "$CUR_TITLE")"
   case "$CUR_TIER" in
@@ -568,20 +616,26 @@ run_issue() { # num tier
   CURRENT_NUM="$1"
   status_set "$1" running "$ATTEMPT" "$CUR_TITLE" "$CUR_BRANCH"
   log "=== #$1 [$CUR_TIER] $CUR_TITLE (attempt $ATTEMPT/$MAX_ATTEMPTS) ==="
-  # branch off the integration branch (resume if it already exists)
-  ( cd "$WT" && git checkout -q "$INTEG_BRANCH" >/dev/null 2>&1 )
-  if ( cd "$WT" && git show-ref --verify --quiet "refs/heads/$CUR_BRANCH" ); then ( cd "$WT" && git checkout -q "$CUR_BRANCH" )
-  else ( cd "$WT" && git checkout -q -b "$CUR_BRANCH" "$INTEG_BRANCH" ); fi
+  # branch off the CURRENT tip of development (resume the branch if an interrupted run left it)
+  if ! ( cd "$WT" && git fetch -q origin "$TARGET_BRANCH" ) >/dev/null 2>&1; then
+    log "ERROR: cannot fetch origin/$TARGET_BRANCH (network?). Stopping; run again when it works."
+    status_set "$1" pending "$(attempts_get "$1")" "paused: cannot fetch origin/$TARGET_BRANCH" "$CUR_BRANCH"; CURRENT_NUM=""; return 76
+  fi
+  if ( cd "$WT" && git show-ref --verify --quiet "refs/heads/$CUR_BRANCH" ); then
+    ( cd "$WT" && git checkout -q "$CUR_BRANCH" ); CUR_BASE="$(cd "$WT" && git merge-base HEAD "$BASE_REF")"
+  else
+    CUR_BASE="$(cd "$WT" && git rev-parse "$BASE_REF")"; ( cd "$WT" && git checkout -q -b "$CUR_BRANCH" "$CUR_BASE" )
+  fi
   pipeline
   if [ "$RESULT" = reviewed ]; then finalize; fi
   case "$RESULT" in
     done|partial)
       echo "$RESULT" | tr a-z A-Z > "$CUR_WORK/result.txt"
       status_set "$1" "$RESULT" "$ATTEMPT" "${RESULT_NOTE}" "$CUR_BRANCH" "$CUR_COMMIT"
-      log "$(echo "$RESULT" | tr a-z A-Z): #$1 committed ${CUR_COMMIT:0:9} on $CUR_BRANCH, merged into $INTEG_BRANCH."
-      gh_comment "$RESULT" ;;
+      log "$(echo "$RESULT" | tr a-z A-Z): #$1 merged into $TARGET_BRANCH (${CUR_COMMIT:0:9}) via $PR_URL; branch $CUR_BRANCH deleted."
+      [ "$RESULT" = partial ] && gh_comment "partial: merged, the rest of the issue stays open" ;;
     blocked)
-      ( cd "$WT" && git diff HEAD > "$CUR_WORK/blocked.patch" 2>/dev/null; git checkout -q -- . ; git clean -fdq -e node_modules -e "$DESIGN_DIR_NAME" . ; git checkout -q "$INTEG_BRANCH" )
+      ( cd "$WT" && git diff HEAD > "$CUR_WORK/blocked.patch" 2>/dev/null; git checkout -q -- . ; git clean -fdq -e node_modules -e "$DESIGN_DIR_NAME" . ; git checkout -q --detach "$BASE_REF"; git branch -q -D "$CUR_BRANCH" )
       echo "$RESULT_NOTE" > "$CUR_WORK/result.txt"
       status_set "$1" blocked "$ATTEMPT" "$RESULT_NOTE" "$CUR_BRANCH"
       log "BLOCKED: #$1 ($RESULT_NOTE). Needs you; see $CUR_WORK/blocked.txt. Moving on."
@@ -590,15 +644,21 @@ run_issue() { # num tier
       status_set "$1" pending "$(attempts_get "$1")" "paused: $RESULT_NOTE" "$CUR_BRANCH"
       log "PAUSED on #$1: $RESULT_NOTE"; CURRENT_NUM=""; return 75 ;;
     *)
-      ( cd "$WT" && git diff HEAD > "$CUR_WORK/attempt-patch.diff" 2>/dev/null )
+      if [ "$MERGE_FAILED" = 1 ]; then
+        status_set "$1" failed "$ATTEMPT" "$RESULT_NOTE" "$CUR_BRANCH"
+        log "COULD NOT PUBLISH #$1: $RESULT_NOTE. The verified commit stays on local branch $CUR_BRANCH${PR_URL:+ and $PR_URL is left open}. Stopping."
+        CUR_COMMIT=""; gh_comment "could not be merged"; CURRENT_NUM=""; return 76
+      fi
+      ( cd "$WT" && { git diff HEAD; git diff "$BASE_REF"...HEAD; } > "$CUR_WORK/attempt-patch.diff" 2>/dev/null )
       if [ "$ATTEMPT" -ge "$MAX_ATTEMPTS" ]; then
-        ( cd "$WT" && git checkout -q -- . ; git clean -fdq -e node_modules -e "$DESIGN_DIR_NAME" . ; git checkout -q "$INTEG_BRANCH"; git branch -q -D "$CUR_BRANCH" >/dev/null 2>&1 )
+        ( cd "$WT" && git checkout -q -- . ; git clean -fdq -e node_modules -e "$DESIGN_DIR_NAME" . ; git checkout -q --detach "$BASE_REF"; git branch -q -D "$CUR_BRANCH" >/dev/null 2>&1 )
         status_set "$1" failed "$ATTEMPT" "$RESULT_NOTE" "$CUR_BRANCH"
         log "FAILED: #$1 after $ATTEMPT attempts ($RESULT_NOTE). Patch kept: $CUR_WORK/attempt-patch.diff. Moving on."
         CUR_COMMIT=""; gh_comment "failed (needs a human look)"
       else
         # fresh start for the next attempt, but remember why this one failed
-        ( cd "$WT" && git checkout -q -- . ; git clean -fdq -e node_modules -e "$DESIGN_DIR_NAME" . )
+        # the next attempt starts fresh from the CURRENT tip of development (the old branch, even a committed one, is dropped)
+        ( cd "$WT" && git checkout -q -- . ; git clean -fdq -e node_modules -e "$DESIGN_DIR_NAME" . ; git checkout -q --detach "$BASE_REF"; git branch -q -D "$CUR_BRANCH" >/dev/null 2>&1 )
         rm -f "$CUR_WORK/plan.ok" "$CUR_WORK/round.n" "$CUR_WORK/last-feedback.txt" "$CUR_WORK/prev-feedback.hash" "$CUR_WORK/plan.md" "$CUR_WORK"/impl-*.md "$CUR_WORK"/review-*.md
         [ -f "$CUR_WORK/previous-failure.md" ] || echo "# Why attempt $ATTEMPT failed
 
@@ -613,8 +673,8 @@ $RESULT_NOTE" > "$CUR_WORK/previous-failure.md"
 
 # ---- main loop ----
 [ -f "$STOPF" ] && rm -f "$STOPF"
-log "Runner started (pid $$). repo=$REPO_SLUG integ=$INTEG_BRANCH worktree=$WT base=$BASE_BRANCH"
-DONE_COUNT=0
+log "Runner started (pid $$). repo=$REPO_SLUG target=$TARGET_BRANCH (PR + $MERGE_METHOD per issue) worktree=$WT"
+DONE_COUNT=0; CONSEC_FAILED=0
 while :; do
   [ -f "$STOPF" ] && { log "Stop file found: stopping."; rm -f "$STOPF"; break; }
   [ "$MAX_ISSUES" -gt 0 ] && [ "$DONE_COUNT" -ge "$MAX_ISSUES" ] && { log "Reached --max-issues $MAX_ISSUES."; break; }
@@ -624,6 +684,12 @@ while :; do
   CUR_ROUND=1
   run_issue "$n" "$t"; rc=$?
   if [ "$rc" = 75 ]; then log "STOPPING: usage limits (both providers) persisted. Issue #$n stays open. Run again later to continue."; exit 75; fi
+  if [ "$rc" = 76 ]; then log "STOPPING: could not publish or merge #$n (see above). Fix it, then run again."; exit 76; fi
+  case "$(status_get "$n")" in
+    failed) CONSEC_FAILED=$((CONSEC_FAILED+1)) ;;
+    done|partial) CONSEC_FAILED=0 ;;
+  esac
+  if [ "$CONSEC_FAILED" -ge "$MAX_CONSECUTIVE_FAILED" ]; then log "STOPPING: $CONSEC_FAILED issues failed in a row; something systemic is wrong. See the log and --report."; exit 77; fi
   DONE_COUNT=$((DONE_COUNT+1))
   [ -f "$STOPF" ] || sleep "$PAUSE_SECONDS"
 done
