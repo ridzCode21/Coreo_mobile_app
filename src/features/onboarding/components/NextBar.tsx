@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native'
 import Svg, { Path } from 'react-native-svg';
 
 import { GlassCard } from '@/shared/components/GlassCard';
-import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { colors, radii, spacing, textStyle, typography } from '@/shared/theme/tokens';
 
 type NextBarProps = {
   label: string;
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   },
   label: {
     ...textStyle('body'),
-    fontSize: 13.5,
+    fontSize: typography.buttonSm.fontSize,
     color: colors.onNight,
   },
   iconButton: {

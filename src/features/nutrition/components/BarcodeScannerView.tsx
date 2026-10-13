@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
 
-import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 
 type BarcodeScannerViewProps = {
   /** Fired once with the raw barcode string. Parent should set `paused` immediately to debounce. */
@@ -136,8 +136,8 @@ const styles = StyleSheet.create({
     height: 160,
     borderRadius: radii.lg,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.85)',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderColor: withAlpha(colors.white, 0.85),
+    backgroundColor: withAlpha(colors.white, 0.06),
   },
   hint: {
     ...textStyle('body'),
@@ -149,9 +149,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xxl,
     borderRadius: radii.pill,
-    backgroundColor: 'rgba(255,255,255,0.16)',
+    backgroundColor: withAlpha(colors.white, 0.16),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: withAlpha(colors.white, 0.3),
   },
   manualPillText: {
     ...textStyle('body'),
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   },
   permissionBody: {
     ...textStyle('body'),
-    color: 'rgba(239,244,249,0.62)',
+    color: withAlpha(colors.fog, 0.62),
     marginBottom: spacing.sm,
   },
   primaryButton: {
@@ -188,6 +188,6 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     ...textStyle('body'),
-    color: 'rgba(239,244,249,0.62)',
+    color: withAlpha(colors.fog, 0.62),
   },
 });

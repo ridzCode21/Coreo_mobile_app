@@ -32,10 +32,20 @@ export const colors = {
 
   white: '#FFFFFF',
   onNight: '#F0F4F8',
+  fog: '#EFF4F8',
+  overlayInk: '#122A46',
 
   success: '#3E8E63',
   attention: '#7A5220',
 } as const;
+
+export function withAlpha(hex: string, alpha: number): string {
+  const value = hex.replace('#', '');
+  const red = parseInt(value.slice(0, 2), 16);
+  const green = parseInt(value.slice(2, 4), 16);
+  const blue = parseInt(value.slice(4, 6), 16);
+  return `rgba(${red},${green},${blue},${alpha})`;
+}
 
 export const skyGradient = {
   colors: [colors.day, colors.air, '#6F9CCE'],
@@ -45,6 +55,56 @@ export const skyGradient = {
 export const sheetSkyGradient = {
   colors: ['#A3C4E5', '#7299C6', '#54779F'],
   locations: [0, 0.52, 1],
+} as const;
+
+export const glass = {
+  light: {
+    gradient: [withAlpha(colors.white, 0.62), withAlpha(colors.white, 0.2)],
+    border: withAlpha(colors.white, 0.55),
+    shadowColor: withAlpha(colors.overlayInk, 0.14),
+    topHighlight: withAlpha(colors.white, 0.65),
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 1 },
+  },
+  night: {
+    gradient: ['rgba(34,66,102,0.6)', 'rgba(12,28,48,0.7)'],
+    border: withAlpha(colors.white, 0.22),
+    shadowColor: 'rgba(8,24,44,0.34)',
+    topHighlight: withAlpha(colors.white, 0.22),
+    start: { x: 0.21, y: 0 },
+    end: { x: 0.79, y: 1 },
+  },
+  chip: {
+    gradient: [withAlpha(colors.white, 0.5), withAlpha(colors.white, 0.14)],
+    border: withAlpha(colors.white, 0.55),
+    shadowColor: withAlpha(colors.overlayInk, 0.14),
+    topHighlight: withAlpha(colors.white, 0.5),
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 1 },
+  },
+  chipSelected: {
+    gradient: [withAlpha(colors.white, 0.94), withAlpha(colors.white, 0.6)],
+    border: withAlpha(colors.white, 0.9),
+    shadowColor: withAlpha(colors.overlayInk, 0.2),
+    topHighlight: withAlpha(colors.white, 0.75),
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 1 },
+  },
+  selectableChipSelected: {
+    shadowColor: withAlpha(colors.overlayInk, 0.18),
+  },
+  sheet: {
+    gradient: [withAlpha(colors.white, 0.82), withAlpha(colors.white, 0.55)],
+    border: withAlpha(colors.white, 0.85),
+    shadowColor: withAlpha(colors.overlayInk, 0.14),
+    topHighlight: withAlpha(colors.white, 0.65),
+    start: { x: 0.32, y: 0 },
+    end: { x: 0.68, y: 1 },
+  },
+} as const;
+
+export const tracking = {
+  wide: 1,
 } as const;
 
 export const spacing = {
@@ -118,6 +178,7 @@ export const typography = {
   caption: { fontSize: 11, fontWeight: '400', letterSpacing: 0 },
   label: { fontSize: 10, fontWeight: '500', letterSpacing: 2, textTransform: 'uppercase' },
   micro: { fontSize: 9, fontWeight: '500', letterSpacing: 1.4, textTransform: 'uppercase' },
+  legal: { fontSize: 10.5, fontWeight: '300', letterSpacing: 0 },
 } as const satisfies Record<string, TypographySpec>;
 
 export type ColorToken = keyof typeof colors;

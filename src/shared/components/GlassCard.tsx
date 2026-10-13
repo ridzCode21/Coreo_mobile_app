@@ -3,9 +3,9 @@ import { Platform, StyleSheet, View, type ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { radii } from '@/shared/theme/tokens';
+import { glass, radii } from '@/shared/theme/tokens';
 
-export type GlassCardVariant = 'light' | 'night';
+export type GlassCardVariant = 'light' | 'night' | 'chip' | 'sheet';
 
 type GlassCardProps = PropsWithChildren<{
   variant?: GlassCardVariant;
@@ -25,16 +25,27 @@ export function GlassCard({
   children,
   variant = 'light',
   style,
-  radius = radii.lg,
+  radius,
   padded = true,
 }: GlassCardProps) {
-  const palette = variant === 'light' ? lightPalette : nightPalette;
+  const palette = glass[variant];
+  const resolvedRadius = radius ?? (variant === 'sheet' ? radii.xxl : radii.lg);
+  const blur = {
+    light: { intensity: 60, tint: 'light' },
+    night: { intensity: 90, tint: 'dark' },
+    chip: { intensity: 60, tint: 'light' },
+    sheet: { intensity: 90, tint: 'light' },
+  } as const;
 
   return (
     <View
-      style={[styles.shadowWrap, { borderRadius: radius, shadowColor: palette.shadowColor }, style]}
+      style={[
+        styles.shadowWrap,
+        { borderRadius: resolvedRadius, shadowColor: palette.shadowColor },
+        style,
+      ]}
     >
-      <View style={[styles.clip, { borderRadius: radius, borderColor: palette.border }]}>
+      <View style={[styles.clip, { borderRadius: resolvedRadius, borderColor: palette.border }]}>
         {/* Android has no working blur here: `dimezisBlurView*` methods require a `blurTarget`
          * ref wired up via `BlurTargetView` (unconfigured app-wide right now), so without one
          * expo-blur silently falls back to `'none'` — and that fallback's native view has been
@@ -45,15 +56,15 @@ export function GlassCard({
          * app-wide for real Android blur. */}
         {Platform.OS !== 'android' ? (
           <BlurView
-            intensity={variant === 'light' ? 60 : 90}
-            tint={variant === 'light' ? 'light' : 'dark'}
+            intensity={blur[variant].intensity}
+            tint={blur[variant].tint}
             style={StyleSheet.absoluteFill}
           />
         ) : null}
         <LinearGradient
           colors={palette.gradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+          start={palette.start}
+          end={palette.end}
           style={StyleSheet.absoluteFill}
         />
         {/* Approximates the web spec's `inset 0 1px 0 rgba(255,255,255,.65)` top highlight —
@@ -69,20 +80,6 @@ export function GlassCard({
     </View>
   );
 }
-
-const lightPalette = {
-  gradient: ['rgba(255,255,255,0.62)', 'rgba(255,255,255,0.2)'] as const,
-  border: 'rgba(255,255,255,0.6)',
-  shadowColor: 'rgba(18,42,70,0.16)',
-  topHighlight: 'rgba(255,255,255,0.65)',
-};
-
-const nightPalette = {
-  gradient: ['rgba(34,66,102,0.55)', 'rgba(12,28,48,0.68)'] as const,
-  border: 'rgba(255,255,255,0.2)',
-  shadowColor: 'rgba(8,24,44,0.34)',
-  topHighlight: 'rgba(255,255,255,0.22)',
-};
 
 const styles = StyleSheet.create({
   shadowWrap: Platform.select({

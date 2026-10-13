@@ -1,11 +1,11 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, type Href } from 'expo-router';
 
 import { GlassCard } from '@/shared/components/GlassCard';
 import { PetalCluster } from '@/shared/components/PetalCluster';
 import { Screen } from '@/shared/components/Screen';
-import { colors, fontFamily, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { SkyBackground } from '@/shared/components/SkyBackground';
+import { colors, fontFamily, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 import { profileCompletion, targetQuality, useDietProfileQuery } from '@/features/onboarding';
 import {
   targetsFromProfile,
@@ -83,10 +83,7 @@ export default function CoreoHomeScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient
-        colors={[colors.zenith, colors.day, colors.air]}
-        style={StyleSheet.absoluteFill}
-      />
+      <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
         <Text style={styles.eyebrow}>Coreo</Text>
         <Text style={styles.greeting}>
@@ -312,9 +309,9 @@ const styles = StyleSheet.create({
   todayRow: {
     minHeight: 54,
     borderRadius: radii.md,
-    backgroundColor: 'rgba(255,255,255,0.38)',
+    backgroundColor: withAlpha(colors.white, 0.38),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.52)',
+    borderColor: withAlpha(colors.white, 0.52),
     paddingHorizontal: spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
@@ -358,9 +355,9 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 52,
     borderRadius: radii.pill,
-    backgroundColor: 'rgba(255,255,255,0.62)',
+    backgroundColor: withAlpha(colors.white, 0.62),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.66)',
+    borderColor: withAlpha(colors.white, 0.66),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -404,9 +401,9 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 44,
     borderRadius: radii.pill,
-    backgroundColor: 'rgba(255,255,255,0.52)',
+    backgroundColor: withAlpha(colors.white, 0.52),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
+    borderColor: withAlpha(colors.white, 0.6),
     alignItems: 'center',
     justifyContent: 'center',
   },

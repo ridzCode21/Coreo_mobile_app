@@ -6,7 +6,8 @@ import { Controller, useForm } from 'react-hook-form';
 
 import { Screen } from '@/shared/components/Screen';
 import { SelectableChip } from '@/shared/components/SelectableChip';
-import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { SkyBackground } from '@/shared/components/SkyBackground';
+import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 import {
   confirmMealSchema,
   confirmPrefillSchema,
@@ -114,10 +115,7 @@ export default function ConfirmMealScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient
-        colors={[colors.zenith, colors.day, colors.air]}
-        style={StyleSheet.absoluteFill}
-      />
+      <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent">
         <Text style={styles.eyebrow}>Logged · {MEAL_LABEL[currentMealByClock()]}</Text>
         <Text style={styles.title}>{headline}</Text>
@@ -248,9 +246,9 @@ const styles = StyleSheet.create({
   textField: {
     ...textStyle('bodyLg'),
     color: colors.ink,
-    backgroundColor: 'rgba(255,255,255,0.5)',
+    backgroundColor: withAlpha(colors.white, 0.5),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
+    borderColor: withAlpha(colors.white, 0.6),
     borderRadius: radii.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,

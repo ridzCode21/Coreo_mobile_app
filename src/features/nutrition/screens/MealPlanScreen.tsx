@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, type Href } from 'expo-router';
 
 import { GlassCard } from '@/shared/components/GlassCard';
 import { Screen } from '@/shared/components/Screen';
 import { SelectableChip } from '@/shared/components/SelectableChip';
-import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { SkyBackground } from '@/shared/components/SkyBackground';
+import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 import { useDietProfileQuery, useUpdateDietProfileMutation } from '@/features/onboarding';
 import { QuotaBanner } from '@/features/nutrition/components/QuotaBanner';
 import {
@@ -111,10 +111,7 @@ export default function MealPlanScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient
-        colors={[colors.zenith, colors.day, colors.air]}
-        style={StyleSheet.absoluteFill}
-      />
+      <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} accessibilityRole="button" style={styles.back}>
@@ -346,11 +343,11 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: 'rgba(255,255,255,0.42)',
+    backgroundColor: withAlpha(colors.white, 0.42),
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backText: { fontSize: 28, color: colors.ink, lineHeight: 32 },
+  backText: { ...textStyle('cardValue'), color: colors.ink },
   eyebrow: { ...textStyle('label'), color: colors.ink45 },
   loading: { paddingVertical: spacing.xxxl, alignItems: 'center' },
   warning: { marginBottom: spacing.lg },
@@ -360,9 +357,9 @@ const styles = StyleSheet.create({
     minHeight: 82,
     borderRadius: radii.lg,
     padding: spacing.lg,
-    backgroundColor: 'rgba(255,255,255,0.52)',
+    backgroundColor: withAlpha(colors.white, 0.52),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.66)',
+    borderColor: withAlpha(colors.white, 0.66),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -371,43 +368,50 @@ const styles = StyleSheet.create({
   mealRowDone: { backgroundColor: colors.ink },
   mealCopy: { flex: 1 },
   mealMeta: { ...textStyle('micro'), color: colors.ink45 },
-  mealMetaDone: { ...textStyle('micro'), color: 'rgba(239,244,249,0.55)' },
+  mealMetaDone: { ...textStyle('micro'), color: withAlpha(colors.fog, 0.55) },
   mealName: { ...textStyle('bodyLg'), color: colors.ink, marginTop: spacing.xs },
   mealNameDone: { ...textStyle('bodyLg'), color: colors.onNight, marginTop: spacing.xs },
   mealMacros: { ...textStyle('caption'), color: colors.ink62, marginTop: spacing.xs },
   mealMacrosDone: {
     ...textStyle('caption'),
-    color: 'rgba(239,244,249,0.62)',
+    color: withAlpha(colors.fog, 0.62),
     marginTop: spacing.xs,
   },
   status: { ...textStyle('micro'), color: colors.ink62, textTransform: 'capitalize' },
   statusDone: {
     ...textStyle('micro'),
-    color: 'rgba(239,244,249,0.7)',
+    color: withAlpha(colors.fog, 0.7),
     textTransform: 'capitalize',
   },
   totalCard: { marginTop: spacing.lg },
-  darkLabel: { ...textStyle('label'), color: 'rgba(239,244,249,0.55)' },
+  darkLabel: { ...textStyle('label'), color: withAlpha(colors.fog, 0.55) },
   failedBody: {
     ...textStyle('body'),
-    color: 'rgba(239,244,249,0.72)',
+    color: withAlpha(colors.fog, 0.72),
     marginTop: spacing.lg,
   },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.lg },
   metric: { alignItems: 'center' },
   metricValue: { ...textStyle('bodyLg'), color: colors.onNight },
-  metricLabel: { ...textStyle('micro'), color: 'rgba(239,244,249,0.55)', marginTop: spacing.xs },
+  metricLabel: {
+    ...textStyle('micro'),
+    color: withAlpha(colors.fog, 0.55),
+    marginTop: spacing.xs,
+  },
   regenerate: {
     minHeight: 54,
     borderRadius: radii.pill,
-    backgroundColor: 'rgba(255,255,255,0.62)',
+    backgroundColor: withAlpha(colors.white, 0.62),
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.lg,
   },
   regenerateText: { ...textStyle('body'), color: colors.ink },
   emptyText: { ...textStyle('body'), color: colors.ink62 },
-  backdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(18,42,70,0.35)' },
+  backdrop: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: withAlpha(colors.overlayInk, 0.35),
+  },
   sheetWrap: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.zenith,

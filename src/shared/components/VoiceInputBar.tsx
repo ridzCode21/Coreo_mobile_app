@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, TextInput, View, type ViewStyle } from 'react-na
 import Svg, { Path, Rect } from 'react-native-svg';
 
 import { GlassCard } from '@/shared/components/GlassCard';
-import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 
 type VoiceInputBarProps = {
   value: string;
@@ -39,7 +39,7 @@ export function VoiceInputBar({
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="rgba(239,244,249,0.55)"
+          placeholderTextColor={withAlpha(colors.fog, 0.55)}
           style={styles.input}
           autoFocus={autoFocus}
           onSubmitEditing={submitDisabled ? undefined : onSubmit}
@@ -114,9 +114,9 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: withAlpha(colors.white, 0.14),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: withAlpha(colors.white, 0.3),
   },
   confirmButton: {
     width: 44,

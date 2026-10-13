@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { colors, fontFamily, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { colors, fontFamily, glass, radii, spacing, textStyle } from '@/shared/theme/tokens';
 
 type SelectableChipProps = {
   label: string;
@@ -13,7 +13,7 @@ type SelectableChipProps = {
 /**
  * Pill chip used across goal/diet-interview/setup selection screens — docs/design-system.md §7.
  * Unselected reads as light glass via a two-stop diagonal gradient (matches the design's
- * `linear-gradient(135deg, rgba(255,255,255,.5), rgba(255,255,255,.18))`) rather than a flat fill —
+ * `linear-gradient(135deg, rgba(255,255,255,.5), rgba(255,255,255,.14))`) rather than a flat fill —
  * a full `GlassCard`/`BlurView` per chip isn't used since these render many-in-a-row (e.g.
  * multi-select goal lists) and a blur view per chip isn't worth the perf cost at this size.
  */
@@ -34,7 +34,7 @@ export function SelectableChip({ label, selected, onPress, style }: SelectableCh
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityState={{ selected }}>
       <LinearGradient
-        colors={['rgba(255,255,255,0.5)', 'rgba(255,255,255,0.18)']}
+        colors={glass.chip.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.base, styles.unselected, style]}
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   },
   selected: {
     backgroundColor: colors.white,
-    shadowColor: 'rgba(18,42,70,0.18)',
+    shadowColor: glass.selectableChipSelected.shadowColor,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 1,
     shadowRadius: 12,
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   },
   unselected: {
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
+    borderColor: glass.chip.border,
   },
   // Both states MUST share the exact same `fontSize`/`lineHeight` box (from `textStyle('body')`)
   // — only `fontFamily` (weight) and `color` differ. The original code gave `selectedText` a

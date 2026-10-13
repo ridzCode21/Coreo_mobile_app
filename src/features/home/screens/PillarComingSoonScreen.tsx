@@ -1,10 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, type Href } from 'expo-router';
 
 import { GlassCard } from '@/shared/components/GlassCard';
 import { Screen } from '@/shared/components/Screen';
-import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { SkyBackground } from '@/shared/components/SkyBackground';
+import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 
 const COREO_ROUTE = '/core' as Href;
 
@@ -22,10 +22,7 @@ export default function PillarComingSoonScreen({
   const router = useRouter();
   return (
     <View style={styles.root}>
-      <LinearGradient
-        colors={[colors.zenith, colors.day, colors.air]}
-        style={StyleSheet.absoluteFill}
-      />
+      <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
         <Text style={styles.eyebrow}>{pillar}</Text>
         <Text style={styles.title}>{title}</Text>
@@ -77,9 +74,9 @@ const styles = StyleSheet.create({
   backPill: {
     minHeight: 52,
     borderRadius: radii.pill,
-    backgroundColor: 'rgba(255,255,255,0.62)',
+    backgroundColor: withAlpha(colors.white, 0.62),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.66)',
+    borderColor: withAlpha(colors.white, 0.66),
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.xl,

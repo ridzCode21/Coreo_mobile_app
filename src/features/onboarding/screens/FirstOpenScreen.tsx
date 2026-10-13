@@ -1,12 +1,12 @@
 import { useCallback } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
 import { WaveMark } from '@/shared/components/WaveMark';
 import { GlassCard } from '@/shared/components/GlassCard';
+import { SkyBackground } from '@/shared/components/SkyBackground';
 import { useAppFlagsStore } from '@/shared/stores/appFlagsStore';
 import { useOrientationLock } from '@/shared/hooks/useOrientationLock';
 import { useOnboardingStore } from '@/features/onboarding/store/onboardingStore';
@@ -33,13 +33,7 @@ export default function FirstOpenScreen() {
   }, [markFirstOpenSeen, resetOnboarding, router]);
 
   return (
-    <LinearGradient
-      colors={[colors.day, colors.air, colors.sky]}
-      locations={[0, 0.48, 1]}
-      start={{ x: 0.4, y: 0 }}
-      end={{ x: 0.6, y: 1 }}
-      style={styles.fill}
-    >
+    <SkyBackground style={styles.fill}>
       <View
         style={[
           styles.content,
@@ -62,7 +56,7 @@ export default function FirstOpenScreen() {
           </GlassCard>
         </Pressable>
       </View>
-    </LinearGradient>
+    </SkyBackground>
   );
 }
 

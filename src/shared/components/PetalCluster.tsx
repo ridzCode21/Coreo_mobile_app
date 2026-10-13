@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 
 export type PetalClusterItem = {
   id: 'diet' | 'fitness' | 'wellness' | 'coreo';
@@ -47,10 +47,12 @@ export function PetalCluster({ items }: PetalClusterProps) {
                   ]}
                 >
                   <LinearGradient
+                    // Petals deliberately retain their own softer active/inactive recipe from the
+                    // design; it is close to, but distinct from, the shared chip material.
                     colors={
                       item.active
-                        ? ['rgba(255,255,255,0.92)', 'rgba(255,255,255,0.46)']
-                        : ['rgba(255,255,255,0.54)', 'rgba(255,255,255,0.16)']
+                        ? [withAlpha(colors.white, 0.92), withAlpha(colors.white, 0.46)]
+                        : [withAlpha(colors.white, 0.54), withAlpha(colors.white, 0.16)]
                     }
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
@@ -76,9 +78,9 @@ const styles = StyleSheet.create({
     maxWidth: 338,
     aspectRatio: 1,
     borderRadius: 180,
-    backgroundColor: 'rgba(255,255,255,0.22)',
+    backgroundColor: withAlpha(colors.white, 0.22),
     padding: spacing.lg,
-    shadowColor: 'rgba(255,255,255,0.8)',
+    shadowColor: withAlpha(colors.white, 0.8),
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 34,
@@ -96,8 +98,8 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.55)',
-    shadowColor: 'rgba(18,42,70,0.16)',
+    borderColor: withAlpha(colors.white, 0.55),
+    shadowColor: withAlpha(colors.overlayInk, 0.16),
     shadowOffset: { width: 0, height: 16 },
     shadowOpacity: 1,
     shadowRadius: 26,

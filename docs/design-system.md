@@ -52,12 +52,18 @@ these rules, it's probably the wrong component, not an exception to add.
 | `coreBlue` / `coreBlueDeep` | `#35689E` → `#16395E` | First-open blue circle; legacy primary CTAs still use it pending migration              |
 | `white`                     | `#FFFFFF`             | Interactive glass, highlights, active states                                            |
 | `onNight`                   | `#F0F4F8`             | Text/icon color on dark glass or night atmosphere                                       |
+| `fog`                       | `#EFF4F8`             | Faded secondary text on dark glass                                                      |
+| `overlayInk`                | `#122A46`             | Base for translucent dark overlays and glass shadows                                    |
 | `success`                   | `#3E8E63`             | Status tint · "Verified" — always paired with a word, never used alone                  |
 | `attention`                 | `#7A5220`             | Status tint · "needs a look" — always paired with a word, never used as a raw error/red |
 
 **Sky gradients:** `skyGradient` is `168deg`, `#D3E6F8` at 0%, `#9EC3E8` at 48%, and
 `#6F9CCE` at 100%. `sheetSkyGradient` is `168deg`, `#A3C4E5` at 0%, `#7299C6` at 52%, and
 `#54779F` at 100%.
+
+For a one-off opacity of a named base color, use `withAlpha(colors.<token>, alpha)` from
+`src/shared/theme/tokens.ts`. Keep recurring material recipes in the `glass` token object instead
+of rebuilding them with `withAlpha` at each call site.
 
 **Four laws of color** (from brand system, non-negotiable):
 
@@ -102,6 +108,10 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `caption`       | 11px      | 400              | normal                    | Chip text, secondary metadata                                         |
 | `label`         | 10–10.5px | 500              | +1.6 to +2.6px, uppercase | Field labels, section eyebrows, nav captions                          |
 | `micro`         | 9px       | 500              | +1.4px, uppercase         | Tiny axis labels, timestamps inside charts                            |
+| `legal`         | 10.5px    | 300              | normal                    | Privacy notes and fine print                                          |
+
+Non-type text tracking overrides also live in the token module; `tracking.wide` is `1px` for
+scanner codes and manual barcode entry.
 
 Rules:
 
@@ -151,7 +161,16 @@ plus these as additional padding, not instead of them.
 
 ## 4. Material — "liquid glass on sky"
 
-The single most important pattern in the system. Two variants:
+The single most important pattern in the system. Shared recipes are exact rather than ranges:
+
+| Variant                   | Gradient                                               | Border      | Shadow                         |
+| ------------------------- | ------------------------------------------------------ | ----------- | ------------------------------ |
+| `light`                   | 135deg, white `.62` → `.20`                            | white `.55` | overlay ink `.14`              |
+| `night`                   | 150deg, `rgb(34,66,102)` `.60` → `rgb(12,28,48)` `.70` | white `.22` | `rgb(8,24,44)` `.34`           |
+| `chip`                    | 135deg, white `.50` → `.14`                            | white `.55` | overlay ink `.14`              |
+| `chipSelected`            | 135deg, white `.94` → `.60`                            | white `.90` | overlay ink `.20`              |
+| `SelectableChip` selected | flat white                                             | none        | overlay ink `.18`              |
+| `sheet`                   | 160deg, white `.82` → `.55`                            | white `.85` | overlay ink `.14`; 36px radius |
 
 ### Light glass (default surface)
 
@@ -196,7 +215,7 @@ RN has no `backdrop-filter`. Build the effect from primitives:
 - **Shadow:** iOS via `shadowColor`/`shadowOffset`/`shadowOpacity`/`shadowRadius`; Android via
   `elevation` (Android shadows are always a flat gray-black — accept the platform difference
   rather than fighting it).
-- Wrap this into one shared `<GlassCard variant="light" | "night">` primitive in
+- Wrap this into one shared `<GlassCard variant="light" | "night" | "chip" | "sheet">` primitive in
   `src/shared/components` — every screen consumes that, no screen hand-rolls blur/gradient/shadow
   props itself.
 
@@ -602,3 +621,10 @@ Centralize this instead of scattering `Dimensions`/`useWindowDimensions` calls t
   Existing `coreBlue` primary actions are documented as legacy migration debt rather than as
   design-compliant. `attention` and the Brand Book-only Fog/Mist/Ember palette remain owner
   decisions because the current app-screen design supplies no supported mapping for them.
+- **v1.11 (issue #53 — shared atmosphere and glass):** Added the shared `SkyBackground` and moved
+  all nine named screens to the canonical sky gradient. Centralized exact light, night, chip,
+  selected-chip, and sheet recipes in the `glass` token; corrected the light border/shadow and
+  night gradient/border; and added chip/sheet `GlassCard` variants. Added `fog`, `overlayInk`,
+  `typography.legal`, `tracking.wide`, and the `withAlpha` helper pattern so named components no
+  longer carry raw color or cited size literals. The app-screen export confirms Fog as the faded
+  dark-surface text family, superseding v1.10's provisional owner-decision note for that token.

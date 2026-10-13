@@ -5,7 +5,7 @@ import { useRouter, type Href } from 'expo-router';
 import { ApiError } from '@/shared/api/errors';
 import { GlassCard } from '@/shared/components/GlassCard';
 import { SelectableChip } from '@/shared/components/SelectableChip';
-import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 import { useDietProfileQuery, useUpdateDietProfileMutation } from '@/features/onboarding';
 import {
   useAssistantConfirmMutation,
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
   },
   darkLabel: {
     ...textStyle('label'),
-    color: 'rgba(239,244,249,0.55)',
+    color: withAlpha(colors.fog, 0.55),
   },
   lightLabel: {
     ...textStyle('label'),
@@ -392,9 +392,9 @@ const styles = StyleSheet.create({
   mealRow: {
     minHeight: 72,
     borderRadius: radii.lg,
-    backgroundColor: 'rgba(255,255,255,0.42)',
+    backgroundColor: withAlpha(colors.white, 0.42),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.58)',
+    borderColor: withAlpha(colors.white, 0.58),
     padding: spacing.lg,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
   },
   darkBody: {
     ...textStyle('bodySm'),
-    color: 'rgba(239,244,249,0.68)',
+    color: withAlpha(colors.fog, 0.68),
   },
   primary: {
     minHeight: 56,
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(18,42,70,0.35)',
+    backgroundColor: withAlpha(colors.overlayInk, 0.35),
   },
   sheetWrap: {
     flex: 1,
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 54,
     borderRadius: radii.pill,
-    backgroundColor: 'rgba(255,255,255,0.5)',
+    backgroundColor: withAlpha(colors.white, 0.5),
     alignItems: 'center',
     justifyContent: 'center',
   },
