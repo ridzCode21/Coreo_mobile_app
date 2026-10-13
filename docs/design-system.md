@@ -151,6 +151,7 @@ plus these as additional padding, not instead of them.
 | `screen.padTop`          | 64                         |
 | `screen.padBottom`       | 30–40                      |
 | `sheet.subtitleGap`      | 2                          |
+| `replace.detailGap`      | 3                          |
 
 **Radius scale:**
 
@@ -174,6 +175,13 @@ voice affordance uses `sheetVoiceButton` / `sheetVoiceIcon` at 38px / 14px. The 
 `portionSliderThumbSize` (32px), `portionSliderTrackHeight` (4px),
 `portionSliderShadowRadius` (18px), and `portionSliderElevation` (4). These values implement the
 29d, 31a, and 36a sheet geometry without component-local size literals.
+
+`componentSizes.minimumTapTarget` is 44px, the minimum touch target used by compact text actions.
+
+The replace-meal flow also uses tokenized 18px option radios, 38px compare actions, a 54px
+confirmation action, and a 15px back icon. Its 13px option labels, 14px comparison titles, and
+15px confirmation meal title use weights 400/500 as specified by screens 30a, 35a, and 30b. The
+35b receipt uses a 16px/500 meal title and 11px/300 macro line.
 
 ## 4. Material — "liquid glass on sky"
 

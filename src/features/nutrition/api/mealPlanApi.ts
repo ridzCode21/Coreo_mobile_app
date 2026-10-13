@@ -26,8 +26,10 @@ export const mealPlanKeys = {
 };
 
 function invalidateMealPlan(queryClient: ReturnType<typeof useQueryClient>, date: string) {
-  queryClient.invalidateQueries({ queryKey: mealPlanKeys.byDate(date) });
-  queryClient.invalidateQueries({ queryKey: nutritionKeys.dailySummary(date) });
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: mealPlanKeys.byDate(date) }),
+    queryClient.invalidateQueries({ queryKey: nutritionKeys.dailySummary(date) }),
+  ]);
 }
 
 export function useMealPlanQuery(date: string) {

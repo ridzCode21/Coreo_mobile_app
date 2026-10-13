@@ -308,25 +308,21 @@ function alternativeFromMeal(
   factor: number,
 ): ReplacePreviewAlternative {
   return {
+    meal_type: meal.meal_type,
     name,
     calories_kcal: Math.round(meal.calories_kcal * factor),
     protein_g: round1(meal.protein_g * factor),
     carbs_g: round1(meal.carbs_g * factor),
     fat_g: round1(meal.fat_g * factor),
-    rationale:
-      factor < 1 ? 'A lighter swap with similar protein.' : 'A steadier option with more fuel.',
-    recipe_json: null,
-    constraint_violation: false,
+    rationale: `Approx. ${
+      factor < 1 ? 'A lighter swap with similar protein.' : 'A steadier option with more fuel.'
+    }`,
     serving_size: meal.serving_size,
-    portion_multiplier: 1,
-    base_calories_kcal: Math.round(meal.calories_kcal * factor),
-    base_protein_g: round1(meal.protein_g * factor),
-    base_carbs_g: round1(meal.carbs_g * factor),
-    base_fat_g: round1(meal.fat_g * factor),
-    ingredients_json: meal.ingredients_json,
     prep_time_minutes: meal.prep_time_minutes,
     estimated_cost_tier: meal.estimated_cost_tier,
-    confidence_note: 'Generated as a mock replacement preview.',
+    ingredients: meal.ingredients_json.map(({ name: item, quantity }) => ({ item, quantity })),
+    nutrition_source: 'food_records',
+    nutrition_trace: [],
   };
 }
 
@@ -537,7 +533,11 @@ registerMock('POST', '/meal-plans/:date/meals/:mealId/replace/preview/', (reques
     alternatives,
     expiresAt: Date.now() + 600_000,
   };
-  return { status: 200, delayMs: 500, body: styleB({ alternatives, preview_token: token }) };
+  return {
+    status: 200,
+    delayMs: 500,
+    body: styleB({ alternatives, preview_token: token, rejected_count: 0 }),
+  };
 });
 
 registerMock('POST', '/meal-plans/:date/meals/:mealId/replace/confirm/', (request) => {
@@ -557,13 +557,33 @@ registerMock('POST', '/meal-plans/:date/meals/:mealId/replace/confirm/', (reques
   meal.status = 'replaced';
   meal.replaced_at = new Date().toISOString();
   const replacement: PlannedMeal = {
-    ...alternative,
     id: mockDb.nextPlannedMealId++,
     date: request.params.date,
-    meal_type: meal.meal_type,
+    meal_type: alternative.meal_type,
+    name: alternative.name,
+    calories_kcal: alternative.calories_kcal,
+    protein_g: alternative.protein_g,
+    carbs_g: alternative.carbs_g,
+    fat_g: alternative.fat_g,
+    rationale: alternative.rationale,
+    recipe_json: null,
     status: 'planned',
     replaced_at: null,
     replacement_of_id: meal.id,
+    constraint_violation: false,
+    serving_size: alternative.serving_size,
+    portion_multiplier: 1,
+    base_calories_kcal: alternative.calories_kcal,
+    base_protein_g: alternative.protein_g,
+    base_carbs_g: alternative.carbs_g,
+    base_fat_g: alternative.fat_g,
+    ingredients_json: alternative.ingredients.map(({ item: name, quantity }) => ({
+      name,
+      quantity,
+    })),
+    prep_time_minutes: alternative.prep_time_minutes,
+    estimated_cost_tier: alternative.estimated_cost_tier,
+    confidence_note: '',
   };
   plan.meals.push(replacement);
   mockDb.mealPlans[planKey(user.id, request.params.date)] = recomputeTotals(plan);
