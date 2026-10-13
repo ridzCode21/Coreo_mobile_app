@@ -55,3 +55,9 @@ coverage/
 
 # Local Claude Code settings (may contain machine-local permission rules/secrets)
 .claude/settings.local.json
+
+# Overnight runner state (logs, work files, status)
+scripts/overnight/.state/
+
+# Local copy of the Claude Design (source of truth, not committed)
+Coreo Design System Rebuild/
