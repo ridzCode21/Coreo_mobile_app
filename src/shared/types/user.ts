@@ -6,3 +6,16 @@
  */
 export const GENDERS = ['male', 'female', 'other', 'prefer_not_to_say'] as const;
 export type Gender = (typeof GENDERS)[number];
+
+export const ACTIVE_PILLARS = ['diet', 'fitness', 'wellness'] as const;
+export type ActivePillar = (typeof ACTIVE_PILLARS)[number];
+
+export const INTERVIEW_GOALS = [
+  'get_stronger',
+  'sleep_better',
+  'less_stress',
+  'lose_weight',
+  'more_energy',
+  'eat_healthier',
+] as const;
+export type InterviewGoal = (typeof INTERVIEW_GOALS)[number];

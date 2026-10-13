@@ -11,9 +11,9 @@ import type {
   GoalType,
   HealthCondition,
 } from '@/shared/types/dietProfile';
-import type { Gender } from '@/shared/types/user';
+import type { ActivePillar, Gender, InterviewGoal } from '@/shared/types/user';
 
-export type OnboardingPillar = 'fitness' | 'diet' | 'wellness';
+export type OnboardingPillar = ActivePillar;
 
 /**
  * The in-progress *interview* answer draft (docs/onboarding-v2-flow-plan.md §1) — every field
@@ -21,8 +21,7 @@ export type OnboardingPillar = 'fitness' | 'diet' | 'wellness';
  * (shared/types/dietProfile.ts) exactly except every field is nullable/empty here (vs. the
  * server's own defaults for `meal_frequency`/`cooking_time_max`) — this is a draft, not yet a
  * committed profile, so "unanswered" must be representable for every field. `goal_type` is asked
- * directly now (v2 §5) rather than derived — see `features/onboarding/lib/resolveGoalType.ts` for
- * the fallback-only heuristic.
+ * directly now (v2 §5) rather than derived.
  */
 export type DietProfileDraft = {
   goal_type: GoalType | null;
@@ -69,6 +68,7 @@ export type DietProfileListField = 'allergies' | 'disliked_foods' | 'health_cond
  */
 export type OnboardingDraft = {
   name: string;
+  goal: InterviewGoal | null;
   ageYears: number;
   gender: Gender | null;
   heightCm: number;
@@ -82,6 +82,7 @@ export type OnboardingDraft = {
 
 export const ONBOARDING_DEFAULTS: OnboardingDraft = {
   name: '',
+  goal: null,
   ageYears: 28,
   gender: null,
   heightCm: 170,

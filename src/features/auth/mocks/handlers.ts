@@ -2,6 +2,7 @@ import { registerMock } from '@/shared/api/mock/router';
 import { mockDb, type MockUser } from '@/shared/api/mock/db';
 import { styleAError, styleAOk } from '@/shared/api/mock/envelope';
 import { blacklistMockToken, issueTokenPair, verifyMockToken } from '@/shared/api/mock/tokens';
+import { ACTIVE_PILLARS, GENDERS, INTERVIEW_GOALS } from '@/shared/types/user';
 import { serializeMockUser } from '@/features/auth/mocks/serializeUser';
 
 function randomId(): string {
@@ -12,10 +13,14 @@ function asString(value: unknown): string {
   return typeof value === 'string' ? value : '';
 }
 
+function isAllowedValue<T extends string>(values: readonly T[], value: unknown): value is T {
+  return typeof value === 'string' && values.includes(value as T);
+}
+
 /**
  * Mock `POST /users/register/` — API_REFERENCE.md §3. Real-shaped: Style A envelope, the same
  * validation rules a real backend would enforce (email format/uniqueness, password length,
- * password_confirm match, required names), real token issuance via `issueTokenPair`. Backs the
+ * password_confirm match, required first name), real token issuance via `issueTokenPair`. Backs the
  * "Save your core" step (8a) and the mocked Apple/Google buttons on it — see
  * docs/implementation-plan.md §3. Registered at import time; see `registerAllMocks.ts`.
  */
@@ -26,6 +31,8 @@ registerMock('POST', '/users/register/', (request) => {
   const passwordConfirm = asString(body.password_confirm);
   const firstName = asString(body.first_name).trim();
   const lastName = asString(body.last_name).trim();
+  const activePillars = body.active_pillars;
+  const pillarList = Array.isArray(activePillars) ? activePillars : null;
 
   const details: Record<string, string[]> = {};
   if (!email || !email.includes('@')) {
@@ -36,11 +43,75 @@ registerMock('POST', '/users/register/', (request) => {
   if (!password || password.length < 8) {
     details.password = ['Password must be at least 8 characters.'];
   }
-  if (password !== passwordConfirm) {
-    details.password_confirm = ["Passwords don't match."];
-  }
   if (!firstName) details.first_name = ['This field is required.'];
-  if (!lastName) details.last_name = ['This field is required.'];
+  if (!isAllowedValue(INTERVIEW_GOALS, body.goal)) {
+    details.goal = ['Select a valid choice.'];
+  }
+  if (!pillarList) {
+    details.active_pillars = ['Pillars must be a list.'];
+  } else if (pillarList.length === 0) {
+    details.active_pillars = ['Pick at least one pillar.'];
+  } else if (pillarList.some((pillar) => !isAllowedValue(ACTIVE_PILLARS, pillar))) {
+    details.active_pillars = ['Pillars must be diet, fitness, or wellness.'];
+  } else if (pillarList.length !== new Set(pillarList).size) {
+    details.active_pillars = ['Pillars cannot be repeated.'];
+  }
+
+  if (
+    body.age !== undefined &&
+    body.age !== null &&
+    (!Number.isInteger(body.age) || (body.age as number) < 1 || (body.age as number) > 120)
+  ) {
+    details.age = ['Ensure this value is between 1 and 120.'];
+  }
+  if (
+    body.height_cm !== undefined &&
+    body.height_cm !== null &&
+    (typeof body.height_cm !== 'number' || !Number.isFinite(body.height_cm))
+  ) {
+    details.height_cm = ['A valid number is required.'];
+  }
+  if (
+    body.weight_kg !== undefined &&
+    body.weight_kg !== null &&
+    (typeof body.weight_kg !== 'number' || !Number.isFinite(body.weight_kg) || body.weight_kg < 0)
+  ) {
+    details.weight_kg = ['Ensure this value is greater than or equal to 0.'];
+  }
+  if (body.gender !== undefined && body.gender !== '' && !isAllowedValue(GENDERS, body.gender)) {
+    details.gender = ['Select a valid choice.'];
+  }
+
+  if (Object.keys(details).length > 0) {
+    return {
+      status: 400,
+      body: styleAError('VALIDATION_ERROR', 'Invalid registration data', details),
+    };
+  }
+
+  if (password !== passwordConfirm) {
+    return {
+      status: 400,
+      body: styleAError('VALIDATION_ERROR', 'Invalid registration data', {
+        password_confirm: ['Passwords do not match.'],
+      }),
+    };
+  }
+
+  if (pillarList?.includes('diet')) {
+    if (body.age === undefined || body.age === null || body.age === '') {
+      details.age = ['This field is required when diet is selected.'];
+    }
+    if (body.height_cm === undefined || body.height_cm === null || body.height_cm === '') {
+      details.height_cm = ['This field is required when diet is selected.'];
+    }
+    if (body.weight_kg === undefined || body.weight_kg === null || body.weight_kg === '') {
+      details.weight_kg = ['This field is required when diet is selected.'];
+    }
+    if (body.gender === undefined || body.gender === null || body.gender === '') {
+      details.gender = ['This field is required when diet is selected.'];
+    }
+  }
 
   if (Object.keys(details).length > 0) {
     return {
@@ -50,6 +121,7 @@ registerMock('POST', '/users/register/', (request) => {
   }
 
   const now = new Date().toISOString();
+  const age = typeof body.age === 'number' ? body.age : null;
   const user: MockUser = {
     id: randomId(),
     email,
@@ -57,8 +129,8 @@ registerMock('POST', '/users/register/', (request) => {
     first_name: firstName,
     last_name: lastName,
     phone: typeof body.phone === 'string' ? body.phone : null,
-    date_of_birth: typeof body.date_of_birth === 'string' ? body.date_of_birth : null,
-    gender: (body.gender as MockUser['gender']) ?? null,
+    date_of_birth: age === null ? null : `${new Date().getFullYear() - age}-01-01`,
+    gender: isAllowedValue(GENDERS, body.gender) ? body.gender : null,
     timezone: typeof body.timezone === 'string' ? body.timezone : 'UTC',
     is_premium: false,
     email_verified: false,
@@ -73,7 +145,7 @@ registerMock('POST', '/users/register/', (request) => {
   return {
     status: 201,
     delayMs: 500,
-    body: styleAOk({ user: serializeMockUser(user), tokens }),
+    body: styleAOk({ user: { ...serializeMockUser(user), onboarding_complete: true }, tokens }),
   };
 });
 

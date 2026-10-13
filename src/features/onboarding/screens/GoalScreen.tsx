@@ -8,18 +8,18 @@ import {
   OnboardingStepScaffold,
   onboardingTitleStyles,
 } from '@/features/onboarding/components/OnboardingStepScaffold';
-import { GOAL_TYPE_LABEL } from '@/features/onboarding/lib/dietQuestions';
+import { INTERVIEW_GOAL_LABEL } from '@/features/onboarding/lib/interviewGoalLabels';
 import { flowStepProgress, flowStepRoute, nextFlowStep } from '@/features/onboarding/lib/steps';
 import { useOnboardingStore } from '@/features/onboarding/store/onboardingStore';
-import { GOAL_TYPES, type GoalType } from '@/shared/types/dietProfile';
+import { INTERVIEW_GOALS } from '@/shared/types/user';
 
 export default function GoalScreen() {
   const router = useRouter();
   const draft = useOnboardingStore((state) => state.draft);
-  const updateDietProfile = useOnboardingStore((state) => state.updateDietProfile);
+  const update = useOnboardingStore((state) => state.update);
   const completeStep = useOnboardingStore((state) => state.completeStep);
 
-  const selected = draft.dietProfile.goal_type;
+  const selected = draft.goal;
   const progress = flowStepProgress('goal', draft);
 
   const goNext = () => {
@@ -41,12 +41,12 @@ export default function GoalScreen() {
       footer={<NextBar label="Next" onPress={goNext} disabled={!selected} />}
     >
       <View style={styles.chips}>
-        {GOAL_TYPES.map((goal) => (
+        {INTERVIEW_GOALS.map((goal) => (
           <SelectableChip
             key={goal}
-            label={GOAL_TYPE_LABEL[goal]}
+            label={INTERVIEW_GOAL_LABEL[goal]}
             selected={selected === goal}
-            onPress={() => updateDietProfile({ goal_type: goal as GoalType })}
+            onPress={() => update({ goal })}
           />
         ))}
       </View>
