@@ -103,6 +103,7 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `sheetSubtitle`   | 11.5px    | 300              | normal                    | Sheet question subtitles (e.g. "Helps me plan better tomorrow.")      |
 | `sheetTitle`      | 25px      | 200              | −0.5px, line-height 1.4   | Bottom-sheet titles (e.g. paywall)                                    |
 | `bodyLg`          | 14–15px   | 300              | normal                    | Assistant responses, emphasized body text                             |
+| `quotaMessage`    | 16px      | 300              | normal, line-height 1.7   | Daily-limit message inside the regenerate sheet                       |
 | `button`          | 14px      | 500              | normal                    | Primary button labels                                                 |
 | `buttonSm`        | 13.5px    | 500              | normal                    | Compact button labels                                                 |
 | `body`            | 13px      | 300              | normal, line-height 1.8   | Default body copy                                                     |
@@ -155,23 +156,25 @@ plus these as additional padding, not instead of them.
 
 **Radius scale:**
 
-| Token            | px                      | Use                                                                   |
-| ---------------- | ----------------------- | --------------------------------------------------------------------- |
-| `radius.xs`      | 12                      | Compact badges and controls                                           |
-| `radius.sm`      | 14–16                   | Small chips/tags                                                      |
-| `radius.control` | 18                      | Compact input rows                                                    |
-| `radius.md`      | 20                      | Compact rows, small cards                                             |
-| `radius.ml`      | 22                      | Compact glass rows                                                    |
-| `radius.lg`      | 22–24                   | Standard glass card (default)                                         |
-| `radius.xl`      | 26–30                   | Hero/primary glass card, nav dock                                     |
-| `radius.xxl`     | 36                      | Large sheet and dock corners                                          |
-| `radius.pill`    | `height / 2`            | Any full pill button/bar — compute from actual height, don't hardcode |
-| `radius.circle`  | `50%`                   | Icon buttons, avatars, orb                                            |
-| `radius.petal`   | 125 (outer corner only) | Petal-cluster cells, see §6                                           |
+| Token              | px                      | Use                                                                   |
+| ------------------ | ----------------------- | --------------------------------------------------------------------- |
+| `radius.xs`        | 12                      | Compact badges and controls                                           |
+| `radius.sm`        | 14–16                   | Small chips/tags                                                      |
+| `radius.control`   | 18                      | Compact input rows                                                    |
+| `radius.md`        | 20                      | Compact rows, small cards                                             |
+| `radius.ml`        | 22                      | Compact glass rows                                                    |
+| `radius.lg`        | 22–24                   | Standard glass card (default)                                         |
+| `radius.xl`        | 26–30                   | Hero/primary glass card, nav dock                                     |
+| `radius.quotaCard` | 32                      | Regenerate daily-limit card                                           |
+| `radius.xxl`       | 36                      | Large sheet and dock corners                                          |
+| `radius.pill`      | `height / 2`            | Any full pill button/bar — compute from actual height, don't hardcode |
+| `radius.circle`    | `50%`                   | Icon buttons, avatars, orb                                            |
+| `radius.petal`     | 125 (outer corner only) | Petal-cluster cells, see §6                                           |
 
 **Sheet control sizes:** `componentSizes.sheetGrabberWidth` / `sheetGrabberHeight` are 40×5px;
 `sheetChipHeight` is 42px; `sheetNoteHeight` is 48px; `sheetControlHeight` is 52px; and the compact
-voice affordance uses `sheetVoiceButton` / `sheetVoiceIcon` at 38px / 14px. The portion slider uses
+voice affordance uses `sheetVoiceButton` / `sheetVoiceIcon` at 38px / 14px. Regenerate rebuilding
+steps use `rebuildingStepIndicator` / `rebuildingStepBorderWidth` at 20px / 1.5px. The portion slider uses
 `portionSliderThumbSize` (32px), `portionSliderTrackHeight` (4px),
 `portionSliderShadowRadius` (18px), and `portionSliderElevation` (4). These values implement the
 29d, 31a, and 36a sheet geometry without component-local size literals.

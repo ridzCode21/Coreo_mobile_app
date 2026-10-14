@@ -1,14 +1,18 @@
 import { useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 
 import { GlassCard } from '@/shared/components/GlassCard';
 import { Screen } from '@/shared/components/Screen';
-import { SelectableChip } from '@/shared/components/SelectableChip';
 import { SkyBackground } from '@/shared/components/SkyBackground';
 import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 import { useDietProfileQuery, useUpdateDietProfileMutation } from '@/features/onboarding';
 import { QuotaBanner } from '@/features/nutrition/components/QuotaBanner';
+import {
+  RebuildingPlanCard,
+  type BuildingStatus,
+} from '@/features/nutrition/components/RebuildingPlanCard';
+import { RegenerateSheet } from '@/features/nutrition/components/RegenerateSheet';
 import {
   useMealPlanQuery,
   useRegenerateMealPlanMutation,
@@ -16,7 +20,7 @@ import {
 import { quotaErrorFrom } from '@/features/nutrition/lib/quotaError';
 import { todayISO } from '@/features/nutrition/api/nutritionApi';
 import type { BudgetTier, CookingFrequency } from '@/shared/types/dietProfile';
-import type { PlannedMeal, RegenerationReason } from '@/shared/types/mealPlan';
+import type { MealPlanStatus, PlannedMeal, RegenerationReason } from '@/shared/types/mealPlan';
 
 const MEAL_LABEL: Record<PlannedMeal['meal_type'], string> = {
   breakfast: 'Breakfast',
@@ -24,29 +28,6 @@ const MEAL_LABEL: Record<PlannedMeal['meal_type'], string> = {
   snack: 'Snack',
   dinner: 'Dinner',
 };
-
-const REASONS: { label: string; value: RegenerationReason }[] = [
-  { label: 'Too boring', value: 'too_boring' },
-  { label: 'Too expensive', value: 'too_expensive' },
-  { label: 'Too much cooking', value: 'too_much_cooking' },
-  { label: "Don't like these foods", value: 'dont_like_foods' },
-  { label: 'Need more protein', value: 'need_more_protein' },
-  { label: 'Make it lighter', value: 'make_lighter' },
-  { label: 'Different cuisine', value: 'different_cuisine' },
-  { label: 'Surprise me', value: 'surprise_me' },
-];
-
-const BUDGETS: { label: string; value: BudgetTier }[] = [
-  { label: 'Budget-friendly', value: 'budget_friendly' },
-  { label: 'Moderate', value: 'moderate' },
-  { label: 'Premium', value: 'premium' },
-];
-
-const COOKING: { label: string; value: CookingFrequency }[] = [
-  { label: 'Barely any', value: 'minimal_cooking' },
-  { label: 'Something simple', value: 'once_daily' },
-  { label: 'I like cooking', value: 'every_meal' },
-];
 
 function displayNumber(value: number | null | undefined): string {
   return String(Math.round(typeof value === 'number' && Number.isFinite(value) ? value : 0));
@@ -59,6 +40,10 @@ function statusLabel(status: PlannedMeal['status']): string {
   return status.replaceAll('_', ' ');
 }
 
+function isBuildingStatus(status: MealPlanStatus): status is BuildingStatus {
+  return status === 'pending' || status === 'generating' || status === 'validating';
+}
+
 export default function MealPlanScreen() {
   const router = useRouter();
   const date = todayISO();
@@ -68,15 +53,19 @@ export default function MealPlanScreen() {
   const regenerate = useRegenerateMealPlanMutation(date);
   const [reasonOpen, setReasonOpen] = useState(false);
   const [reason, setReason] = useState<RegenerationReason>('too_boring');
+  const [activeReason, setActiveReason] = useState<RegenerationReason | null>(null);
   const [contextAsk, setContextAsk] = useState<'budget' | 'cooking' | null>(null);
   const [budget, setBudget] = useState<BudgetTier>('moderate');
   const [cooking, setCooking] = useState<CookingFrequency>('once_daily');
 
   const plan = planQuery.data?.status === 'ready' ? planQuery.data : null;
+  const buildingStatus =
+    planQuery.data && isBuildingStatus(planQuery.data.status) ? planQuery.data.status : null;
   const failedPlan = planQuery.data?.status === 'failed';
   const quotaError = quotaErrorFrom(regenerate.error);
 
   const regenerateNow = (selectedReason = reason) => {
+    setActiveReason(selectedReason);
     regenerate.mutate(
       { regeneration_reason: selectedReason },
       {
@@ -84,6 +73,7 @@ export default function MealPlanScreen() {
           setReasonOpen(false);
           setContextAsk(null);
         },
+        onError: () => setActiveReason(null),
       },
     );
   };
@@ -171,7 +161,6 @@ export default function MealPlanScreen() {
                 <Metric label="fat" value={`${displayNumber(plan.total_fat_g)}g`} />
               </View>
             </GlassCard>
-            {quotaError ? <QuotaBanner error={quotaError} /> : null}
             <Pressable
               onPress={() => setReasonOpen(true)}
               accessibilityRole="button"
@@ -181,6 +170,8 @@ export default function MealPlanScreen() {
               <Text style={styles.regenerateText}>Regenerate plan</Text>
             </Pressable>
           </>
+        ) : buildingStatus ? (
+          <RebuildingPlanCard status={buildingStatus} reason={activeReason} />
         ) : failedPlan ? (
           <>
             <GlassCard variant="night" radius={radii.xl} style={styles.totalCard}>
@@ -216,6 +207,7 @@ export default function MealPlanScreen() {
         budget={budget}
         cooking={cooking}
         saving={regenerate.isPending || updateProfile.isPending}
+        quotaError={quotaError}
         onReason={setReason}
         onBudget={setBudget}
         onCooking={setCooking}
@@ -235,98 +227,6 @@ function Metric({ label, value }: { label: string; value: string }) {
       <Text style={styles.metricValue}>{value}</Text>
       <Text style={styles.metricLabel}>{label}</Text>
     </View>
-  );
-}
-
-function RegenerateSheet({
-  visible,
-  reason,
-  contextAsk,
-  budget,
-  cooking,
-  saving,
-  onReason,
-  onBudget,
-  onCooking,
-  onClose,
-  onSubmit,
-}: {
-  visible: boolean;
-  reason: RegenerationReason;
-  contextAsk: 'budget' | 'cooking' | null;
-  budget: BudgetTier;
-  cooking: CookingFrequency;
-  saving: boolean;
-  onReason: (value: RegenerationReason) => void;
-  onBudget: (value: BudgetTier) => void;
-  onCooking: (value: CookingFrequency) => void;
-  onClose: () => void;
-  onSubmit: () => void;
-}) {
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} />
-      <View style={styles.sheetWrap} pointerEvents="box-none">
-        <View style={styles.sheet}>
-          <View style={styles.grabber} />
-          <Text style={styles.sheetTitle}>
-            {contextAsk === 'budget'
-              ? "What's the food budget like?"
-              : contextAsk === 'cooking'
-                ? 'How much cooking feels doable most days?'
-                : "What's not working today?"}
-          </Text>
-          <Text style={styles.sheetBody}>
-            {contextAsk
-              ? "This makes future plans fit better. I won't ask again."
-              : "Pick one — I'll rebuild around it."}
-          </Text>
-          <View style={styles.chips}>
-            {contextAsk === 'budget'
-              ? BUDGETS.map((item) => (
-                  <SelectableChip
-                    key={item.value}
-                    label={item.label}
-                    selected={budget === item.value}
-                    onPress={() => onBudget(item.value)}
-                  />
-                ))
-              : contextAsk === 'cooking'
-                ? COOKING.map((item) => (
-                    <SelectableChip
-                      key={item.value}
-                      label={item.label}
-                      selected={cooking === item.value}
-                      onPress={() => onCooking(item.value)}
-                    />
-                  ))
-                : REASONS.map((item) => (
-                    <SelectableChip
-                      key={item.value}
-                      label={item.label}
-                      selected={reason === item.value}
-                      onPress={() => onReason(item.value)}
-                    />
-                  ))}
-          </View>
-          <Pressable
-            onPress={onSubmit}
-            disabled={saving}
-            accessibilityRole="button"
-            accessibilityLabel={contextAsk ? 'Continue' : 'Regenerate plan'}
-            style={styles.sheetPrimary}
-          >
-            {saving ? (
-              <ActivityIndicator color={colors.white} />
-            ) : (
-              <Text style={styles.sheetPrimaryText}>
-                {contextAsk ? 'Continue' : 'Regenerate plan'}
-              </Text>
-            )}
-          </Pressable>
-        </View>
-      </View>
-    </Modal>
   );
 }
 
@@ -408,37 +308,4 @@ const styles = StyleSheet.create({
   },
   regenerateText: { ...textStyle('body'), color: colors.ink },
   emptyText: { ...textStyle('body'), color: colors.ink62 },
-  backdrop: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: withAlpha(colors.overlayInk, 0.35),
-  },
-  sheetWrap: { flex: 1, justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: colors.zenith,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    paddingHorizontal: spacing.xxl,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.xxxl,
-  },
-  grabber: {
-    alignSelf: 'center',
-    width: 40,
-    height: 5,
-    borderRadius: radii.pill,
-    backgroundColor: colors.ink40,
-    marginBottom: spacing.lg,
-  },
-  sheetTitle: { ...textStyle('sheetTitle'), color: colors.ink },
-  sheetBody: { ...textStyle('bodySm'), color: colors.ink62, marginTop: spacing.xs },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.lg },
-  sheetPrimary: {
-    minHeight: 54,
-    borderRadius: radii.pill,
-    backgroundColor: colors.ink,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.xl,
-  },
-  sheetPrimaryText: { ...textStyle('body'), color: colors.white },
 });

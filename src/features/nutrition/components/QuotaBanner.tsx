@@ -1,7 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 
 import { GlassCard } from '@/shared/components/GlassCard';
-import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 import { resetDistance } from '@/features/nutrition/lib/quotaError';
 import type { QuotaExceededError } from '@/shared/types/mealPlan';
 
@@ -16,11 +16,6 @@ export function QuotaBanner({ error }: QuotaBannerProps) {
       <Text style={styles.body}>
         <Text>{error.message}</Text> More unlocks in {resetDistance(error.quota_resets_at)}.
       </Text>
-      <View style={styles.chip}>
-        <Text style={styles.chipText}>
-          {error.tier} · {error.limit}/day
-        </Text>
-      </View>
     </GlassCard>
   );
 }
@@ -31,23 +26,11 @@ const styles = StyleSheet.create({
   },
   label: {
     ...textStyle('label'),
-    color: 'rgba(239,244,249,0.55)',
+    color: withAlpha(colors.onNight, 0.55),
   },
   body: {
     ...textStyle('bodyLg'),
     color: colors.onNight,
     marginTop: spacing.sm,
-  },
-  chip: {
-    alignSelf: 'flex-start',
-    marginTop: spacing.lg,
-    borderRadius: radii.pill,
-    backgroundColor: 'rgba(255,255,255,0.14)',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  chipText: {
-    ...textStyle('micro'),
-    color: 'rgba(239,244,249,0.68)',
   },
 });
