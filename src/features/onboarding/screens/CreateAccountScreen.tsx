@@ -2,22 +2,18 @@ import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
+  accountCredentialsSchema,
   authErrorMessage,
   registerFieldErrors,
-  registerSchema,
   useLoginMutation,
   useRegisterMutation,
   useSessionStore,
-  type RegisterFormValues,
+  type AccountCredentialsFormValues,
   type RegisterRequestValues,
 } from '@/features/auth';
-import {
-  OnboardingStepScaffold,
-  onboardingTitleStyles,
-} from '@/features/onboarding/components/OnboardingStepScaffold';
 import {
   interviewFieldsFromDraft,
   isExistingEmailError,
@@ -25,8 +21,12 @@ import {
   splitName,
 } from '@/features/onboarding/lib/registerFromInterview';
 import { useOnboardingStore } from '@/features/onboarding/store/onboardingStore';
-import { GlassCard } from '@/shared/components/GlassCard';
+import { AuthFormScaffold, authTitleStyles } from '@/shared/components/AuthFormScaffold';
+import { LabeledField } from '@/shared/components/LabeledField';
 import { colors, componentSizes, radii, spacing, textStyle } from '@/shared/theme/tokens';
+
+const PASSWORD_HINT =
+  'At least 8 characters. Not just numbers, not too common, and not too similar to your email or name.';
 
 export default function CreateAccountScreen() {
   const router = useRouter();
@@ -36,15 +36,14 @@ export default function CreateAccountScreen() {
   const registerMutation = useRegisterMutation();
   const loginMutation = useLoginMutation();
   const [banner, setBanner] = useState<string | null>(null);
-
   const {
     control,
     handleSubmit,
     formState: { errors },
     setError,
-  } = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: { ...splitName(draft.name), email: '', password: '' },
+  } = useForm<AccountCredentialsFormValues>({
+    resolver: zodResolver(accountCredentialsSchema),
+    defaultValues: { email: '', password: '', passwordConfirm: '' },
   });
 
   const finishSignIn = async (tokens: { access: string; refresh: string }) => {
@@ -92,138 +91,132 @@ export default function CreateAccountScreen() {
     });
   };
 
-  const submit = (values: RegisterFormValues) => {
-    commit({ ...values, ...interviewFieldsFromDraft(draft) });
+  const submit = (values: AccountCredentialsFormValues) => {
+    commit({
+      ...splitName(draft.name),
+      ...values,
+      ...interviewFieldsFromDraft(draft),
+    });
   };
-
   const isBusy = registerMutation.isPending || loginMutation.isPending;
 
   return (
-    <OnboardingStepScaffold
-      title={<Text style={onboardingTitleStyles.base}>Create your account</Text>}
-      footer={null}
-    >
-      <GlassCard variant="light">
-        <View style={styles.nameRow}>
-          <Controller
-            control={control}
-            name="firstName"
-            render={({ field }) => (
-              <TextInput
-                accessibilityLabel="First name"
-                placeholder="First name"
-                value={field.value}
-                onChangeText={field.onChange}
-                style={[styles.input, styles.nameInput]}
-                placeholderTextColor={colors.ink40}
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="lastName"
-            render={({ field }) => (
-              <TextInput
-                accessibilityLabel="Last name"
-                placeholder="Last name"
-                value={field.value}
-                onChangeText={field.onChange}
-                style={[styles.input, styles.nameInput]}
-                placeholderTextColor={colors.ink40}
-              />
-            )}
-          />
+    <AuthFormScaffold
+      title={
+        <View style={styles.titleRow}>
+          <Text style={authTitleStyles.base}>Create your</Text>
+          <Text style={[authTitleStyles.base, authTitleStyles.emphasis]}>account.</Text>
         </View>
-        {errors.firstName ? <Text style={styles.error}>{errors.firstName.message}</Text> : null}
-        {errors.lastName ? <Text style={styles.error}>{errors.lastName.message}</Text> : null}
-
+      }
+      footer={
+        <View>
+          <Pressable
+            onPress={handleSubmit(submit)}
+            disabled={isBusy}
+            accessibilityRole="button"
+            accessibilityLabel="Create account"
+            accessibilityState={{ disabled: isBusy }}
+            style={[styles.primaryButton, isBusy && styles.disabled]}
+          >
+            <Text style={styles.primaryButtonText}>
+              {isBusy ? 'Creating account…' : 'Create account'}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => router.push('/(auth)/login')}
+            accessibilityRole="link"
+            accessibilityLabel="I already have an account"
+            style={styles.link}
+          >
+            <Text style={styles.linkText}>I already have an account</Text>
+          </Pressable>
+        </View>
+      }
+    >
+      <View style={styles.fields}>
         <Controller
           control={control}
           name="email"
           render={({ field }) => (
-            <TextInput
-              accessibilityLabel="Email"
-              placeholder="Email"
+            <LabeledField
+              label="Email"
+              placeholder="you@example.com"
               autoCapitalize="none"
               keyboardType="email-address"
               value={field.value}
               onChangeText={field.onChange}
-              style={styles.input}
-              placeholderTextColor={colors.ink40}
             />
           )}
         />
         {errors.email ? <Text style={styles.error}>{errors.email.message}</Text> : null}
-
         <Controller
           control={control}
           name="password"
           render={({ field }) => (
-            <TextInput
-              accessibilityLabel="Password"
+            <LabeledField
+              label="Password"
               placeholder="Password"
               secureTextEntry
               value={field.value}
               onChangeText={field.onChange}
-              style={styles.input}
-              placeholderTextColor={colors.ink40}
             />
           )}
         />
         {errors.password ? <Text style={styles.error}>{errors.password.message}</Text> : null}
-
-        <Pressable
-          onPress={handleSubmit(submit)}
-          disabled={isBusy}
-          accessibilityRole="button"
-          accessibilityLabel="Create account"
-          style={[styles.createButton, isBusy && styles.disabled]}
-        >
-          <Text style={styles.createButtonText}>
-            {isBusy ? 'Creating account…' : 'Create account'}
-          </Text>
-        </Pressable>
-      </GlassCard>
-
-      {banner ? (
-        <View style={styles.bannerBlock}>
-          <Text style={styles.banner}>{banner}</Text>
-        </View>
-      ) : null}
-    </OnboardingStepScaffold>
+        <Text style={styles.hint}>{PASSWORD_HINT}</Text>
+        <Controller
+          control={control}
+          name="passwordConfirm"
+          render={({ field }) => (
+            <LabeledField
+              label="Confirm password"
+              placeholder="Confirm password"
+              secureTextEntry
+              value={field.value}
+              onChangeText={field.onChange}
+            />
+          )}
+        />
+        {errors.passwordConfirm ? (
+          <Text style={styles.error}>{errors.passwordConfirm.message}</Text>
+        ) : null}
+        {banner ? <Text style={styles.banner}>{banner}</Text> : null}
+      </View>
+    </AuthFormScaffold>
   );
 }
 
 const styles = StyleSheet.create({
-  nameRow: { flexDirection: 'row', gap: spacing.sm },
-  nameInput: { flex: 1 },
-  input: {
-    ...textStyle('body'),
-    color: colors.ink,
-    minHeight: componentSizes.minimumTapTarget,
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.sm,
+  titleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  fields: { gap: spacing.ms },
+  hint: {
+    ...textStyle('legal'),
+    color: colors.ink50,
+    paddingHorizontal: spacing.sliderCaptionGap,
   },
   error: {
     ...textStyle('caption'),
     color: colors.attention,
-    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.sliderCaptionGap,
   },
-  createButton: {
-    backgroundColor: colors.coreBlue,
+  banner: { ...textStyle('caption'), color: colors.attention, textAlign: 'center' },
+  primaryButton: {
+    height: componentSizes.authButtonHeight,
+    backgroundColor: colors.ink,
     borderRadius: radii.pill,
-    minHeight: componentSizes.minimumTapTarget,
-    paddingVertical: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: spacing.xs,
   },
-  createButtonText: { ...textStyle('body'), color: colors.white },
+  primaryButtonText: { ...textStyle('button'), color: colors.white },
   disabled: { opacity: 0.6 },
-  banner: {
-    ...textStyle('caption'),
-    color: colors.attention,
-    textAlign: 'center',
+  link: {
+    minHeight: componentSizes.minimumTapTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  bannerBlock: { marginTop: spacing.sm, alignItems: 'center' },
+  linkText: {
+    ...textStyle('linkMd'),
+    color: colors.ink55,
+    textDecorationLine: 'underline',
+  },
 });

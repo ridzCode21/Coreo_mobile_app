@@ -115,9 +115,9 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `linkMd`          | 12px      | 400              | normal                    | Medium understated text links                                         |
 | `linkSm`          | 11px      | 300              | normal                    | Small understated text links                                          |
 | `label`           | 10–10.5px | 500              | +1.6 to +2.6px, uppercase | Field labels, section eyebrows, nav captions                          |
-| `micro`           | 9px       | 500              | +1.4px, uppercase         | Tiny axis labels, timestamps inside charts                            |
+| `micro`           | 9px       | 500              | +1.4px, uppercase         | Tiny axis labels, timestamps, labeled auth fields                     |
 | `fine`            | 9.5px     | 300              | normal                    | Fine-print supporting captions                                        |
-| `legal`           | 10.5px    | 300              | normal                    | Privacy notes and fine print                                          |
+| `legal`           | 10.5px    | 300              | normal                    | Privacy notes, fine print, account-password hint                      |
 
 Non-type text tracking overrides also live in the token module; `tracking.wide` is `1px` for
 scanner codes and manual barcode entry.
@@ -158,6 +158,9 @@ plus these as additional padding, not instead of them.
 | `screen.padBottom`       | 30–40                                               |
 | `sheet.subtitleGap`      | 2                                                   |
 | `replace.detailGap`      | 3                                                   |
+| `auth.fieldsGap`         | 22 (auth title to labeled fields)                   |
+| `field.padY`             | 15 (labeled glass-field vertical padding)           |
+| `field.padX`             | 18 (labeled glass-field horizontal padding)         |
 
 **Radius scale:**
 
@@ -182,6 +185,7 @@ solid Continue pill; `componentSizes.onboardingArrowIcon` and `onboardingArrowSt
 its 16px, 2px-stroke trailing arrow.
 Save screen 8a uses `saveSocialButtonHeight` (54px), `saveSummaryIcon` (16px), and
 `saveSummaryIconStrokeWidth` (1.7px) for its social control and summary ripple.
+Account screens 8e and 8b use `authButtonHeight` (54px) for their solid-ink primary actions.
 `componentSizes.pillarRowHeight` is 76px for the core onboarding Pillars rows.
 `componentSizes.sheetGrabberWidth` / `sheetGrabberHeight` are 40×5px;
 `sheetChipHeight` is 42px; `sheetNoteHeight` is 48px; `sheetControlHeight` is 52px; and the compact
@@ -314,6 +318,8 @@ the `data-screen-label` text shown).
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `WaveMark`          | The wave logo (`react-native-svg` `Path`, exact path in `shared/components/WaveMark.tsx`), optional `coreo` wordmark alongside it                                                                                                                                                                                                                                                                 | app icon, splash, first-open, headers, empty states                                                                      |
 | `GlassCard`         | Light/night glass container, see §4                                                                                                                                                                                                                                                                                                                                                               | nearly every screen                                                                                                      |
+| `LabeledField`      | Light-glass text input with a 9px uppercase label, 13px value, 15×18px content padding, and `radius.control` corners                                                                                                                                                                                                                                                                              | 8e create account, 8b sign in                                                                                            |
+| `AuthFormScaffold`  | Safe-area, scrollable sky layout with wave/title/fields at the top and the primary action/link anchored below a flexible spacer; content remains width-constrained on large screens                                                                                                                                                                                                               | 8e create account, 8b sign in                                                                                            |
 | `PrimaryIconButton` | Circular, 44–64px, solid `ink` fill, white icon, one per screen max                                                                                                                                                                                                                                                                                                                               | first-open CTA, onboarding confirm                                                                                       |
 | `VoiceInputBar`     | Full-width night-glass pill (~60px tall): placeholder/typed text, optional circular mic button only when a real handler is wired, circular white confirm/arrow button                                                                                                                                                                                                                             | onboarding steps 7A1–7A8, chat entry points                                                                              |
 | `SelectableChip`    | Pill, `radius.pill`; **selected** = white fill + shadow + weight 500; **unselected** = translucent glass + border + weight 300, `ink62` text. `SelectableChipDisplay` shares those states for contextual labels that must not expose a button. The `sheet` variant uses 12px labels and `ink75` for unselected labels.                                                                            | 7A2 goals, 7A3 quick picks, 12A1–12A6 diet interview, 16A/17A setup flows; 29d/31a sheets                                |
@@ -361,6 +367,11 @@ but should not be built as the primary navigation.
 Surfacing per `CLAUDE.md` §8 — these exist in the design but conflict with current
 `docs/product-context.md` MVP scope. Build the screens (they're designed), but gate the
 underlying functionality behind the product decisions below rather than wiring them live:
+
+- **8c password reset is not built in issue #14.** Screens 8e/8b are implemented, but 8b's
+  design link currently opens an honest static placeholder. Replace it with the designed 8c
+  request/confirm flow against the backend's existing password-reset endpoints in a dedicated
+  issue; do not imply reset is available until that work exists.
 
 - **26A/26B "Coreo Plus" paywall** — `product-context.md` §5 lists subscriptions/monetization as
   explicitly out of MVP scope. Treat as a real screen to have ready, but don't integrate real
@@ -497,6 +508,10 @@ Centralize this instead of scattering `Dimensions`/`useWindowDimensions` calls t
   orientation policy?
 
 ## 12. Changelog
+
+- **v1.13 (issue #14 — account screens):** Added the 8e/8b auth-field spacing and button-height
+  tokens, plus shared `LabeledField` and `AuthFormScaffold` components; flagged the deferred 8c
+  password-reset flow.
 
 - **v1.12 (issue #12 — Save your core):** Added `ink80`, the 12px/400 `linkMd` text style, and
   the 14px `legal` radius used by screen 8a's Google label, email link, and privacy card.

@@ -1,4 +1,4 @@
-import type { RegisterFormValues, RegisterRequestValues } from '@/features/auth';
+import type { RegisterRequestValues } from '@/features/auth';
 import type { OnboardingDraft } from '@/features/onboarding/store/onboardingStore';
 import type { InterviewGoal } from '@/shared/types/user';
 
@@ -49,6 +49,7 @@ export function buildMockSocialIdentity(
     lastName,
     email: `${slugify(draft.name)}.${provider}.${unique}@mock.coreo.app`,
     password: `Mock-${unique}-Aa1`,
+    passwordConfirm: `Mock-${unique}-Aa1`,
     ...interviewFieldsFromDraft(draft),
   };
 }
@@ -59,10 +60,9 @@ export function isExistingEmailError(fieldErrors: Record<string, string[]> | nul
   );
 }
 
-export function registerFormField(field: string): keyof RegisterFormValues | null {
+export function registerFormField(field: string): 'email' | 'password' | 'passwordConfirm' | null {
   if (field === 'email') return 'email';
-  if (field === 'first_name' || field === 'firstName') return 'firstName';
-  if (field === 'last_name' || field === 'lastName') return 'lastName';
-  if (field === 'password' || field === 'password_confirm') return 'password';
+  if (field === 'password') return 'password';
+  if (field === 'password_confirm' || field === 'passwordConfirm') return 'passwordConfirm';
   return null;
 }

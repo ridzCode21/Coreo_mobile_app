@@ -1,3 +1,4 @@
+import { StyleSheet } from 'react-native';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import CreateAccountScreen from '@/features/onboarding/screens/CreateAccountScreen';
@@ -6,12 +7,16 @@ import {
   useOnboardingStore,
 } from '@/features/onboarding/store/onboardingStore';
 import { ApiError } from '@/shared/api/errors';
+import { colors, componentSizes, radii } from '@/shared/theme/tokens';
 
 const mockReplace = jest.fn();
+const mockPush = jest.fn();
 const mockRegisterMutate = jest.fn();
 const mockLoginMutate = jest.fn();
 
-jest.mock('expo-router', () => ({ useRouter: () => ({ replace: mockReplace }) }));
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ replace: mockReplace, push: mockPush }),
+}));
 
 jest.mock('@/features/auth/api/authApi', () => {
   const actual = jest.requireActual('@/features/auth/api/authApi');
@@ -46,9 +51,14 @@ function seedDraft(pillars: ('diet' | 'fitness' | 'wellness')[] = ['diet', 'fitn
   });
 }
 
+function fillCredentials(password = 'quiet-harbor-42', confirm = password) {
+  fireEvent.changeText(screen.getByPlaceholderText('you@example.com'), 'maya@example.com');
+  fireEvent.changeText(screen.getByPlaceholderText('Password'), password);
+  fireEvent.changeText(screen.getByPlaceholderText('Confirm password'), confirm);
+}
+
 async function submitForm() {
-  fireEvent.changeText(screen.getByPlaceholderText('Email'), 'maya@example.com');
-  fireEvent.changeText(screen.getByPlaceholderText('Password'), 'quiet-harbor-42');
+  fillCredentials();
   fireEvent.press(screen.getByRole('button', { name: 'Create account' }));
   await waitFor(() => expect(mockRegisterMutate).toHaveBeenCalled());
 }
@@ -64,22 +74,64 @@ function existingEmailError() {
   });
 }
 
-describe('onboarding: Create account screen', () => {
+describe('onboarding: Create account screen (8e, issue #14)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     seedDraft();
   });
 
-  it('shows the four account fields and Create account button', () => {
+  it('shows the design copy and fields in order: title, Email, Password, hint, Confirm password, button, link', () => {
     render(<CreateAccountScreen />);
-    expect(screen.getByPlaceholderText('First name')).toBeTruthy();
-    expect(screen.getByPlaceholderText('Last name')).toBeTruthy();
-    expect(screen.getByPlaceholderText('Email')).toBeTruthy();
-    expect(screen.getByPlaceholderText('Password')).toBeTruthy();
+
+    expect(screen.getByText('Create your')).toBeTruthy();
+    expect(screen.getByText('account.')).toBeTruthy();
+    expect(screen.getByText('Email')).toBeTruthy();
+    expect(screen.getByPlaceholderText('you@example.com')).toBeTruthy();
+    // Two "Password" labels exist (Password, Confirm password) — assert both placeholders exist.
+    expect(screen.getAllByText('Password').length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getByText(
+        'At least 8 characters. Not just numbers, not too common, and not too similar to your email or name.',
+      ),
+    ).toBeTruthy();
+    expect(screen.getByText('Confirm password')).toBeTruthy();
+    expect(screen.getByPlaceholderText('Confirm password')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Create account' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'I already have an account' })).toBeTruthy();
   });
 
-  it('submits the full stored interview without a diet-profile write', async () => {
+  it('renders no First name / Last name inputs — names come from the interview, not this screen', () => {
+    render(<CreateAccountScreen />);
+    expect(screen.queryByPlaceholderText('First name')).toBeNull();
+    expect(screen.queryByPlaceholderText('Last name')).toBeNull();
+  });
+
+  it('styles the button solid ink, pill radius, 54px height — matching 8e/8b exactly', () => {
+    render(<CreateAccountScreen />);
+    const button = screen.getByRole('button', { name: 'Create account' });
+    const flat = StyleSheet.flatten(button.props.style);
+    expect(flat.backgroundColor).toBe(colors.ink);
+    expect(flat.borderRadius).toBe(radii.pill);
+    expect(flat.height).toBe(componentSizes.authButtonHeight);
+  });
+
+  it('"I already have an account" navigates to sign in (8b) without touching the API', () => {
+    render(<CreateAccountScreen />);
+    fireEvent.press(screen.getByRole('link', { name: 'I already have an account' }));
+    expect(mockPush).toHaveBeenCalledWith('/(auth)/login');
+    expect(mockRegisterMutate).not.toHaveBeenCalled();
+  });
+
+  it('shows "Passwords do not match." when confirm differs, and never calls register', async () => {
+    render(<CreateAccountScreen />);
+    fillCredentials('quiet-harbor-42', 'typo-oops-99');
+    fireEvent.press(screen.getByRole('button', { name: 'Create account' }));
+
+    expect(await screen.findByText('Passwords do not match.')).toBeTruthy();
+    expect(mockRegisterMutate).not.toHaveBeenCalled();
+  });
+
+  it('submits the full stored interview (name from the draft, not the form) without a diet-profile write', async () => {
     render(<CreateAccountScreen />);
     await submitForm();
 
@@ -88,6 +140,7 @@ describe('onboarding: Create account screen', () => {
       lastName: 'Chen',
       email: 'maya@example.com',
       password: 'quiet-harbor-42',
+      passwordConfirm: 'quiet-harbor-42',
       goal: 'lose_weight',
       activePillars: ['diet', 'fitness'],
       age: 34,

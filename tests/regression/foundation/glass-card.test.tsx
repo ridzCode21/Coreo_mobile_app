@@ -93,4 +93,33 @@ describe('foundation: GlassCard variants (issue #53)', () => {
     const blur = screen.UNSAFE_getByType(BlurView);
     expect(blur.props.intensity).toBe(90);
   });
+
+  // Issue #14 — LabeledField (8e/8b) needs 15/18px field padding instead of the default 20px,
+  // without re-implementing the glass recipe. These two props are purely additive: every existing
+  // caller that omits them must render exactly as before.
+  describe('content padding overrides (issue #14)', () => {
+    it('defaults to 20/20px padding when no override is given', () => {
+      render(
+        <GlassCard>
+          <Text>content</Text>
+        </GlassCard>,
+      );
+      const content = screen.getByTestId('glass-card-content');
+      const flat = StyleSheet.flatten(content.props.style);
+      expect(flat.paddingVertical ?? flat.padding).toBe(20);
+      expect(flat.paddingHorizontal ?? flat.padding).toBe(20);
+    });
+
+    it('overrides vertical/horizontal padding independently when given', () => {
+      render(
+        <GlassCard contentPaddingVertical={15} contentPaddingHorizontal={18}>
+          <Text>content</Text>
+        </GlassCard>,
+      );
+      const content = screen.getByTestId('glass-card-content');
+      const flat = StyleSheet.flatten(content.props.style);
+      expect(flat.paddingVertical).toBe(15);
+      expect(flat.paddingHorizontal).toBe(18);
+    });
+  });
 });

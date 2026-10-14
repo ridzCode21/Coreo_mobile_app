@@ -129,6 +129,9 @@ export const spacing = {
   screenPadBottom: 36,
   sheetSubtitleGap: 2,
   replaceDetailGap: 3,
+  authFieldsGap: 22,
+  fieldPadY: 15,
+  fieldPadX: 18,
 } as const;
 
 export const radii = {
@@ -153,6 +156,7 @@ export const componentSizes = {
   onboardingArrowIcon: 16,
   onboardingArrowStrokeWidth: 2,
   saveSocialButtonHeight: 54,
+  authButtonHeight: 54,
   saveSummaryIcon: 16,
   saveSummaryIconStrokeWidth: 1.7,
   pillarRowHeight: 76,

@@ -76,7 +76,7 @@ export function useRegisterMutation() {
         {
           email: values.email,
           password: values.password,
-          password_confirm: values.password,
+          password_confirm: values.passwordConfirm,
           first_name: values.firstName,
           ...(values.lastName ? { last_name: values.lastName } : {}),
           goal: values.goal,

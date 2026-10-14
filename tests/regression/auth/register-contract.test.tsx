@@ -36,6 +36,7 @@ function values(overrides: Partial<RegisterRequestValues> = {}): RegisterRequest
     lastName: undefined,
     email: 'maya@example.com',
     password: 'quiet-harbor-42',
+    passwordConfirm: 'quiet-harbor-42',
     goal: 'lose_weight',
     activePillars: ['diet'],
     age: 34,
@@ -70,6 +71,7 @@ describe('auth: POST /users/register/ contract (issue #8)', () => {
         lastName: '',
         email: 'maya@example.com',
         password: 'quiet-harbor-42',
+        passwordConfirm: 'quiet-harbor-42',
       }).success,
     ).toBe(true);
 
@@ -79,6 +81,7 @@ describe('auth: POST /users/register/ contract (issue #8)', () => {
         lastName: '',
         email: 'maya@example.com',
         password: 'quiet-harbor-42',
+        passwordConfirm: 'quiet-harbor-42',
       }).success,
     ).toBe(false);
   });
@@ -105,6 +108,22 @@ describe('auth: POST /users/register/ contract (issue #8)', () => {
       },
       { auth: false },
     );
+  });
+
+  // Issue #14 — the real `UserRegistrationSerializer` (apps/users/serializers.py:26,81-83) treats
+  // `password_confirm` as its own field and 400s when it differs from `password`. Before this
+  // issue, `password_confirm` was always set equal to `password` at the call site, so a mismatch
+  // could never reach the server. This sends two genuinely different values to prove the bug is
+  // fixed — fails against the old `password_confirm: values.password` implementation.
+  it('sends password and passwordConfirm as the distinct request fields they are (bug fix)', async () => {
+    const { result } = renderHook(() => useRegisterMutation(), { wrapper });
+
+    result.current.mutate(values({ password: 'quiet-harbor-42', passwordConfirm: 'typo-oops-99' }));
+
+    await waitFor(() => expect(mockPost).toHaveBeenCalled());
+    const [, body] = mockPost.mock.calls[0];
+    expect(body.password).toBe('quiet-harbor-42');
+    expect(body.password_confirm).toBe('typo-oops-99');
   });
 
   it('omits Diet-only body fields for a Fitness-only registration', async () => {

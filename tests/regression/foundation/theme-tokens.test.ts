@@ -1,5 +1,6 @@
 import {
   colors,
+  componentSizes,
   glass,
   radii,
   sheetSkyGradient,
@@ -213,5 +214,17 @@ describe('foundation: theme tokens', () => {
 
   it('adds a wide letter-spacing token for scanner/manual-entry text (barcode screen)', () => {
     expect(tracking.wide).toBe(1);
+  });
+
+  // Issue #14 — Create account (8e) / Sign in (8b) design tokens.
+  describe('auth screen tokens (issue #14)', () => {
+    it('adds the 54px solid-ink button height shared by 8e "Create account" and 8b "Sign in"', () => {
+      expect(componentSizes.authButtonHeight).toBe(54);
+    });
+
+    it('adds the 15/18px labelled glass-field padding used by LabeledField', () => {
+      expect(spacing.fieldPadY).toBe(15);
+      expect(spacing.fieldPadX).toBe(18);
+    });
   });
 });
