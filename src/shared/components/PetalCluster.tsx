@@ -1,21 +1,25 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
+import { colors, fontFamily, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 
 export type PetalClusterItem = {
-  id: 'diet' | 'fitness' | 'wellness' | 'coreo';
+  id: 'diet' | 'fitness' | 'wellness' | 'core';
   label: string;
-  value: string;
-  active?: boolean;
-  onPress: () => void;
+  emphasized?: boolean;
+  onPress?: () => void;
 };
 
 type PetalClusterProps = {
   items: PetalClusterItem[];
 };
 
-function petalRadius(index: number) {
+type PetalSurfaceProps = {
+  item: PetalClusterItem;
+  index: number;
+};
+
+function petalRadius(index: number): ViewStyle {
   const outer = radii.petalOuter;
   const inner = radii.petalInner;
   return {
@@ -34,40 +38,51 @@ export function PetalCluster({ items }: PetalClusterProps) {
           <View key={rowStart} style={styles.row}>
             {items.slice(rowStart, rowStart + 2).map((item, rowIndex) => {
               const index = rowStart + rowIndex;
-              return (
+              const surface = <PetalSurface item={item} index={index} />;
+
+              return item.onPress ? (
                 <Pressable
                   key={item.id}
                   onPress={item.onPress}
                   accessibilityRole="button"
-                  accessibilityLabel={`${item.label}: ${item.value}`}
+                  accessibilityLabel={item.label}
                   style={({ pressed }) => [
                     styles.petalWrap,
                     petalRadius(index),
                     pressed && styles.pressed,
                   ]}
                 >
-                  <LinearGradient
-                    // Petals deliberately retain their own softer active/inactive recipe from the
-                    // design; it is close to, but distinct from, the shared chip material.
-                    colors={
-                      item.active
-                        ? [withAlpha(colors.white, 0.92), withAlpha(colors.white, 0.46)]
-                        : [withAlpha(colors.white, 0.54), withAlpha(colors.white, 0.16)]
-                    }
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={[styles.petal, petalRadius(index)]}
-                  >
-                    <Text style={styles.label}>{item.label}</Text>
-                    <Text style={styles.value}>{item.value}</Text>
-                  </LinearGradient>
+                  {surface}
                 </Pressable>
+              ) : (
+                <View key={item.id} style={[styles.petalWrap, petalRadius(index)]}>
+                  {surface}
+                </View>
               );
             })}
           </View>
         ))}
       </View>
     </View>
+  );
+}
+
+function PetalSurface({ item, index }: PetalSurfaceProps) {
+  return (
+    <LinearGradient
+      // Petals deliberately retain their own softer emphasized/default recipe from the design;
+      // it is close to, but distinct from, the shared chip material.
+      colors={
+        item.emphasized
+          ? [withAlpha(colors.white, 0.92), withAlpha(colors.white, 0.46)]
+          : [withAlpha(colors.white, 0.54), withAlpha(colors.white, 0.16)]
+      }
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.petal, petalRadius(index)]}
+    >
+      <Text style={[styles.label, item.emphasized && styles.emphasizedLabel]}>{item.label}</Text>
+    </LinearGradient>
   );
 }
 
@@ -118,10 +133,7 @@ const styles = StyleSheet.create({
     color: colors.ink,
     textAlign: 'center',
   },
-  value: {
-    ...textStyle('micro'),
-    color: colors.ink45,
-    marginTop: spacing.xs,
-    textAlign: 'center',
+  emphasizedLabel: {
+    fontFamily: fontFamily.poppins500,
   },
 });

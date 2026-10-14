@@ -1,4 +1,5 @@
 export { useSessionStore, type SessionTokens } from '@/features/auth/store/sessionStore';
+export { useProfileQuery } from '@/features/auth/api/profileApi';
 export {
   useLoginMutation,
   useRegisterMutation,

@@ -112,6 +112,7 @@ export const tracking = {
 export const spacing = {
   xs: 4,
   sliderCaptionGap: 6,
+  headerLogoGap: 7,
   sm: 8,
   ms: 10,
   md: 12,
@@ -155,6 +156,8 @@ export const radii = {
 
 export const componentSizes = {
   minimumTapTarget: 44,
+  homeHeaderMark: 18,
+  homeHeaderMarkStrokeWidth: 12,
   onboardingContinueHeight: 60,
   onboardingArrowIcon: 16,
   onboardingArrowStrokeWidth: 2,
@@ -216,6 +219,7 @@ export const typography = {
   pageTitle: { fontSize: 34, fontWeight: '200', letterSpacing: -1 },
   questionTitle: { fontSize: 30, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.4 },
   greeting: { fontSize: 28, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.35 },
+  greetingSubtitle: { fontSize: 13.5, fontWeight: '300', letterSpacing: 0 },
   cardValue: { fontSize: 22, fontWeight: '300', letterSpacing: 0 },
   portionReadout: { fontSize: 44, fontWeight: '200', letterSpacing: -1 },
   cardTitle: { fontSize: 19, fontWeight: '300', letterSpacing: -0.3 },
@@ -230,6 +234,12 @@ export const typography = {
   bodySm: { fontSize: 12.5, fontWeight: '300', letterSpacing: 0, lineHeight: 1.6 },
   small: { fontSize: 12, fontWeight: '300', letterSpacing: 0, lineHeight: 1.6 },
   caption: { fontSize: 11, fontWeight: '400', letterSpacing: 0 },
+  headerDate: {
+    fontSize: 10,
+    fontWeight: '400',
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+  },
   linkMd: { fontSize: 12, fontWeight: '400', letterSpacing: 0 },
   linkSm: { fontSize: 11, fontWeight: '300', letterSpacing: 0 },
   label: { fontSize: 10, fontWeight: '500', letterSpacing: 2, textTransform: 'uppercase' },

@@ -1,5 +1,6 @@
 import { registerMock } from '@/shared/api/mock/router';
 import { mockDb, type MockUser } from '@/shared/api/mock/db';
+import { requireMockUser } from '@/shared/api/mock/auth';
 import { styleAError, styleAOk } from '@/shared/api/mock/envelope';
 import { blacklistMockToken, issueTokenPair, verifyMockToken } from '@/shared/api/mock/tokens';
 import { ACTIVE_PILLARS, GENDERS, INTERVIEW_GOALS } from '@/shared/types/user';
@@ -23,6 +24,20 @@ function isAllowedValue<T extends string>(values: readonly T[], value: unknown):
 }
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** `GET /users/profile/` — Style A envelope from `profile.user_profile` in the backend. */
+registerMock('GET', '/users/profile/', (request) => {
+  const user = requireMockUser(request);
+  if (!user) {
+    return { status: 401, body: styleAError('UNAUTHORIZED', 'Authentication required.') };
+  }
+
+  return {
+    status: 200,
+    delayMs: 250,
+    body: styleAOk({ user: serializeMockUser(user) }),
+  };
+});
 
 registerMock('POST', '/users/password-reset/', (request) => {
   const body = (request.body ?? {}) as Record<string, unknown>;

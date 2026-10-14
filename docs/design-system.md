@@ -90,37 +90,42 @@ mid-ramp atmosphere must sit on a scrim or glass surface**, never bare on the gr
 **Single typeface: Poppins, weights 200/300/400/500 only — never 600+.** Hierarchy comes from
 weight contrast within a size, not from adding more sizes or going bold.
 
-| Token             | Size      | Weight           | Tracking                  | Use                                                                   |
-| ----------------- | --------- | ---------------- | ------------------------- | --------------------------------------------------------------------- |
-| `display`         | 78–88px   | 200              | tight (−2 to −2.5px)      | Hero data numbers (rendered as dot-matrix, see §6), lock-screen clock |
-| `heroMarketing`   | 52–64px   | 200              | −1.5 to −2px              | Marketing/brand moments only                                          |
-| `wordmark`        | 38px      | 300              | +6px                      | Logo wordmark exactly — never reuse this size for anything else       |
-| `pageTitle`       | 34px      | 200(+500 accent) | −1px                      | Section/page headers                                                  |
-| `questionTitle`   | 30px      | 200(+400 accent) | −0.5px, line-height 1.4   | Onboarding question headline                                          |
-| `greeting`        | 28px      | 200(+400 accent) | −0.5px, line-height 1.35  | "Morning, {name}." home greeting                                      |
-| `cardValue`       | 22–24px   | 300              | normal                    | Stat values inside cards (age/height/weight, profile name)            |
-| `portionReadout`  | 44px      | 200              | −1px                      | Current multiplier in the adjust-portion sheet                        |
-| `cardTitle`       | 19px      | 300              | −0.3px                    | Card and confirmation titles                                          |
-| `sheetSubtitle`   | 11.5px    | 300              | normal                    | Sheet question subtitles (e.g. "Helps me plan better tomorrow.")      |
-| `sheetTitle`      | 25px      | 200              | −0.5px, line-height 1.4   | Bottom-sheet titles (e.g. paywall)                                    |
-| `bodyLg`          | 14–15px   | 300              | normal                    | Assistant responses, emphasized body text                             |
-| `quotaMessage`    | 16px      | 300              | normal, line-height 1.7   | Daily-limit message inside the regenerate sheet                       |
-| `button`          | 14px      | 500              | normal                    | Primary button labels                                                 |
-| `buttonSm`        | 13.5px    | 500              | normal                    | Compact button labels                                                 |
-| `body`            | 13px      | 300              | normal, line-height 1.8   | Default body copy                                                     |
-| `portionEstimate` | 13px      | 400              | normal                    | Live macro estimate in the adjust-portion sheet                       |
-| `bodySm`          | 12–12.5px | 300              | normal, line-height ~1.6  | Card descriptions, insight text                                       |
-| `small`           | 12px      | 300              | normal, line-height 1.6   | Small supporting text                                                 |
-| `caption`         | 11px      | 400              | normal                    | Chip text, secondary metadata                                         |
-| `linkMd`          | 12px      | 400              | normal                    | Medium understated text links                                         |
-| `linkSm`          | 11px      | 300              | normal                    | Small understated text links                                          |
-| `label`           | 10–10.5px | 500              | +1.6 to +2.6px, uppercase | Field labels, section eyebrows, nav captions                          |
-| `micro`           | 9px       | 500              | +1.4px, uppercase         | Tiny axis labels, timestamps, labeled auth fields                     |
-| `fine`            | 9.5px     | 300              | normal                    | Fine-print supporting captions                                        |
-| `legal`           | 10.5px    | 300              | normal                    | Privacy notes, fine print, account-password hint                      |
+| Token              | Size      | Weight           | Tracking                  | Use                                                                   |
+| ------------------ | --------- | ---------------- | ------------------------- | --------------------------------------------------------------------- |
+| `display`          | 78–88px   | 200              | tight (−2 to −2.5px)      | Hero data numbers (rendered as dot-matrix, see §6), lock-screen clock |
+| `heroMarketing`    | 52–64px   | 200              | −1.5 to −2px              | Marketing/brand moments only                                          |
+| `wordmark`         | 38px      | 300              | +6px                      | Logo wordmark exactly — never reuse this size for anything else       |
+| `pageTitle`        | 34px      | 200(+500 accent) | −1px                      | Section/page headers                                                  |
+| `questionTitle`    | 30px      | 200(+400 accent) | −0.5px, line-height 1.4   | Onboarding question headline                                          |
+| `greeting`         | 28px      | 200(+400 accent) | −0.5px, line-height 1.35  | "Morning, {name}." home greeting                                      |
+| `greetingSubtitle` | 13.5px    | 300              | normal                    | Supporting line below the home greeting                               |
+| `cardValue`        | 22–24px   | 300              | normal                    | Stat values inside cards (age/height/weight, profile name)            |
+| `portionReadout`   | 44px      | 200              | −1px                      | Current multiplier in the adjust-portion sheet                        |
+| `cardTitle`        | 19px      | 300              | −0.3px                    | Card and confirmation titles                                          |
+| `sheetSubtitle`    | 11.5px    | 300              | normal                    | Sheet question subtitles (e.g. "Helps me plan better tomorrow.")      |
+| `sheetTitle`       | 25px      | 200              | −0.5px, line-height 1.4   | Bottom-sheet titles (e.g. paywall)                                    |
+| `bodyLg`           | 14–15px   | 300              | normal                    | Assistant responses, emphasized body text                             |
+| `quotaMessage`     | 16px      | 300              | normal, line-height 1.7   | Daily-limit message inside the regenerate sheet                       |
+| `button`           | 14px      | 500              | normal                    | Primary button labels                                                 |
+| `buttonSm`         | 13.5px    | 500              | normal                    | Compact button labels                                                 |
+| `body`             | 13px      | 300              | normal, line-height 1.8   | Default body copy                                                     |
+| `portionEstimate`  | 13px      | 400              | normal                    | Live macro estimate in the adjust-portion sheet                       |
+| `bodySm`           | 12–12.5px | 300              | normal, line-height ~1.6  | Card descriptions, insight text                                       |
+| `small`            | 12px      | 300              | normal, line-height 1.6   | Small supporting text                                                 |
+| `caption`          | 11px      | 400              | normal                    | Chip text, secondary metadata                                         |
+| `headerDate`       | 10px      | 400              | +1.6px, uppercase         | Date in the home header                                               |
+| `linkMd`           | 12px      | 400              | normal                    | Medium understated text links                                         |
+| `linkSm`           | 11px      | 300              | normal                    | Small understated text links                                          |
+| `label`            | 10–10.5px | 500              | +1.6 to +2.6px, uppercase | Field labels, section eyebrows, nav captions                          |
+| `micro`            | 9px       | 500              | +1.4px, uppercase         | Tiny axis labels, timestamps, labeled auth fields                     |
+| `fine`             | 9.5px     | 300              | normal                    | Fine-print supporting captions                                        |
+| `legal`            | 10.5px    | 300              | normal                    | Privacy notes, fine print, account-password hint                      |
 
 Non-type text tracking overrides also live in the token module; `tracking.wide` is `1px` for
 scanner codes and manual barcode entry.
+
+The compact Home header uses `componentSizes.homeHeaderMark` (`18px`) and
+`componentSizes.homeHeaderMarkStrokeWidth` (`12`) for the design's small wave glyph.
 
 Rules:
 
@@ -142,6 +147,7 @@ plus these as additional padding, not instead of them.
 | ------------------------ | --------------------------------------------------- |
 | `space.xs`               | 4                                                   |
 | `space.sliderCaptionGap` | 6                                                   |
+| `space.headerLogoGap`    | 7 (home wave mark to wordmark)                      |
 | `space.sm`               | 8                                                   |
 | `space.ms`               | 10                                                  |
 | `space.md`               | 12                                                  |
