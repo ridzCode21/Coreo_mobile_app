@@ -14,6 +14,8 @@ type GlassCardProps = PropsWithChildren<{
   /** Set false only for the rare screen that already has its own dark/night hero card visible —
    * design-system.md §4 caps this at one per screen. */
   padded?: boolean;
+  contentPaddingVertical?: number;
+  contentPaddingHorizontal?: number;
 }>;
 
 /**
@@ -27,6 +29,8 @@ export function GlassCard({
   style,
   radius,
   padded = true,
+  contentPaddingVertical,
+  contentPaddingHorizontal,
 }: GlassCardProps) {
   const palette = glass[variant];
   const resolvedRadius = radius ?? (variant === 'sheet' ? radii.xxl : radii.lg);
@@ -75,7 +79,24 @@ export function GlassCard({
           end={{ x: 0, y: 1 }}
           style={styles.topHighlight}
         />
-        <View style={padded ? styles.content : undefined}>{children}</View>
+        <View
+          testID="glass-card-content"
+          style={
+            padded
+              ? [
+                  styles.content,
+                  contentPaddingVertical !== undefined && {
+                    paddingVertical: contentPaddingVertical,
+                  },
+                  contentPaddingHorizontal !== undefined && {
+                    paddingHorizontal: contentPaddingHorizontal,
+                  },
+                ]
+              : undefined
+          }
+        >
+          {children}
+        </View>
       </View>
     </View>
   );
