@@ -134,25 +134,26 @@ plus these as additional padding, not instead of them.
 
 **Spacing scale** (use these, not arbitrary values):
 
-| Token                    | px                         |
-| ------------------------ | -------------------------- |
-| `space.xs`               | 4                          |
-| `space.sliderCaptionGap` | 6                          |
-| `space.sm`               | 8                          |
-| `space.ms`               | 10                         |
-| `space.md`               | 12                         |
-| `space.ml`               | 14                         |
-| `space.lg`               | 16                         |
-| `sheet.titleGap`         | 18                         |
-| `space.xl`               | 20                         |
-| `space.xxl`              | 24                         |
-| `space.xxxl`             | 32                         |
-| `portion.readoutGap`     | 22                         |
-| `screen.padX`            | 26 (22 on compact layouts) |
-| `screen.padTop`          | 64                         |
-| `screen.padBottom`       | 30–40                      |
-| `sheet.subtitleGap`      | 2                          |
-| `replace.detailGap`      | 3                          |
+| Token                    | px                                                  |
+| ------------------------ | --------------------------------------------------- |
+| `space.xs`               | 4                                                   |
+| `space.sliderCaptionGap` | 6                                                   |
+| `space.sm`               | 8                                                   |
+| `space.ms`               | 10                                                  |
+| `space.md`               | 12                                                  |
+| `space.ml`               | 14                                                  |
+| `space.lg`               | 16                                                  |
+| `sheet.titleGap`         | 18                                                  |
+| `space.xl`               | 20                                                  |
+| `space.xxl`              | 24                                                  |
+| `space.xxxl`             | 32                                                  |
+| `space.stepHeaderGap`    | 56 (progress dots to onboarding wave + title group) |
+| `portion.readoutGap`     | 22                                                  |
+| `screen.padX`            | 26 (22 on compact layouts)                          |
+| `screen.padTop`          | 64                                                  |
+| `screen.padBottom`       | 30–40                                               |
+| `sheet.subtitleGap`      | 2                                                   |
+| `replace.detailGap`      | 3                                                   |
 
 **Radius scale:**
 
@@ -171,7 +172,8 @@ plus these as additional padding, not instead of them.
 | `radius.circle`    | `50%`                   | Icon buttons, avatars, orb                                            |
 | `radius.petal`     | 125 (outer corner only) | Petal-cluster cells, see §6                                           |
 
-**Sheet control sizes:** `componentSizes.sheetGrabberWidth` / `sheetGrabberHeight` are 40×5px;
+**Component sizes:** `componentSizes.pillarRowHeight` is 76px for the core onboarding Pillars
+rows. `componentSizes.sheetGrabberWidth` / `sheetGrabberHeight` are 40×5px;
 `sheetChipHeight` is 42px; `sheetNoteHeight` is 48px; `sheetControlHeight` is 52px; and the compact
 voice affordance uses `sheetVoiceButton` / `sheetVoiceIcon` at 38px / 14px. Regenerate rebuilding
 steps use `rebuildingStepIndicator` / `rebuildingStepBorderWidth` at 20px / 1.5px. The portion slider uses
@@ -303,11 +305,11 @@ the `data-screen-label` text shown).
 | `WaveMark`          | The wave logo (`react-native-svg` `Path`, exact path in `shared/components/WaveMark.tsx`), optional `coreo` wordmark alongside it                                                                                                                                                                                                                                                                 | app icon, splash, first-open, headers, empty states                                                                      |
 | `GlassCard`         | Light/night glass container, see §4                                                                                                                                                                                                                                                                                                                                                               | nearly every screen                                                                                                      |
 | `PrimaryIconButton` | Circular, 44–64px, solid `ink` fill, white icon, one per screen max                                                                                                                                                                                                                                                                                                                               | first-open CTA, onboarding confirm                                                                                       |
-| `VoiceInputBar`     | Full-width night-glass pill (~60px tall): placeholder/typed text, circular mic button, circular white confirm/arrow button                                                                                                                                                                                                                                                                        | onboarding steps 7A1–7A8, chat entry points                                                                              |
-| `SelectableChip`    | Pill, `radius.pill`; **selected** = white fill + shadow + weight 500; **unselected** = translucent glass + border + weight 300, `ink62` text. The `sheet` variant uses 12px labels and `ink75` for unselected labels.                                                                                                                                                                             | 7A2 goals, 12A1–12A6 diet interview, 16A/17A setup flows; 29d/31a sheets                                                 |
+| `VoiceInputBar`     | Full-width night-glass pill (~60px tall): placeholder/typed text, optional circular mic button only when a real handler is wired, circular white confirm/arrow button                                                                                                                                                                                                                             | onboarding steps 7A1–7A8, chat entry points                                                                              |
+| `SelectableChip`    | Pill, `radius.pill`; **selected** = white fill + shadow + weight 500; **unselected** = translucent glass + border + weight 300, `ink62` text. `SelectableChipDisplay` shares those states for contextual labels that must not expose a button. The `sheet` variant uses 12px labels and `ink75` for unselected labels.                                                                            | 7A2 goals, 7A3 quick picks, 12A1–12A6 diet interview, 16A/17A setup flows; 29d/31a sheets                                |
 | `ProgressDots`      | Row of 8 pill/dot segments; active = 24×4px white pill with glow, inactive = 10×4px `rgba(255,255,255,.45)`                                                                                                                                                                                                                                                                                       | all onboarding step screens                                                                                              |
 | `SliderRow`         | Glass card containing: label + value header, track (`rgba(ink,.16)`), filled portion (`rgba(ink,.6)`), 18px white glowing thumb                                                                                                                                                                                                                                                                   | 7A3 about you (age/height/weight)                                                                                        |
-| `ToggleRow`         | Full-width selectable row, `radii.xl` corners, ~70px min height, top sheen highlight, `cardValue` (18–20/300) title; `selectionMode: 'radio' \| 'check'` prop picks a dot (single-select) or check (multi-select) trailing mark on the same chassis — not in the original spec, promoted to shared after appearing 2×+ (see §12)                                                                  | 7A4 pillars, 7A5 sources, all 12A diet-interview single/multi cards                                                      |
+| `ToggleRow`         | Full-width selectable row, `radii.xl` corners, ~70px default min height (Pillars passes the 76px `pillarRowHeight` token), top sheen highlight, `cardValue` (18–20/300) title; `selectionMode: 'radio' \| 'check'` prop picks a dot (single-select) or check (multi-select) trailing mark on the same chassis — not in the original spec, promoted to shared after appearing 2×+ (see §12)        | 7A4 pillars, 7A5 sources, all 12A diet-interview single/multi cards                                                      |
 | `ListRow`           | Row with title + muted subtitle on the left, chevron on the right, inside a light-glass card                                                                                                                                                                                                                                                                                                      | profile pillar summaries, connected devices                                                                              |
 | `StatusChip`        | Small rounded label chip, translucent white or `rgba(255,255,255,.16)` on dark, `caption` text                                                                                                                                                                                                                                                                                                    | assistant action confirmations ("Fitness moved"), check-in preference tags                                               |
 | `SegmentedControl`  | Glass track, active segment = white pill w/ shadow, others plain text                                                                                                                                                                                                                                                                                                                             | "pillar strip" home nav concept (23B) — see §8 for nav status                                                            |

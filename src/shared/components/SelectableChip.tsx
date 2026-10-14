@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { colors, fontFamily, glass, radii, spacing, textStyle } from '@/shared/theme/tokens';
@@ -10,6 +10,8 @@ type SelectableChipProps = {
   style?: ViewStyle;
   variant?: 'default' | 'sheet';
 };
+
+type SelectableChipDisplayProps = Omit<SelectableChipProps, 'onPress'>;
 
 /**
  * Pill chip used across goal/diet-interview/setup selection screens — docs/design-system.md §7.
@@ -33,26 +35,61 @@ export function SelectableChip({
         accessibilityState={{ selected }}
         style={[styles.base, styles.selected, style]}
       >
-        <Text style={[styles.selectedText, variant === 'sheet' && styles.sheetSelectedText]}>
-          {label}
-        </Text>
+        <ChipLabel label={label} selected variant={variant} />
       </Pressable>
     );
   }
 
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityState={{ selected }}>
-      <LinearGradient
-        colors={glass.chip.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.base, styles.unselected, style]}
-      >
-        <Text style={[styles.unselectedText, variant === 'sheet' && styles.sheetUnselectedText]}>
-          {label}
-        </Text>
-      </LinearGradient>
+      <SelectableChipDisplay label={label} selected={false} style={style} variant={variant} />
     </Pressable>
+  );
+}
+
+/** Same visual states as `SelectableChip`, for contextual labels that are not actions. */
+export function SelectableChipDisplay({
+  label,
+  selected,
+  style,
+  variant = 'default',
+}: SelectableChipDisplayProps) {
+  if (selected) {
+    return (
+      <View style={[styles.base, styles.selected, style]}>
+        <ChipLabel label={label} selected variant={variant} />
+      </View>
+    );
+  }
+
+  return (
+    <LinearGradient
+      colors={glass.chip.gradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.base, styles.unselected, style]}
+    >
+      <ChipLabel label={label} selected={false} variant={variant} />
+    </LinearGradient>
+  );
+}
+
+function ChipLabel({
+  label,
+  selected,
+  variant,
+}: Pick<SelectableChipProps, 'label' | 'selected'> & {
+  variant: NonNullable<SelectableChipProps['variant']>;
+}) {
+  return (
+    <Text
+      style={[
+        selected ? styles.selectedText : styles.unselectedText,
+        variant === 'sheet' && (selected ? styles.sheetSelectedText : styles.sheetUnselectedText),
+      ]}
+    >
+      {label}
+    </Text>
   );
 }
 

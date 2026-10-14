@@ -10,17 +10,15 @@ type VoiceInputBarProps = {
   placeholder: string;
   onSubmit: () => void;
   submitDisabled?: boolean;
-  /** Visual only — see docs/design-system.md §9/implementation-plan.md F5: there is no real
-   * speech-to-text wired up. Defaults to focusing the text field so the row still feels alive. */
+  /** Omit until the caller has a real voice-input action; dead affordances must not render. */
   onMicPress?: () => void;
   autoFocus?: boolean;
   style?: ViewStyle;
 };
 
 /**
- * Night-glass input pill used across onboarding — docs/design-system.md §7 `VoiceInputBar`. Mic
- * button is a mocked affordance (no real voice capture in this app yet); the text field + confirm
- * arrow are the actual input path.
+ * Night-glass input pill used across onboarding — docs/design-system.md §7 `VoiceInputBar`. The
+ * text field + confirm arrow are always available; the mic appears only when voice input is wired.
  */
 export function VoiceInputBar({
   value,
@@ -45,32 +43,34 @@ export function VoiceInputBar({
           onSubmitEditing={submitDisabled ? undefined : onSubmit}
           returnKeyType="done"
         />
-        <Pressable
-          onPress={onMicPress}
-          accessibilityRole="button"
-          accessibilityLabel="Voice input"
-          style={styles.micButton}
-        >
-          <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-            <Rect
-              x={9}
-              y={3}
-              width={6}
-              height={11}
-              rx={3}
-              stroke={colors.onNight}
-              strokeWidth={1.8}
-            />
-            <Path
-              d="M5 11a7 7 0 0 0 14 0M12 18v3"
-              stroke={colors.onNight}
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-            />
-          </Svg>
-        </Pressable>
+        {onMicPress ? (
+          <Pressable
+            onPress={onMicPress}
+            accessibilityRole="button"
+            accessibilityLabel="Voice input"
+            style={styles.micButton}
+          >
+            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+              <Rect
+                x={9}
+                y={3}
+                width={6}
+                height={11}
+                rx={3}
+                stroke={colors.onNight}
+                strokeWidth={1.8}
+              />
+              <Path
+                d="M5 11a7 7 0 0 0 14 0M12 18v3"
+                stroke={colors.onNight}
+                strokeWidth={1.8}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </Svg>
+          </Pressable>
+        ) : null}
         <Pressable
           onPress={onSubmit}
           disabled={submitDisabled}
