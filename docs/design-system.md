@@ -111,8 +111,10 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `bodySm`          | 12–12.5px | 300              | normal, line-height ~1.6  | Card descriptions, insight text                                       |
 | `small`           | 12px      | 300              | normal, line-height 1.6   | Small supporting text                                                 |
 | `caption`         | 11px      | 400              | normal                    | Chip text, secondary metadata                                         |
+| `linkSm`          | 11px      | 300              | normal                    | Small understated text links                                          |
 | `label`           | 10–10.5px | 500              | +1.6 to +2.6px, uppercase | Field labels, section eyebrows, nav captions                          |
 | `micro`           | 9px       | 500              | +1.4px, uppercase         | Tiny axis labels, timestamps inside charts                            |
+| `fine`            | 9.5px     | 300              | normal                    | Fine-print supporting captions                                        |
 | `legal`           | 10.5px    | 300              | normal                    | Privacy notes and fine print                                          |
 
 Non-type text tracking overrides also live in the token module; `tracking.wide` is `1px` for
