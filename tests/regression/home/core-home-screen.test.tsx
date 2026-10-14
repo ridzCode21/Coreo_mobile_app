@@ -10,6 +10,15 @@
  * from Home rather than kept (see plan.md Decision log); this test locks that in. The existing
  * "Today" nutrition/movement/hydration card is untouched — the issue doesn't call it out as extra,
  * so it's out of this issue's diff.
+ *
+ * Issue #18 — adds the design's "Today" hero wave/score card, the "Your core" nudge card, and the
+ * "Ask me anything" bar (design-spec.md 24b/10a lines 7-20). The Core Index score, the nudge text
+ * and the "ahead of yesterday" comparison have no backend source yet (issue #18 body), so they
+ * stay hidden rather than showing an invented value — only the hero card's eyebrow label, axis
+ * and decorative wave (driven by the clock, not fabricated data) can actually render today. This
+ * introduces a second element with the exact text "Today" (the hero card's eyebrow, alongside the
+ * pre-existing nutrition card's own "Today" label) — the single-match assertion below is updated
+ * to expect both, not weakened.
  */
 
 import { render, screen } from '@testing-library/react-native';
@@ -106,11 +115,39 @@ describe('home: CoreoHomeScreen (issue #17)', () => {
     expect(screen.queryByRole('button', { name: 'Add water' })).toBeNull();
   });
 
-  it('still shows the existing "Today" nutrition/movement/hydration card (not part of this issue)', () => {
+  it('still shows the existing "Today" nutrition/movement/hydration card, alongside the new "Today" hero card (issue #18)', () => {
     render(<CoreoHomeScreen />);
-    expect(screen.getByText('Today')).toBeTruthy();
+    expect(screen.getAllByText('Today')).toHaveLength(2);
     expect(screen.getByText('Nutrition')).toBeTruthy();
     expect(screen.getByText('Movement')).toBeTruthy();
     expect(screen.getByText('Hydration')).toBeTruthy();
+  });
+
+  describe('issue #18: Today hero wave/score, the one nudge, Ask me anything', () => {
+    it('shows the Today hero card wave and the Morning / Now / Evening axis', () => {
+      render(<CoreoHomeScreen />);
+      expect(screen.getByTestId('home-today-wave')).toBeTruthy();
+      expect(screen.getByText('Morning')).toBeTruthy();
+      expect(screen.getByText('Now')).toBeTruthy();
+      expect(screen.getByText('Evening')).toBeTruthy();
+    });
+
+    it('never invents the Core Index score: the backend has no score endpoint yet', () => {
+      render(<CoreoHomeScreen />);
+      expect(screen.queryByTestId('home-today-score')).toBeNull();
+    });
+
+    it('does not show the "Your core" nudge card: the backend has no nudge-text endpoint yet (Self_dev#44)', () => {
+      render(<CoreoHomeScreen />);
+      expect(screen.queryByText('Your core')).toBeNull();
+      expect(
+        screen.queryByText("Eat carbs in the next hour and tonight's session will feel easy."),
+      ).toBeNull();
+    });
+
+    it('shows the "Ask me anything" bar as a static placeholder (no chat screen to wire it to yet)', () => {
+      render(<CoreoHomeScreen />);
+      expect(screen.getByText('Ask me anything')).toBeTruthy();
+    });
   });
 });

@@ -3,8 +3,8 @@
  * normal home (issue #17) with the calibrating layout (design 10b, lines 686-771): "Welcome in,
  * {name}.", the fixed subtitle, a "Calibrating" card with a fully dashed wave and "Day {n} / Real by
  * day 4", the "Reading you" card, "While I read, go meet your pillars.", and petals with sub-labels.
- * From day 4 (`wave: 'solid'`) the existing issue-#17 home must appear completely unchanged — this
- * is the regression half of the test, locking in that the new branch cannot leak into the old one.
+ * From day 4 (`wave: 'solid'`) the normal issue-#17/#18 home must appear — this is the regression
+ * half of the test, locking in that the calibrating branch cannot leak into the solid-wave home.
  */
 
 import { render, screen } from '@testing-library/react-native';
@@ -135,7 +135,7 @@ describe('home: CoreoHomeScreen calibrating state (issue #19)', () => {
     });
   });
 
-  describe('day 4+ (wave: solid) — unchanged issue #17 home', () => {
+  describe('day 4+ (wave: solid) — normal issue #17/#18 home', () => {
     beforeEach(() => {
       mockProfileData = {
         first_name: 'Asha',
@@ -154,9 +154,10 @@ describe('home: CoreoHomeScreen calibrating state (issue #19)', () => {
       expect(screen.queryByText('While I read, go meet your pillars.')).toBeNull();
     });
 
-    it('still shows the existing "Today" card', () => {
+    it('shows both the issue #18 hero and the existing nutrition "Today" card', () => {
       render(<CoreoHomeScreen />);
-      expect(screen.getByText('Today')).toBeTruthy();
+      expect(screen.getAllByText('Today')).toHaveLength(2);
+      expect(screen.getByText('Nutrition')).toBeTruthy();
     });
   });
 

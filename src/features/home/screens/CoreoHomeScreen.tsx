@@ -8,9 +8,11 @@ import { SkyBackground } from '@/shared/components/SkyBackground';
 import { colors, fontFamily, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 import { useProfileQuery } from '@/features/auth';
 import { useSourcesQuery } from '@/features/home/api/sourcesApi';
+import { AskAnythingBar } from '@/features/home/components/AskAnythingBar';
 import { CalibratingWaveCard } from '@/features/home/components/CalibratingWaveCard';
 import { HomeHeader } from '@/features/home/components/HomeHeader';
 import { ReadingYouCard } from '@/features/home/components/ReadingYouCard';
+import { TodayScoreCard } from '@/features/home/components/TodayScoreCard';
 import { timeOfDayGreeting } from '@/features/home/lib/greeting';
 import { targetQuality, useDietProfileQuery } from '@/features/onboarding';
 import { targetsFromProfile, todayISO, useDailySummaryQuery } from '@/features/nutrition';
@@ -142,6 +144,8 @@ export default function CoreoHomeScreen() {
               <Text style={styles.greetingSubtitle}>{headline}</Text>
             </View>
 
+            <TodayScoreCard now={now} />
+
             {isLoading ? (
               <View style={styles.loading}>
                 <ActivityIndicator color={colors.ink45} />
@@ -197,6 +201,8 @@ export default function CoreoHomeScreen() {
                     },
                   ]}
                 />
+
+                <AskAnythingBar />
               </>
             )}
           </>
