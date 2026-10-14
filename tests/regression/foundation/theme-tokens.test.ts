@@ -227,4 +227,29 @@ describe('foundation: theme tokens', () => {
       expect(spacing.fieldPadX).toBe(18);
     });
   });
+
+  // Issue #17 — home header row (design-spec.md 24b/10a).
+  describe('home header tokens (issue #17)', () => {
+    it('adds the 7px gap between the wave mark and the "coreo" wordmark in the home header', () => {
+      expect(spacing.headerLogoGap).toBe(7);
+    });
+
+    it('adds the 10px/400/1.6-letter-spacing uppercase date style ("Mon · Jul 7")', () => {
+      expect(typography.headerDate).toEqual({
+        fontSize: 10,
+        fontWeight: '400',
+        letterSpacing: 1.6,
+        textTransform: 'uppercase',
+      });
+      expect(textStyle('headerDate').textTransform).toBe('uppercase');
+    });
+
+    it('adds the 13.5px/300 greeting subtitle style ("You\'re running ahead of yesterday." slot)', () => {
+      expect(typography.greetingSubtitle).toEqual({
+        fontSize: 13.5,
+        fontWeight: '300',
+        letterSpacing: 0,
+      });
+    });
+  });
 });

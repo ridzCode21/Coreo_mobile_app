@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 
 import { secureAuthTokenStore } from '@/shared/api/authTokenStore';
+import { queryClient } from '@/shared/api/queryClient';
+import { profileKeys } from '@/features/auth/api/profileApi';
 
 type SessionStatus = 'checking' | 'signedOut' | 'signedIn';
 
@@ -43,6 +45,7 @@ export const useSessionStore = create<SessionState>((set) => ({
 
   signOut: async () => {
     await secureAuthTokenStore.clearTokens();
+    queryClient.removeQueries({ queryKey: profileKeys.all });
     set({ status: 'signedOut' });
   },
 }));
