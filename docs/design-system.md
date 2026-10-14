@@ -172,8 +172,11 @@ plus these as additional padding, not instead of them.
 | `radius.circle`    | `50%`                   | Icon buttons, avatars, orb                                            |
 | `radius.petal`     | 125 (outer corner only) | Petal-cluster cells, see §6                                           |
 
-**Component sizes:** `componentSizes.pillarRowHeight` is 76px for the core onboarding Pillars
-rows. `componentSizes.sheetGrabberWidth` / `sheetGrabberHeight` are 40×5px;
+**Component sizes:** `componentSizes.onboardingContinueHeight` is 60px for the core onboarding
+solid Continue pill; `componentSizes.onboardingArrowIcon` and `onboardingArrowStrokeWidth` define
+its 16px, 2px-stroke trailing arrow.
+`componentSizes.pillarRowHeight` is 76px for the core onboarding Pillars rows.
+`componentSizes.sheetGrabberWidth` / `sheetGrabberHeight` are 40×5px;
 `sheetChipHeight` is 42px; `sheetNoteHeight` is 48px; `sheetControlHeight` is 52px; and the compact
 voice affordance uses `sheetVoiceButton` / `sheetVoiceIcon` at 38px / 14px. Regenerate rebuilding
 steps use `rebuildingStepIndicator` / `rebuildingStepBorderWidth` at 20px / 1.5px. The portion slider uses

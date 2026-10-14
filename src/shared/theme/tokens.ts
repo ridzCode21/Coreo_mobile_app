@@ -147,6 +147,9 @@ export const radii = {
 
 export const componentSizes = {
   minimumTapTarget: 44,
+  onboardingContinueHeight: 60,
+  onboardingArrowIcon: 16,
+  onboardingArrowStrokeWidth: 2,
   pillarRowHeight: 76,
   sheetGrabberWidth: 40,
   sheetGrabberHeight: 5,

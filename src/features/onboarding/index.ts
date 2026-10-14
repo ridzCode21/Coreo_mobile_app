@@ -11,7 +11,6 @@ export { default as FirstOpenScreen } from '@/features/onboarding/screens/FirstO
 export { default as NameScreen } from '@/features/onboarding/screens/NameScreen';
 export { default as GoalScreen } from '@/features/onboarding/screens/GoalScreen';
 export { default as AboutYouScreen } from '@/features/onboarding/screens/AboutYouScreen';
-export { default as GenderScreen } from '@/features/onboarding/screens/GenderScreen';
 export { default as PillarsScreen } from '@/features/onboarding/screens/PillarsScreen';
 export { default as SaveScreen } from '@/features/onboarding/screens/SaveScreen';
 export { firstUnansweredFlowStep, flowStepRoute } from '@/features/onboarding/lib/steps';

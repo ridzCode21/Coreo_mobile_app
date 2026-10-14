@@ -7,39 +7,36 @@ import type { OnboardingDraft } from '@/features/onboarding/store/onboardingStor
  * needed to create an account and produce honest starter targets. The longer diet interview now
  * lives inside the signed-in Diet tab as progressive personalization nudges.
  */
-export const FLOW_STEP_IDS = ['name', 'goal', 'about-you', 'gender', 'pillars', 'save'] as const;
+export const FLOW_STEP_IDS = ['name', 'goal', 'pillars', 'about-you', 'save'] as const;
 
 export type FlowStepId = (typeof FLOW_STEP_IDS)[number];
 
 /** The subset that renders progress dots — everything except the terminal save screen. */
 const DOT_STEP_IDS: FlowStepId[] = FLOW_STEP_IDS.filter((id) => id !== 'save');
 
-const BESPOKE_ROUTE: Partial<Record<FlowStepId, Href>> = {
+const BESPOKE_ROUTE: Record<FlowStepId, Href> = {
   name: '/(public)/onboarding/name',
-  goal: '/(public)/onboarding/goal' as Href,
-  'about-you': '/(public)/onboarding/about-you',
-  gender: '/(public)/onboarding/gender',
+  goal: '/(public)/onboarding/goal',
   pillars: '/(public)/onboarding/pillars',
+  'about-you': '/(public)/onboarding/about-you',
   save: '/(public)/onboarding/save',
 };
 
 export function flowStepRoute(step: FlowStepId): Href {
-  return BESPOKE_ROUTE[step] ?? '/(public)/onboarding/name';
+  return BESPOKE_ROUTE[step];
 }
 
 export function isFlowStepVisible(step: FlowStepId, draft: OnboardingDraft): boolean {
-  void step;
-  void draft;
-  return true;
+  return step !== 'about-you' || draft.pillars.includes('diet');
 }
 
 function visibleDotSteps(draft: OnboardingDraft): FlowStepId[] {
   return DOT_STEP_IDS.filter((id) => isFlowStepVisible(id, draft));
 }
 
-/** `OnboardingStepScaffold`'s `progress` prop — `null` for `calibrating`/`save`, which render no
- * dot rail, or for a step currently hidden by `isFlowStepVisible` (shouldn't normally be asked
- * for, but fails safe). */
+/** `OnboardingStepScaffold`'s `progress` prop — `null` for `save`, which renders no dot rail, or
+ * for a step currently hidden by `isFlowStepVisible` (shouldn't normally be asked for, but fails
+ * safe). */
 export function flowStepProgress(
   step: FlowStepId,
   draft: OnboardingDraft,
