@@ -13,6 +13,7 @@ export default function OnboardingLayout() {
       <Stack.Screen name="pillars" />
       <Stack.Screen name="about-you" />
       <Stack.Screen name="save" />
+      <Stack.Screen name="create-account" />
     </Stack>
   );
 }

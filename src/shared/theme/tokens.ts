@@ -14,6 +14,7 @@ export const colors = {
   ink62: 'rgba(23,25,29,0.62)',
   ink70: 'rgba(23,25,29,0.7)',
   ink75: 'rgba(23,25,29,0.75)',
+  ink80: 'rgba(23,25,29,0.8)',
   label: '#5F6B76',
 
   zenith: '#EDF4FB',
@@ -132,6 +133,7 @@ export const spacing = {
 
 export const radii = {
   xs: 12,
+  legal: 14,
   sm: 15,
   control: 18,
   md: 20,
@@ -150,6 +152,9 @@ export const componentSizes = {
   onboardingContinueHeight: 60,
   onboardingArrowIcon: 16,
   onboardingArrowStrokeWidth: 2,
+  saveSocialButtonHeight: 54,
+  saveSummaryIcon: 16,
+  saveSummaryIconStrokeWidth: 1.7,
   pillarRowHeight: 76,
   sheetGrabberWidth: 40,
   sheetGrabberHeight: 5,
@@ -214,6 +219,7 @@ export const typography = {
   bodySm: { fontSize: 12.5, fontWeight: '300', letterSpacing: 0, lineHeight: 1.6 },
   small: { fontSize: 12, fontWeight: '300', letterSpacing: 0, lineHeight: 1.6 },
   caption: { fontSize: 11, fontWeight: '400', letterSpacing: 0 },
+  linkMd: { fontSize: 12, fontWeight: '400', letterSpacing: 0 },
   linkSm: { fontSize: 11, fontWeight: '300', letterSpacing: 0 },
   label: { fontSize: 10, fontWeight: '500', letterSpacing: 2, textTransform: 'uppercase' },
   micro: { fontSize: 9, fontWeight: '500', letterSpacing: 1.4, textTransform: 'uppercase' },

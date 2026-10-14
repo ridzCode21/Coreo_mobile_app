@@ -13,8 +13,8 @@ export const loginSchema = z.object({
 export type LoginFormValues = z.infer<typeof loginSchema>;
 
 /**
- * Mirrors `POST /users/register/` (API_REFERENCE.md §3) — the "Use email instead" path on the
- * onboarding "Save your core" step (8a). `password_confirm` isn't a separate field in that UI (the
+ * Mirrors `POST /users/register/` (API_REFERENCE.md §3) — the Create account screen reached from
+ * onboarding's "Save your core" step (8a). `password_confirm` isn't a separate field in that UI (the
  * design doesn't show one); it's set equal to `password` at the call site instead of duplicating
  * the input, which is a UI simplification, not a contract deviation — the mock still receives and
  * validates a real `password_confirm`.

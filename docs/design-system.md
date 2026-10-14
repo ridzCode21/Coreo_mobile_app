@@ -39,6 +39,7 @@ these rules, it's probably the wrong component, not an exception to add.
 | `ink62`                     | `rgba(23,25,29,.62)`  | Secondary text at the pre-existing .62 strength                                         |
 | `ink70`                     | `rgba(23,25,29,.7)`   | Live portion-estimate text                                                              |
 | `ink75`                     | `rgba(23,25,29,.75)`  | High-emphasis secondary text                                                            |
+| `ink80`                     | `rgba(23,25,29,.8)`   | Google sign-in label on the Save your core screen                                       |
 | `label`                     | `#5F6B76`             | Muted caption/label color used inside light glass cards (e.g. field labels)             |
 | `zenith`                    | `#EDF4FB`             | Atmosphere · highest/lightest (morning)                                                 |
 | `day`                       | `#D3E6F8`             | Atmosphere · high                                                                       |
@@ -111,6 +112,7 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `bodySm`          | 12–12.5px | 300              | normal, line-height ~1.6  | Card descriptions, insight text                                       |
 | `small`           | 12px      | 300              | normal, line-height 1.6   | Small supporting text                                                 |
 | `caption`         | 11px      | 400              | normal                    | Chip text, secondary metadata                                         |
+| `linkMd`          | 12px      | 400              | normal                    | Medium understated text links                                         |
 | `linkSm`          | 11px      | 300              | normal                    | Small understated text links                                          |
 | `label`           | 10–10.5px | 500              | +1.6 to +2.6px, uppercase | Field labels, section eyebrows, nav captions                          |
 | `micro`           | 9px       | 500              | +1.4px, uppercase         | Tiny axis labels, timestamps inside charts                            |
@@ -162,6 +164,7 @@ plus these as additional padding, not instead of them.
 | Token              | px                      | Use                                                                   |
 | ------------------ | ----------------------- | --------------------------------------------------------------------- |
 | `radius.xs`        | 12                      | Compact badges and controls                                           |
+| `radius.legal`     | 14                      | Privacy and legal-note cards                                          |
 | `radius.sm`        | 14–16                   | Small chips/tags                                                      |
 | `radius.control`   | 18                      | Compact input rows                                                    |
 | `radius.md`        | 20                      | Compact rows, small cards                                             |
@@ -177,6 +180,8 @@ plus these as additional padding, not instead of them.
 **Component sizes:** `componentSizes.onboardingContinueHeight` is 60px for the core onboarding
 solid Continue pill; `componentSizes.onboardingArrowIcon` and `onboardingArrowStrokeWidth` define
 its 16px, 2px-stroke trailing arrow.
+Save screen 8a uses `saveSocialButtonHeight` (54px), `saveSummaryIcon` (16px), and
+`saveSummaryIconStrokeWidth` (1.7px) for its social control and summary ripple.
 `componentSizes.pillarRowHeight` is 76px for the core onboarding Pillars rows.
 `componentSizes.sheetGrabberWidth` / `sheetGrabberHeight` are 40×5px;
 `sheetChipHeight` is 42px; `sheetNoteHeight` is 48px; `sheetControlHeight` is 52px; and the compact
@@ -492,6 +497,9 @@ Centralize this instead of scattering `Dimensions`/`useWindowDimensions` calls t
   orientation policy?
 
 ## 12. Changelog
+
+- **v1.12 (issue #12 — Save your core):** Added `ink80`, the 12px/400 `linkMd` text style, and
+  the 14px `legal` radius used by screen 8a's Google label, email link, and privacy card.
 
 - **v1 (this doc, current):** Populated from brand system v2.1 ("The wave") and the 57-screen
   Sky-era production export. Added responsiveness/tablet/landscape guidance (not present in the

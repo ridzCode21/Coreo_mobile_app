@@ -36,7 +36,8 @@ src/
                                   # (onboarding-v3-minimal-drip-plan.md): name → goal → pillars →
                                   # Diet-only about-you (incl. sex) → save/register (last)
         _layout.tsx                # (register/`save.tsx` is the LAST step, not the first — see §5)
-        name.tsx, goal.tsx, pillars.tsx, about-you.tsx, save.tsx
+        name.tsx, goal.tsx, pillars.tsx, about-you.tsx, save.tsx,
+        create-account.tsx          # email registration reached from Save's link
     (auth)/
       _layout.tsx
       login.tsx                  # ← unreachable from any flow today (F1, feature-map.md); the
