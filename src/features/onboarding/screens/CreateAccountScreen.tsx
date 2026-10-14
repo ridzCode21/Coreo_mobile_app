@@ -13,6 +13,7 @@ import {
   useSessionStore,
   type AccountCredentialsFormValues,
   type RegisterRequestValues,
+  PASSWORD_HINT,
 } from '@/features/auth';
 import {
   interviewFieldsFromDraft,
@@ -24,9 +25,6 @@ import { useOnboardingStore } from '@/features/onboarding/store/onboardingStore'
 import { AuthFormScaffold, authTitleStyles } from '@/shared/components/AuthFormScaffold';
 import { LabeledField } from '@/shared/components/LabeledField';
 import { colors, componentSizes, radii, spacing, textStyle } from '@/shared/theme/tokens';
-
-const PASSWORD_HINT =
-  'At least 8 characters. Not just numbers, not too common, and not too similar to your email or name.';
 
 export default function CreateAccountScreen() {
   const router = useRouter();

@@ -185,7 +185,13 @@ solid Continue pill; `componentSizes.onboardingArrowIcon` and `onboardingArrowSt
 its 16px, 2px-stroke trailing arrow.
 Save screen 8a uses `saveSocialButtonHeight` (54px), `saveSummaryIcon` (16px), and
 `saveSummaryIconStrokeWidth` (1.7px) for its social control and summary ripple.
-Account screens 8e and 8b use `authButtonHeight` (54px) for their solid-ink primary actions.
+Account screens 8e and 8b, plus password reset screens 8c and 8d, use `authButtonHeight` (54px)
+for their solid-ink primary actions. Password reset success uses
+`passwordResetSignInHeight` (48px), `passwordResetSuccessIcon` (56px),
+`passwordResetCheckIcon` (22px), and `passwordResetCheckStrokeWidth` (2px) for its compact final
+state. `spacing.authResetFieldGap` is the 9px stack gap on 8d,
+`spacing.passwordResetFieldPadY` is its 13px field-card vertical padding, and
+`spacing.passwordResetSignInPaddingX` is the 28px horizontal padding on its success action.
 `componentSizes.pillarRowHeight` is 76px for the core onboarding Pillars rows.
 `componentSizes.sheetGrabberWidth` / `sheetGrabberHeight` are 40×5px;
 `sheetChipHeight` is 42px; `sheetNoteHeight` is 48px; `sheetControlHeight` is 52px; and the compact

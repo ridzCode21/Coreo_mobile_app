@@ -35,6 +35,10 @@ export type MockUser = {
 
 type MockDb = {
   users: MockUser[];
+  passwordResetTokens: Record<
+    string,
+    { userId: string; email: string; expiresAt: number; used: boolean }
+  >;
   /** Keyed by user id — one diet profile per user, seeded lazily on first GET/PUT (see
    * `features/onboarding/mocks/dietProfile.handlers.ts`). */
   dietProfiles: Record<string, DietProfile>;
@@ -90,6 +94,7 @@ type MockDb = {
 function createEmptyDb(): MockDb {
   return {
     users: [],
+    passwordResetTokens: {},
     dietProfiles: {},
     foodEntries: [],
     dailyLogs: {},
@@ -114,6 +119,7 @@ export const mockDb: MockDb = createEmptyDb();
 /** Test-only / dev-tool escape hatch — wipes all mock data back to empty. */
 export function __resetMockDbForTests(): void {
   mockDb.users = [];
+  mockDb.passwordResetTokens = {};
   mockDb.dietProfiles = {};
   mockDb.foodEntries = [];
   mockDb.dailyLogs = {};

@@ -132,6 +132,9 @@ export const spacing = {
   authFieldsGap: 22,
   fieldPadY: 15,
   fieldPadX: 18,
+  authResetFieldGap: 9,
+  passwordResetFieldPadY: 13,
+  passwordResetSignInPaddingX: 28,
 } as const;
 
 export const radii = {
@@ -157,6 +160,10 @@ export const componentSizes = {
   onboardingArrowStrokeWidth: 2,
   saveSocialButtonHeight: 54,
   authButtonHeight: 54,
+  passwordResetSignInHeight: 48,
+  passwordResetSuccessIcon: 56,
+  passwordResetCheckIcon: 22,
+  passwordResetCheckStrokeWidth: 2,
   saveSummaryIcon: 16,
   saveSummaryIconStrokeWidth: 1.7,
   pillarRowHeight: 76,
