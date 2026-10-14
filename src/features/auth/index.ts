@@ -4,15 +4,25 @@ export {
   useRegisterMutation,
   authErrorMessage,
   registerFieldErrors,
+  isInvalidTokenError,
+  passwordResetFieldErrors,
+  useConfirmPasswordResetMutation,
+  useRequestPasswordResetMutation,
   type RegisterRequestValues,
 } from '@/features/auth/api/authApi';
 export {
   accountCredentialsSchema,
   loginSchema,
   registerSchema,
+  newPasswordSchema,
+  requestPasswordResetSchema,
   type AccountCredentialsFormValues,
   type LoginFormValues,
   type RegisterFormValues,
+  type NewPasswordFormValues,
+  type RequestPasswordResetFormValues,
 } from '@/features/auth/schemas';
+export { PASSWORD_HINT } from '@/features/auth/constants';
 export { default as LoginScreen } from '@/features/auth/screens/LoginScreen';
-export { default as ForgotPasswordScreen } from '@/features/auth/screens/ForgotPasswordScreen';
+export { default as ResetPasswordScreen } from '@/features/auth/screens/ResetPasswordScreen';
+export { default as NewPasswordScreen } from '@/features/auth/screens/NewPasswordScreen';

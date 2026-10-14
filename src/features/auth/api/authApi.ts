@@ -2,7 +2,12 @@ import { useMutation } from '@tanstack/react-query';
 
 import { apiClient } from '@/shared/api/client';
 import { ApiError } from '@/shared/api/errors';
-import type { LoginFormValues, RegisterFormValues } from '@/features/auth/schemas';
+import type {
+  LoginFormValues,
+  NewPasswordFormValues,
+  RegisterFormValues,
+  RequestPasswordResetFormValues,
+} from '@/features/auth/schemas';
 import type { SessionTokens } from '@/features/auth/store/sessionStore';
 import type { ActivePillar, Gender, InterviewGoal } from '@/shared/types/user';
 
@@ -10,6 +15,33 @@ type LoginResponse = {
   success: true;
   data: { user: MockPublicUser; tokens: SessionTokens };
 };
+
+type PasswordResetEnvelope = {
+  success: true;
+  message: string;
+};
+
+export function useRequestPasswordResetMutation() {
+  return useMutation({
+    mutationFn: (values: RequestPasswordResetFormValues) =>
+      apiClient.post<PasswordResetEnvelope>('/users/password-reset/', values, { auth: false }),
+  });
+}
+
+export function useConfirmPasswordResetMutation() {
+  return useMutation({
+    mutationFn: (values: NewPasswordFormValues) =>
+      apiClient.post<PasswordResetEnvelope>(
+        '/users/password-reset/confirm/',
+        {
+          token: values.token,
+          new_password: values.newPassword,
+          new_password_confirm: values.newPasswordConfirm,
+        },
+        { auth: false },
+      ),
+  });
+}
 
 /**
  * `POST /users/login/` (API_REFERENCE.md §3, Style A envelope). The standalone login route is
@@ -111,6 +143,26 @@ export function registerFieldErrors(error: unknown): Record<string, string[]> | 
     fieldErrorsFromRecord(body?.details) ??
     fieldErrorsFromRecord(body) ??
     null
+  );
+}
+
+function apiErrorBody(
+  error: unknown,
+): { error?: { code?: unknown; details?: unknown }; details?: unknown } | undefined {
+  if (!(error instanceof ApiError) || !error.details || typeof error.details !== 'object') {
+    return undefined;
+  }
+  return error.details as { error?: { code?: unknown; details?: unknown }; details?: unknown };
+}
+
+export function isInvalidTokenError(error: unknown): boolean {
+  return apiErrorBody(error)?.error?.code === 'INVALID_TOKEN';
+}
+
+export function passwordResetFieldErrors(error: unknown): Record<string, string[]> | null {
+  const body = apiErrorBody(error);
+  return (
+    fieldErrorsFromRecord(body?.error?.details) ?? fieldErrorsFromRecord(body?.details) ?? null
   );
 }
 

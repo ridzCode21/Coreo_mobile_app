@@ -78,10 +78,12 @@ describe('auth: Sign in with email screen (8b, issue #14)', () => {
     expect(flat.height).toBe(componentSizes.authButtonHeight);
   });
 
-  it('"Forgot your password?" navigates to the reset placeholder, not a dead end', () => {
+  // Issue #15 — the reset flow is real now (8c/8d), replacing the PARTIAL placeholder this link
+  // pointed at for issue #14.
+  it('"Forgot your password?" navigates to the real reset-password screen', () => {
     render(<LoginScreen />);
     fireEvent.press(screen.getByRole('link', { name: 'Forgot your password?' }));
-    expect(mockPush).toHaveBeenCalledWith('/(auth)/forgot-password');
+    expect(mockPush).toHaveBeenCalledWith('/(auth)/reset-password');
   });
 
   it('signs in and enters the app on success', async () => {

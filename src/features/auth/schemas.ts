@@ -12,6 +12,12 @@ export const loginSchema = z.object({
 
 export type LoginFormValues = z.infer<typeof loginSchema>;
 
+export const requestPasswordResetSchema = z.object({
+  email: z.string().trim().min(1, 'Email is required').email('Enter a valid email'),
+});
+
+export type RequestPasswordResetFormValues = z.infer<typeof requestPasswordResetSchema>;
+
 const credentialsShape = {
   email: z.string().trim().min(1, 'Email is required').email('Enter a valid email'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
@@ -26,6 +32,25 @@ const passwordMismatch = {
   message: 'Passwords do not match.',
   path: ['passwordConfirm'],
 };
+
+const newPasswordShape = {
+  token: z.string().trim().min(1, 'Reset token is required'),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+  newPasswordConfirm: z.string().min(1, 'Confirm password is required'),
+};
+
+function newPasswordsMatch<T extends { newPassword: string; newPasswordConfirm: string }>(
+  values: T,
+) {
+  return values.newPassword === values.newPasswordConfirm;
+}
+
+export const newPasswordSchema = z.object(newPasswordShape).refine(newPasswordsMatch, {
+  message: passwordMismatch.message,
+  path: ['newPasswordConfirm'],
+});
+
+export type NewPasswordFormValues = z.infer<typeof newPasswordSchema>;
 
 export const accountCredentialsSchema = z
   .object(credentialsShape)

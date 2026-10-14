@@ -14,14 +14,20 @@ type LabeledFieldProps = Pick<
   | 'value'
 > & {
   label: string;
+  contentPaddingVertical?: number;
 };
 
-export function LabeledField({ label, accessibilityLabel, ...inputProps }: LabeledFieldProps) {
+export function LabeledField({
+  label,
+  accessibilityLabel,
+  contentPaddingVertical = spacing.fieldPadY,
+  ...inputProps
+}: LabeledFieldProps) {
   return (
     <GlassCard
       variant="light"
       radius={radii.control}
-      contentPaddingVertical={spacing.fieldPadY}
+      contentPaddingVertical={contentPaddingVertical}
       contentPaddingHorizontal={spacing.fieldPadX}
     >
       <Text style={styles.label}>{label}</Text>

@@ -4,6 +4,11 @@ import { styleAError, styleAOk } from '@/shared/api/mock/envelope';
 import { blacklistMockToken, issueTokenPair, verifyMockToken } from '@/shared/api/mock/tokens';
 import { ACTIVE_PILLARS, GENDERS, INTERVIEW_GOALS } from '@/shared/types/user';
 import { serializeMockUser } from '@/features/auth/mocks/serializeUser';
+import {
+  checkPasswordResetToken,
+  issuePasswordResetToken,
+  spendPasswordResetToken,
+} from '@/features/auth/mocks/passwordResetTokens';
 
 function randomId(): string {
   return `usr_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
@@ -16,6 +21,71 @@ function asString(value: unknown): string {
 function isAllowedValue<T extends string>(values: readonly T[], value: unknown): value is T {
   return typeof value === 'string' && values.includes(value as T);
 }
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+registerMock('POST', '/users/password-reset/', (request) => {
+  const body = (request.body ?? {}) as Record<string, unknown>;
+  const email = asString(body.email).trim().toLowerCase();
+  if (!emailPattern.test(email)) {
+    return {
+      status: 400,
+      body: styleAError('VALIDATION_ERROR', 'Invalid password reset data', {
+        email: ['Enter a valid email address.'],
+      }),
+    };
+  }
+
+  for (const user of mockDb.users.filter((candidate) => candidate.email.toLowerCase() === email)) {
+    issuePasswordResetToken(user);
+  }
+
+  return {
+    status: 200,
+    body: { success: true, message: 'If the email exists, a password reset email has been sent' },
+  };
+});
+
+registerMock('POST', '/users/password-reset/confirm/', (request) => {
+  const body = (request.body ?? {}) as Record<string, unknown>;
+  const token = asString(body.token);
+  const password = asString(body.new_password);
+  const passwordConfirm = asString(body.new_password_confirm);
+  const details: Record<string, string[]> = {};
+
+  if (!token) details.token = ['This field is required.'];
+  if (!password || password.length < 8) {
+    details.new_password = ['Ensure this field has at least 8 characters.'];
+  }
+  if (!passwordConfirm) details.new_password_confirm = ['This field is required.'];
+  if (Object.keys(details).length > 0) {
+    return {
+      status: 400,
+      body: styleAError('VALIDATION_ERROR', 'Invalid password reset confirmation data', details),
+    };
+  }
+  if (password !== passwordConfirm) {
+    return {
+      status: 400,
+      body: styleAError('VALIDATION_ERROR', 'Invalid password reset confirmation data', {
+        new_password_confirm: ['Passwords do not match.'],
+      }),
+    };
+  }
+
+  const user = checkPasswordResetToken(token);
+  if (!user) {
+    return {
+      status: 400,
+      body: styleAError('INVALID_TOKEN', 'Password reset token is invalid or expired'),
+    };
+  }
+
+  user.password = password;
+  user.updated_at = new Date().toISOString();
+  spendPasswordResetToken(token);
+  return { status: 200, body: { success: true, message: 'Password reset successful' } };
+});
 
 /**
  * Mock `POST /users/register/` — API_REFERENCE.md §3. Real-shaped: Style A envelope, the same
