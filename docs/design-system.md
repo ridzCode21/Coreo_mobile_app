@@ -113,6 +113,8 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `portionEstimate`  | 13px      | 400              | normal                    | Live macro estimate in the adjust-portion sheet                       |
 | `bodySm`           | 12–12.5px | 300              | normal, line-height ~1.6  | Card descriptions, insight text                                       |
 | `small`            | 12px      | 300              | normal, line-height 1.6   | Small supporting text                                                 |
+| `nudgeTitle`       | 12px      | 500              | normal                    | Home nudge card title                                                 |
+| `nudgeTime`        | 10px      | 400              | normal                    | Home nudge card timing label                                          |
 | `caption`          | 11px      | 400              | normal                    | Chip text, secondary metadata                                         |
 | `dockLabel`        | 8.5px     | 400              | +0.4px                    | Inactive glass-dock labels                                            |
 | `dockLabelActive`  | 8.5px     | 500              | +0.4px                    | Active glass-dock label                                               |
@@ -134,6 +136,11 @@ The compact Home header uses `componentSizes.homeHeaderMark` (`18px`) and
 The calibrating-home source rows use `componentSizes.readingSourceIcon` (`13px`) and
 `componentSizes.readingSourceIconStrokeWidth` (`2px`); Strava's distinct source glyph uses
 `componentSizes.readingStravaSourceIconStrokeWidth` (`1.8px`).
+The composed Home hero uses `componentSizes.homeTodayWaveHeight` (`84px`) and
+`componentSizes.homeScoreDotCell` (`8.5px`) for the Today wave and optional score. Its static
+ask bar uses `homeAskBarHeight` (`60px`), `homeAskBarIconCircle` (`44px`),
+`homeAskBarIcon` (`16px`), and the matching mic/send stroke-width tokens. The nudge ripple uses
+`homeNudgeIcon` (`18px`) and `homeNudgeIconStrokeWidth` (`1.5px`).
 
 Rules:
 
@@ -207,6 +214,7 @@ for their solid-ink primary actions. Password reset success uses
 `passwordResetSignInHeight` (48px), `passwordResetSuccessIcon` (56px),
 `passwordResetCheckIcon` (22px), and `passwordResetCheckStrokeWidth` (2px) for its compact final
 state. `spacing.authResetFieldGap` is the 9px stack gap on 8d,
+`spacing.homeAskBarRightPadding` is the 9px trailing inset on the composed Home ask bar,
 `spacing.passwordResetFieldPadY` is its 13px field-card vertical padding, and
 `spacing.passwordResetSignInPaddingX` is the 28px horizontal padding on its success action.
 `componentSizes.pillarRowHeight` is 76px for the core onboarding Pillars rows.
