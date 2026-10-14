@@ -33,10 +33,10 @@ src/
                                   # resumes an in-progress onboarding draft (see §5.1)
       first-open.tsx              # → features/onboarding — new-user landing (20a/24a)
       onboarding/                 # → features/onboarding — v3 minimal pre-signup flow
-                                  # (onboarding-v3-minimal-drip-plan.md): name → goal → about-you
-                                  # → gender → pillars → save/register (last)
+                                  # (onboarding-v3-minimal-drip-plan.md): name → goal → pillars →
+                                  # Diet-only about-you (incl. sex) → save/register (last)
         _layout.tsx                # (register/`save.tsx` is the LAST step, not the first — see §5)
-        name.tsx, goal.tsx, about-you.tsx, gender.tsx, pillars.tsx, save.tsx
+        name.tsx, goal.tsx, pillars.tsx, about-you.tsx, save.tsx
     (auth)/
       _layout.tsx
       login.tsx                  # ← unreachable from any flow today (F1, feature-map.md); the
@@ -71,7 +71,7 @@ src/
       lib/                       # resolveLaunchDestination — pure routing-decision function
       index.ts                   # public surface (SplashScreen, imported by the route file)
     onboarding/                  # minimal pre-signup flow + post-signup diet profile utilities
-      screens/                   # FirstOpenScreen, Name/AboutYou/Gender/Pillars/Promise/
+      screens/                   # FirstOpenScreen, Name/Goal/Pillars/AboutYou/Save/
                                   # SaveScreen, DietQuestionScreen (goal + D1–D10), CalibratingScreen
       store/                      # onboardingStore — the draft, `persist`-backed by AsyncStorage
                                   # (survives app kill so an interrupted interview can resume —
@@ -235,7 +235,7 @@ plan (mock-backed now, real contract from day one).
 - Three route groups under the root `Stack`:
   - `(public)` — always mounted, never gated. Holds `splash` (the true first screen on every cold
     start), `first-open` (new-user landing), and the v3 minimal `onboarding/*` flow
-    (name → goal → about-you → gender → pillars → save/register). Splash reads session state _and_
+    (name → goal → pillars → Diet-only about-you/sex → save/register). Splash reads session state _and_
     the persisted onboarding draft, then calls `router.replace(...)` to the right destination once
     its animation + minimum display time have both finished (`features/splash/lib/resolveLaunchDestination.ts`)
     — see `implementation-plan.md` §5. Every signed-out user (first-time or returning) lands on
