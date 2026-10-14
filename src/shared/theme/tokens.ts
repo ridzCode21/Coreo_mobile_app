@@ -120,6 +120,7 @@ export const spacing = {
   xl: 20,
   xxl: 24,
   xxxl: 32,
+  stepHeaderGap: 56,
   portionReadoutGap: 22,
   screenPadX: 26,
   screenPadXCompact: 22,
@@ -146,6 +147,7 @@ export const radii = {
 
 export const componentSizes = {
   minimumTapTarget: 44,
+  pillarRowHeight: 76,
   sheetGrabberWidth: 40,
   sheetGrabberHeight: 5,
   sheetChipHeight: 42,

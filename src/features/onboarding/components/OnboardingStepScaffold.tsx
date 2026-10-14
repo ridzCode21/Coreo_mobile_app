@@ -19,7 +19,7 @@ type OnboardingStepScaffoldProps = PropsWithChildren<{
    * question headlines. */
   title: ReactNode;
   subtitle?: string;
-  /** `NextBar` or `VoiceInputBar` — every step renders exactly one footer. */
+  /** `NextBar`, `VoiceInputBar`, or `null` when the answer itself advances the flow. */
   footer: ReactNode;
   /** A few steps (12a/16a/17a-style narrower layouts) use 22px horizontal padding instead of the
    * default 26px — see docs/design-system.md §3. Not used by the core-setup steps built so far. */
@@ -70,7 +70,7 @@ export function OnboardingStepScaffold({
           <ProgressDots count={progress.total} activeIndex={progress.index} style={styles.dots} />
         ) : null}
 
-        <View style={styles.header}>
+        <View testID="onboarding-step-header" style={styles.header}>
           <WaveMark size={26} strokeWidth={5} style={styles.waveGlyph} />
           <View style={styles.titleBlock}>{title}</View>
           {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     minHeight: spacing.lg,
   },
   header: {
-    marginTop: spacing.xl,
+    marginTop: spacing.stepHeaderGap,
   },
   waveGlyph: {
     opacity: 0.55,
