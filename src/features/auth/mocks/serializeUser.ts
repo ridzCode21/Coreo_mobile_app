@@ -1,4 +1,5 @@
 import type { MockUser } from '@/shared/api/mock/db';
+import { calibrationFields } from '@/features/auth/mocks/calibration';
 
 function computeAge(dateOfBirth: string): number {
   const dob = new Date(dateOfBirth);
@@ -33,6 +34,7 @@ export function serializeMockUser(user: MockUser) {
     is_premium: user.is_premium,
     email_verified: user.email_verified,
     phone_verified: user.phone_verified,
+    ...calibrationFields(user.calibration_started_on ?? null, new Date()),
     profile: {
       avatar: null,
       bio: '',

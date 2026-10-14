@@ -54,4 +54,16 @@ describe('home: PetalCluster', () => {
     renderCluster({ wellness: jest.fn(), fitness: jest.fn(), diet: jest.fn() });
     expect(screen.queryByRole('button', { name: 'Core' })).toBeNull();
   });
+
+  it('issue #19: renders an optional subLabel under the label when provided (calibrating home)', () => {
+    const items: PetalClusterItem[] = [
+      { id: 'wellness', label: 'Wellness', subLabel: '30 sec to set up' },
+      { id: 'fitness', label: 'Fitness', subLabel: '30 sec to set up' },
+      { id: 'diet', label: 'Diet', subLabel: '30 sec to set up' },
+      { id: 'core', label: 'Core', subLabel: 'Ready', emphasized: true },
+    ];
+    render(<PetalCluster items={items} />);
+    expect(screen.getAllByText('30 sec to set up')).toHaveLength(3);
+    expect(screen.getByText('Ready')).toBeTruthy();
+  });
 });

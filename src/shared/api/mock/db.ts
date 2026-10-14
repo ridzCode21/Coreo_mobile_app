@@ -29,6 +29,7 @@ export type MockUser = {
   is_premium: boolean;
   email_verified: boolean;
   phone_verified: boolean;
+  calibration_started_on?: string | null;
   created_at: string;
   updated_at: string;
 };

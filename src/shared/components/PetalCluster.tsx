@@ -6,6 +6,7 @@ import { colors, fontFamily, radii, spacing, textStyle, withAlpha } from '@/shar
 export type PetalClusterItem = {
   id: 'diet' | 'fitness' | 'wellness' | 'core';
   label: string;
+  subLabel?: string;
   emphasized?: boolean;
   onPress?: () => void;
 };
@@ -82,6 +83,11 @@ function PetalSurface({ item, index }: PetalSurfaceProps) {
       style={[styles.petal, petalRadius(index)]}
     >
       <Text style={[styles.label, item.emphasized && styles.emphasizedLabel]}>{item.label}</Text>
+      {item.subLabel ? (
+        <Text style={[styles.subLabel, item.emphasized && styles.emphasizedSubLabel]}>
+          {item.subLabel}
+        </Text>
+      ) : null}
     </LinearGradient>
   );
 }
@@ -132,6 +138,15 @@ const styles = StyleSheet.create({
     ...textStyle('body'),
     color: colors.ink,
     textAlign: 'center',
+  },
+  subLabel: {
+    ...textStyle('petalSubLabel'),
+    color: colors.label,
+    textAlign: 'center',
+    marginTop: spacing.replaceDetailGap,
+  },
+  emphasizedSubLabel: {
+    color: colors.ink50,
   },
   emphasizedLabel: {
     fontFamily: fontFamily.poppins500,

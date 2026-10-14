@@ -36,6 +36,8 @@ type WaveChartProps = {
   /** Animate the solid portion sweeping in on mount; static at final `progress` under
    * reduced-motion (design-system.md §5). */
   animated?: boolean;
+  /** Render the entire wave as the calibration-state dashed stroke, with no fill or dot. */
+  dashedOnly?: boolean;
   style?: ViewStyle;
 };
 
@@ -76,6 +78,7 @@ export function WaveChart({
   areaFill = true,
   glowDot = true,
   animated = true,
+  dashedOnly = false,
   style,
 }: WaveChartProps) {
   const [width, setWidth] = useState(0);
@@ -86,6 +89,7 @@ export function WaveChart({
 
   useEffect(() => {
     let cancelled = false;
+    if (dashedOnly) return;
     if (!animated) {
       progressAnim.value = clampedProgress;
       return;
@@ -100,7 +104,7 @@ export function WaveChart({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- shared values are stable refs
-  }, [clampedProgress, animated]);
+  }, [clampedProgress, animated, dashedOnly]);
 
   const fullPath = useMemo(
     () => (width > 0 ? buildWavePath(width, height, amplitudeRatio) : ''),
@@ -127,44 +131,58 @@ export function WaveChart({
       }}
     >
       {width > 0 ? (
-        <>
+        dashedOnly ? (
           <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
             <Path
               d={fullPath}
               stroke={color}
-              strokeWidth={2.5}
+              strokeWidth={2}
               strokeLinecap="round"
               fill="none"
-              strokeDasharray="5,7"
-              opacity={0.45}
+              strokeDasharray="3,7"
+              opacity={0.35}
             />
           </Svg>
-          <Animated.View style={[styles.solidClip, { height }, clipStyle]}>
-            <Svg width={width} height={height}>
-              {areaFill ? (
-                <Path d={areaPath} fill={color} fillOpacity={0.12} stroke="none" />
-              ) : null}
+        ) : (
+          <>
+            <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
               <Path
                 d={fullPath}
                 stroke={color}
                 strokeWidth={2.5}
                 strokeLinecap="round"
                 fill="none"
+                strokeDasharray="5,7"
+                opacity={0.45}
               />
             </Svg>
-          </Animated.View>
-          {glowDot ? (
-            <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
-              <AnimatedCircle
-                animatedProps={dotProps}
-                r={9}
-                fill={colors.white}
-                fillOpacity={0.4}
-              />
-              <AnimatedCircle animatedProps={dotProps} r={3.5} fill={colors.white} />
-            </Svg>
-          ) : null}
-        </>
+            <Animated.View style={[styles.solidClip, { height }, clipStyle]}>
+              <Svg width={width} height={height}>
+                {areaFill ? (
+                  <Path d={areaPath} fill={color} fillOpacity={0.12} stroke="none" />
+                ) : null}
+                <Path
+                  d={fullPath}
+                  stroke={color}
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  fill="none"
+                />
+              </Svg>
+            </Animated.View>
+            {glowDot ? (
+              <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
+                <AnimatedCircle
+                  animatedProps={dotProps}
+                  r={9}
+                  fill={colors.white}
+                  fillOpacity={0.4}
+                />
+                <AnimatedCircle animatedProps={dotProps} r={3.5} fill={colors.white} />
+              </Svg>
+            ) : null}
+          </>
+        )
       ) : null}
     </View>
   );
