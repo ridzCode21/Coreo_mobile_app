@@ -64,8 +64,8 @@ export type RegisterRequestValues = RegisterFormValues & {
 
 /**
  * `POST /users/register/` (API_REFERENCE.md §3, Style A envelope) — backs the onboarding "Save
- * your core" step, for both the email path and the mocked Apple/Google buttons (those just supply
- * a generated email/name instead of a typed one — see `SaveScreen`). `auth: false` since there's
+ * your core" flow, for the CreateAccountScreen email path and the mocked Google button (which
+ * supplies a generated email/name — see `SaveScreen`). `auth: false` since there's
  * no session yet to attach a bearer token from.
  */
 export function useRegisterMutation() {

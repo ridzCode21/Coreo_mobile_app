@@ -1,12 +1,35 @@
 import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 
+import {
+  authErrorMessage,
+  registerFieldErrors,
+  useLoginMutation,
+  useRegisterMutation,
+  useSessionStore,
+  type RegisterRequestValues,
+} from '@/features/auth';
+import {
+  OnboardingStepScaffold,
+  onboardingTitleStyles,
+} from '@/features/onboarding/components/OnboardingStepScaffold';
+import { INTERVIEW_GOAL_LABEL } from '@/features/onboarding/lib/interviewGoalLabels';
+import {
+  buildMockSocialIdentity,
+  isExistingEmailError,
+} from '@/features/onboarding/lib/registerFromInterview';
+import {
+  useOnboardingStore,
+  type OnboardingDraft,
+  type OnboardingPillar,
+} from '@/features/onboarding/store/onboardingStore';
 import { GlassCard } from '@/shared/components/GlassCard';
+import { WaveChart } from '@/shared/components/WaveChart';
 import {
   colors,
+  componentSizes,
   fontFamily,
   radii,
   spacing,
@@ -14,122 +37,23 @@ import {
   typography,
   withAlpha,
 } from '@/shared/theme/tokens';
-import {
-  authErrorMessage,
-  registerFieldErrors,
-  registerSchema,
-  useLoginMutation,
-  useRegisterMutation,
-  useSessionStore,
-  type RegisterFormValues,
-  type RegisterRequestValues,
-} from '@/features/auth';
-import {
-  OnboardingStepScaffold,
-  onboardingTitleStyles,
-} from '@/features/onboarding/components/OnboardingStepScaffold';
-import { WaveChart } from '@/shared/components/WaveChart';
-import { INTERVIEW_GOAL_LABEL } from '@/features/onboarding/lib/interviewGoalLabels';
-import {
-  useOnboardingStore,
-  type OnboardingDraft,
-  type OnboardingPillar,
-} from '@/features/onboarding/store/onboardingStore';
-import type { InterviewGoal } from '@/shared/types/user';
 
 const PILLAR_LABEL: Record<OnboardingPillar, string> = {
-  fitness: 'fitness',
-  diet: 'diet',
-  wellness: 'wellness',
+  fitness: 'Fitness',
+  diet: 'Diet',
+  wellness: 'Wellness',
 };
 
 function buildSummaryLine(draft: OnboardingDraft): string {
   const bits: string[] = [];
   if (draft.name) bits.push(draft.name);
-  if (draft.goal) bits.push(INTERVIEW_GOAL_LABEL[draft.goal].toLowerCase());
+  if (draft.goal) bits.push(INTERVIEW_GOAL_LABEL[draft.goal]);
   if (draft.pillars.length > 0) {
     bits.push(draft.pillars.map((pillar) => PILLAR_LABEL[pillar]).join(' + '));
   }
   return bits.join(' · ');
 }
 
-function interviewFieldsFromDraft(
-  draft: OnboardingDraft,
-): Pick<
-  RegisterRequestValues,
-  'goal' | 'activePillars' | 'age' | 'heightCm' | 'weightKg' | 'gender'
-> {
-  return {
-    goal: draft.goal as InterviewGoal,
-    activePillars: draft.pillars,
-    age: draft.ageYears,
-    heightCm: draft.heightCm,
-    weightKg: draft.weightKg,
-    ...(draft.gender ? { gender: draft.gender } : {}),
-  };
-}
-
-/**
- * Splits the single onboarding "name" answer (7a·1) into the `first_name`/`last_name` the
- * register contract requires (API_REFERENCE.md §3). The design only ever collects one name
- * field, and the backend accepts an omitted surname.
- */
-function splitName(name: string): { firstName: string; lastName: string } {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return { firstName: 'Friend', lastName: '' };
-  if (parts.length === 1) return { firstName: parts[0], lastName: '' };
-  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
-}
-
-function slugify(value: string): string {
-  const slug = value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-  return slug || 'friend';
-}
-
-/** Generates a unique, clearly-mock identity for the "Continue with Apple/Google" buttons — there
- * is no real OAuth here (F5/implementation-plan.md §3: social sign-in is visual-only, backend is
- * mocked). Each tap gets a fresh email so re-tapping never collides with the mock "email already
- * exists" validation. Carries the same interview answers as the email path. */
-function buildMockSocialIdentity(
-  provider: 'apple' | 'google',
-  draft: OnboardingDraft,
-): RegisterRequestValues {
-  const { firstName, lastName } = splitName(draft.name);
-  const unique = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-  return {
-    firstName,
-    lastName,
-    email: `${slugify(draft.name)}.${provider}.${unique}@mock.coreo.app`,
-    password: `Mock-${unique}-Aa1`,
-    ...interviewFieldsFromDraft(draft),
-  };
-}
-
-type SocialProvider = 'apple' | 'google';
-
-function isExistingEmailError(fieldErrors: Record<string, string[]> | null): boolean {
-  return Boolean(
-    fieldErrors?.email?.some((message) => /already (exists|registered|used)/i.test(message)),
-  );
-}
-
-function registerFormField(field: string): keyof RegisterFormValues | null {
-  if (field === 'email') return 'email';
-  if (field === 'first_name' || field === 'firstName') return 'firstName';
-  if (field === 'last_name' || field === 'lastName') return 'lastName';
-  if (field === 'password' || field === 'password_confirm') return 'password';
-  return null;
-}
-
-/**
- * Save your core — the register moment. v3 keeps signup light: register, persist only the core
- * body/goal facts needed for starter targets, then hand off to the signed-in tab shell where diet
- * personalization continues as nudges.
- */
 export default function SaveScreen() {
   const router = useRouter();
   const draft = useOnboardingStore((state) => state.draft);
@@ -137,65 +61,35 @@ export default function SaveScreen() {
   const signIn = useSessionStore((state) => state.signIn);
   const registerMutation = useRegisterMutation();
   const loginMutation = useLoginMutation();
-
-  const [activeProvider, setActiveProvider] = useState<SocialProvider | null>(null);
-  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-    setError,
-  } = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: { ...splitName(draft.name), email: '', password: '' },
-  });
+  const finishSignIn = async (tokens: { access: string; refresh: string }) => {
+    await signIn(tokens);
+    resetOnboarding();
+    router.replace('/(app)');
+  };
 
   const commit = (values: RegisterRequestValues) => {
     setBanner(null);
     registerMutation.mutate(values, {
-      onSuccess: async (envelope) => {
-        await signIn(envelope.data.tokens);
-        resetOnboarding();
-        router.replace('/(app)');
-      },
+      onSuccess: (envelope) => finishSignIn(envelope.data.tokens),
       onError: (error) => {
-        setActiveProvider(null);
+        setIsConnecting(false);
         const fieldErrors = registerFieldErrors(error);
         if (isExistingEmailError(fieldErrors)) {
-          setBanner('I found that account. Signing you in instead.');
           loginMutation.mutate(
             { email: values.email, password: values.password },
             {
-              onSuccess: async (envelope) => {
-                await signIn(envelope.data.tokens);
-                resetOnboarding();
-                router.replace('/(app)');
-              },
+              onSuccess: (envelope) => finishSignIn(envelope.data.tokens),
               onError: () => {
-                setShowEmailForm(true);
-                setBanner(null);
-                setError('password', {
-                  message: 'That email already exists. Use its password, or choose another email.',
-                });
+                setBanner(
+                  'That Google email already has an account. Use email instead to sign in.',
+                );
               },
             },
           );
           return;
-        }
-        if (fieldErrors) {
-          let handled = false;
-          for (const [field, messages] of Object.entries(fieldErrors)) {
-            const rhfField = registerFormField(field);
-            if (!rhfField) continue;
-            setError(rhfField, { message: messages[0] });
-            handled = true;
-          }
-          if (handled) {
-            setShowEmailForm(true);
-            return;
-          }
         }
         setBanner(
           authErrorMessage(error, "Something went wrong saving your core. Let's try again."),
@@ -204,20 +98,13 @@ export default function SaveScreen() {
     });
   };
 
-  const handleEmailSubmit = (values: RegisterFormValues) => {
-    commit({
-      ...values,
-      ...interviewFieldsFromDraft(draft),
-    });
+  const handleGoogle = () => {
+    if (isConnecting) return;
+    setIsConnecting(true);
+    commit(buildMockSocialIdentity('google', draft));
   };
 
-  const handleSocial = (provider: SocialProvider) => {
-    if (activeProvider) return;
-    setActiveProvider(provider);
-    commit(buildMockSocialIdentity(provider, draft));
-  };
-
-  const isBusy = registerMutation.isPending || loginMutation.isPending;
+  const isBusy = isConnecting || registerMutation.isPending || loginMutation.isPending;
 
   return (
     <OnboardingStepScaffold
@@ -231,123 +118,28 @@ export default function SaveScreen() {
         <View>
           <View style={styles.buttonStack}>
             <Pressable
-              onPress={() => handleSocial('apple')}
-              disabled={isBusy}
-              accessibilityRole="button"
-              accessibilityLabel="Continue with Apple"
-              style={[styles.appleButton, isBusy && styles.disabled]}
-            >
-              <Text style={styles.appleButtonText}>
-                {activeProvider === 'apple' ? 'Connecting…' : 'Continue with Apple'}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => handleSocial('google')}
+              onPress={handleGoogle}
               disabled={isBusy}
               accessibilityRole="button"
               accessibilityLabel="Continue with Google"
               style={[styles.googleButton, isBusy && styles.disabled]}
             >
-              <Text style={styles.googleButtonText}>
-                {activeProvider === 'google' ? 'Connecting…' : 'Continue with Google'}
+              <Text testID="save-google-label" style={styles.googleButtonText}>
+                {isConnecting ? 'Connecting…' : 'Continue with Google'}
               </Text>
             </Pressable>
             <Pressable
-              onPress={() => setShowEmailForm((value) => !value)}
+              onPress={() => router.push('/(public)/onboarding/create-account')}
               style={styles.emailLink}
               disabled={isBusy}
-              accessibilityRole="button"
-              accessibilityLabel={
-                showEmailForm ? 'Use Apple or Google instead' : 'Use email instead'
-              }
+              accessibilityRole="link"
+              accessibilityLabel="Use email instead"
             >
-              <Text style={styles.emailLinkText}>
-                {showEmailForm ? 'Use Apple or Google instead' : 'Use email instead'}
+              <Text testID="save-email-link-text" style={styles.emailLinkText}>
+                Use email instead
               </Text>
             </Pressable>
           </View>
-
-          {showEmailForm ? (
-            <GlassCard variant="light" style={styles.emailCard}>
-              <View style={styles.nameRow}>
-                <Controller
-                  control={control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <TextInput
-                      placeholder="First name"
-                      value={field.value}
-                      onChangeText={field.onChange}
-                      style={[styles.input, styles.nameInput]}
-                      placeholderTextColor={colors.ink40}
-                    />
-                  )}
-                />
-                <Controller
-                  control={control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <TextInput
-                      placeholder="Last name"
-                      value={field.value}
-                      onChangeText={field.onChange}
-                      style={[styles.input, styles.nameInput]}
-                      placeholderTextColor={colors.ink40}
-                    />
-                  )}
-                />
-              </View>
-              {errors.firstName ? (
-                <Text style={styles.error}>{errors.firstName.message}</Text>
-              ) : null}
-              {errors.lastName ? <Text style={styles.error}>{errors.lastName.message}</Text> : null}
-
-              <Controller
-                control={control}
-                name="email"
-                render={({ field }) => (
-                  <TextInput
-                    placeholder="Email"
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                    value={field.value}
-                    onChangeText={field.onChange}
-                    style={styles.input}
-                    placeholderTextColor={colors.ink40}
-                  />
-                )}
-              />
-              {errors.email ? <Text style={styles.error}>{errors.email.message}</Text> : null}
-
-              <Controller
-                control={control}
-                name="password"
-                render={({ field }) => (
-                  <TextInput
-                    placeholder="Password"
-                    secureTextEntry
-                    value={field.value}
-                    onChangeText={field.onChange}
-                    style={styles.input}
-                    placeholderTextColor={colors.ink40}
-                  />
-                )}
-              />
-              {errors.password ? <Text style={styles.error}>{errors.password.message}</Text> : null}
-
-              <Pressable
-                onPress={handleSubmit(handleEmailSubmit)}
-                disabled={isBusy}
-                accessibilityRole="button"
-                accessibilityLabel="Create account"
-                style={[styles.createButton, isBusy && styles.disabled]}
-              >
-                <Text style={styles.createButtonText}>
-                  {isBusy ? 'Creating account…' : 'Create account'}
-                </Text>
-              </Pressable>
-            </GlassCard>
-          ) : null}
 
           {banner ? (
             <View style={styles.bannerBlock}>
@@ -360,7 +152,7 @@ export default function SaveScreen() {
             <WaveChart progress={0.85} height={40} color={colors.ink} />
           </View>
 
-          <View style={styles.privacyCard}>
+          <View testID="save-privacy-card" style={styles.privacyCard}>
             <Text style={styles.privacyText}>
               Your data stays yours. Read it, export it, delete it, anytime.
             </Text>
@@ -369,40 +161,50 @@ export default function SaveScreen() {
       }
     >
       <GlassCard variant="light">
-        <Text style={styles.summaryText}>{buildSummaryLine(draft)}</Text>
+        <View testID="save-summary-card" style={styles.summaryRow}>
+          <Svg
+            width={componentSizes.saveSummaryIcon}
+            height={componentSizes.saveSummaryIcon}
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <Path
+              d="M4 9c2.5-2 5.5-2 8 0s5.5 2 8 0"
+              stroke={colors.ink70}
+              strokeWidth={componentSizes.saveSummaryIconStrokeWidth}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <Path
+              d="M4 15c2.5-2 5.5-2 8 0s5.5 2 8 0"
+              stroke={colors.ink70}
+              strokeWidth={componentSizes.saveSummaryIconStrokeWidth}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+          <Text style={styles.summaryText}>{buildSummaryLine(draft)}</Text>
+        </View>
       </GlassCard>
     </OnboardingStepScaffold>
   );
 }
 
 const styles = StyleSheet.create({
+  summaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.ms,
+  },
   summaryText: {
     ...textStyle('bodySm'),
     color: colors.ink75,
+    flexShrink: 1,
   },
-  buttonStack: {
-    gap: spacing.sm,
-  },
-  disabled: {
-    opacity: 0.6,
-  },
-  appleButton: {
-    height: 54,
-    borderRadius: radii.pill,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: withAlpha(colors.overlayInk, 0.2),
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 1,
-    shadowRadius: 26,
-  },
-  appleButtonText: {
-    ...textStyle('button'),
-    color: colors.ink,
-  },
+  buttonStack: { gap: spacing.sm },
+  disabled: { opacity: 0.6 },
   googleButton: {
-    height: 54,
+    height: componentSizes.saveSocialButtonHeight,
     borderRadius: radii.pill,
     backgroundColor: withAlpha(colors.white, 0.3),
     borderWidth: 1,
@@ -413,49 +215,18 @@ const styles = StyleSheet.create({
   googleButtonText: {
     fontFamily: fontFamily.poppins400,
     fontSize: typography.button.fontSize,
-    color: colors.ink62,
+    color: colors.ink80,
   },
   emailLink: {
     alignSelf: 'center',
-    paddingVertical: spacing.xs,
+    minHeight: componentSizes.minimumTapTarget,
+    justifyContent: 'center',
     paddingHorizontal: spacing.md,
   },
   emailLinkText: {
-    ...textStyle('bodySm'),
-    color: colors.ink62,
+    ...textStyle('linkMd'),
+    color: colors.ink55,
     textDecorationLine: 'underline',
-  },
-  emailCard: {
-    marginTop: spacing.md,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  nameInput: {
-    flex: 1,
-  },
-  input: {
-    ...textStyle('body'),
-    color: colors.ink,
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  error: {
-    ...textStyle('caption'),
-    color: colors.attention,
-    marginBottom: spacing.sm,
-  },
-  createButton: {
-    backgroundColor: colors.coreBlue,
-    borderRadius: radii.pill,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    marginTop: spacing.xs,
-  },
-  createButtonText: {
-    ...textStyle('body'),
-    color: colors.white,
   },
   banner: {
     ...textStyle('caption'),
@@ -467,9 +238,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
   },
-  almostThere: {
-    marginTop: spacing.lg,
-  },
+  almostThere: { marginTop: spacing.lg },
   almostThereLabel: {
     ...textStyle('micro'),
     color: colors.ink40,
@@ -478,8 +247,9 @@ const styles = StyleSheet.create({
   privacyCard: {
     marginTop: spacing.md,
     backgroundColor: withAlpha(colors.ink, 0.08),
-    borderRadius: radii.sm,
-    padding: spacing.md,
+    borderRadius: radii.legal,
+    paddingVertical: spacing.ms,
+    paddingHorizontal: spacing.ml,
   },
   privacyText: {
     ...textStyle('legal'),
