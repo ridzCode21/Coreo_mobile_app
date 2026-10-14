@@ -94,6 +94,29 @@ describe('foundation: GlassCard variants (issue #53)', () => {
     expect(blur.props.intensity).toBe(90);
   });
 
+  // Issue #20 — the glass dock (23a) is brighter than the shared `light` recipe and needs its
+  // own variant rather than overloading `light`'s gradient/border values.
+  it('variant="dock" renders the dock\'s own brighter white recipe (.7/.38, border .75)', () => {
+    render(
+      <GlassCard variant="dock" radius={radii.xxl}>
+        <Text>content</Text>
+      </GlassCard>,
+    );
+    const gradient = screen.UNSAFE_getAllByType(LinearGradient)[0];
+    expect(gradient.props.colors).toEqual(glass.dock.gradient);
+    expect(gradient.props.start).toEqual(glass.dock.start);
+    expect(gradient.props.end).toEqual(glass.dock.end);
+
+    const clip = clipViewOf(screen);
+    const flat = StyleSheet.flatten(clip!.props.style);
+    expect(flat.borderColor).toBe(glass.dock.border);
+    expect(flat.borderRadius).toBe(radii.xxl);
+
+    const blur = screen.UNSAFE_getByType(BlurView);
+    expect(blur.props.intensity).toBe(90);
+    expect(blur.props.tint).toBe('light');
+  });
+
   // Issue #14 — LabeledField (8e/8b) needs 15/18px field padding instead of the default 20px,
   // without re-implementing the glass recipe. These two props are purely additive: every existing
   // caller that omits them must render exactly as before.

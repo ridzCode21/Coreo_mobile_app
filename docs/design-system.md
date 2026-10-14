@@ -51,6 +51,7 @@ these rules, it's probably the wrong component, not an exception to add.
 | `night`                     | `#2E4666`             | Night ramp · dark glass base                                                            |
 | `midnight`                  | `#152741`             | Night ramp · deepest                                                                    |
 | `nightShadow`               | `rgba(8,24,44,.3)`    | Neutral shadow under solid-ink primary controls                                         |
+| `dockActiveIconShadow`      | `rgba(8,24,44,.32)`   | Shadow below the glass dock's active icon circle                                        |
 | `coreBlue` / `coreBlueDeep` | `#35689E` → `#16395E` | First-open blue circle; legacy primary CTAs still use it pending migration              |
 | `white`                     | `#FFFFFF`             | Interactive glass, highlights, active states                                            |
 | `onNight`                   | `#F0F4F8`             | Text/icon color on dark glass or night atmosphere                                       |
@@ -113,6 +114,8 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `bodySm`           | 12–12.5px | 300              | normal, line-height ~1.6  | Card descriptions, insight text                                       |
 | `small`            | 12px      | 300              | normal, line-height 1.6   | Small supporting text                                                 |
 | `caption`          | 11px      | 400              | normal                    | Chip text, secondary metadata                                         |
+| `dockLabel`        | 8.5px     | 400              | +0.4px                    | Inactive glass-dock labels                                            |
+| `dockLabelActive`  | 8.5px     | 500              | +0.4px                    | Active glass-dock label                                               |
 | `headerDate`       | 10px      | 400              | +1.6px, uppercase         | Date in the home header                                               |
 | `linkMd`           | 12px      | 400              | normal                    | Medium understated text links                                         |
 | `linkSm`           | 11px      | 300              | normal                    | Small understated text links                                          |
@@ -151,6 +154,7 @@ plus these as additional padding, not instead of them.
 | Token                    | px                                                  |
 | ------------------------ | --------------------------------------------------- |
 | `space.xs`               | 4                                                   |
+| `space.dockItemGap`      | 3 (glass-dock icon to label)                        |
 | `space.sliderCaptionGap` | 6                                                   |
 | `space.headerLogoGap`    | 7 (home wave mark to wordmark)                      |
 | `space.sm`               | 8                                                   |
@@ -194,6 +198,8 @@ plus these as additional padding, not instead of them.
 **Component sizes:** `componentSizes.onboardingContinueHeight` is 60px for the core onboarding
 solid Continue pill; `componentSizes.onboardingArrowIcon` and `onboardingArrowStrokeWidth` define
 its 16px, 2px-stroke trailing arrow.
+The glass dock uses `dockHeight` (72px), `dockIconCircle` (36px), `dockIconSize` (17px), and
+`dockIconStrokeWidth` (1.7px).
 Save screen 8a uses `saveSocialButtonHeight` (54px), `saveSummaryIcon` (16px), and
 `saveSummaryIconStrokeWidth` (1.7px) for its social control and summary ripple.
 Account screens 8e and 8b, plus password reset screens 8c and 8d, use `authButtonHeight` (54px)
@@ -226,6 +232,7 @@ The single most important pattern in the system. Shared recipes are exact rather
 | Variant                   | Gradient                                               | Border      | Shadow                         |
 | ------------------------- | ------------------------------------------------------ | ----------- | ------------------------------ |
 | `light`                   | 135deg, white `.62` → `.20`                            | white `.55` | overlay ink `.14`              |
+| `dock`                    | 135deg, white `.70` → `.38`                            | white `.75` | overlay ink `.22`              |
 | `night`                   | 150deg, `rgb(34,66,102)` `.60` → `rgb(12,28,48)` `.70` | white `.22` | `rgb(8,24,44)` `.34`           |
 | `chip`                    | 135deg, white `.50` → `.14`                            | white `.55` | overlay ink `.14`              |
 | `chipSelected`            | 135deg, white `.94` → `.60`                            | white `.90` | overlay ink `.20`              |
@@ -244,7 +251,7 @@ box-shadow: 0 16–28px 32–56px rgba(18,42,70,.1–.18),
             inset 0 1px 0 rgba(255,255,255,.65)   // top highlight
 ```
 
-### Night/dark glass (hero cards, nav dock, chat surfaces, notifications)
+### Night/dark glass (hero cards, chat surfaces, notifications)
 
 ```
 background: linear-gradient(150–160deg, rgba(34,66,102,.5–.6) 0%, rgba(12,28,48,.62–.7) 100%)
@@ -346,7 +353,7 @@ the `data-screen-label` text shown).
 | `ListRow`           | Row with title + muted subtitle on the left, chevron on the right, inside a light-glass card                                                                                                                                                                                                                                                                                                      | profile pillar summaries, connected devices                                                                              |
 | `StatusChip`        | Small rounded label chip, translucent white or `rgba(255,255,255,.16)` on dark, `caption` text                                                                                                                                                                                                                                                                                                    | assistant action confirmations ("Fitness moved"), check-in preference tags                                               |
 | `SegmentedControl`  | Glass track, active segment = white pill w/ shadow, others plain text                                                                                                                                                                                                                                                                                                                             | "pillar strip" home nav concept (23B) — see §8 for nav status                                                            |
-| `BottomDock`        | Fixed 72px-tall night-glass bar, 4 icon+label columns, active item = dark filled circle behind icon                                                                                                                                                                                                                                                                                               | "glass dock" home nav concept (23A)                                                                                      |
+| `BottomDock`        | Fixed 72px-tall light-glass bar, 4 icon+label columns, active item = dark filled circle behind icon                                                                                                                                                                                                                                                                                               | "glass dock" home nav concept (23A)                                                                                      |
 | `PetalCluster`      | See §6.3                                                                                                                                                                                                                                                                                                                                                                                          | home centerpiece (24B and others)                                                                                        |
 | `PresenceOrb`       | See §6.4                                                                                                                                                                                                                                                                                                                                                                                          | 18C presence / chat                                                                                                      |
 | `WaveChart`         | See §6.1. Built in `shared/components/WaveChart.tsx`: animated solid (past) → dashed (future) stroke, glowing white "now" dot at the boundary, optional area fill under the solid segment, `reduceMotion`-aware. Promoted from the onboarding-only `OnboardingWaveStrip` (deleted) once a second use case (diet-profile completeness) needed the real signature treatment, not a decorative sine. | throughout (home "today" card, week review, lock-screen widget, onboarding Reading/Promise/Save/**Calibrating** screens) |
@@ -702,3 +709,6 @@ Centralize this instead of scattering `Dimensions`/`useWindowDimensions` calls t
   `typography.legal`, `tracking.wide`, and the `withAlpha` helper pattern so named components no
   longer carry raw color or cited size literals. The app-screen export confirms Fog as the faded
   dark-surface text family, superseding v1.10's provisional owner-decision note for that token.
+- **v1.12 (issue #20 — glass dock alignment):** Added the dock-specific light-glass recipe,
+  72px dock and 36px/17px icon geometry, 3px item gap, 8.5px inactive/active label styles, and the
+  active-icon shadow token. Corrected `BottomDock` from night glass to the brighter 23A recipe.

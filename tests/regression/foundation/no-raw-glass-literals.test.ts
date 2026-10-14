@@ -24,6 +24,7 @@ const FILES_MUST_BE_LITERAL_FREE = [
   'src/shared/components/GlassCard.tsx',
   'src/shared/components/SkyBackground.tsx',
   'src/shared/components/SelectableChip.tsx',
+  'src/shared/components/BottomDock.tsx',
   'src/shared/components/ToggleRow.tsx',
   'src/shared/components/PetalCluster.tsx',
   'src/shared/components/VoiceInputBar.tsx',

@@ -28,6 +28,7 @@ export const colors = {
   night: '#2E4666',
   midnight: '#152741',
   nightShadow: 'rgba(8,24,44,0.3)',
+  dockActiveIconShadow: 'rgba(8,24,44,0.32)',
 
   coreBlue: '#35689E',
   coreBlueDeep: '#16395E',
@@ -65,6 +66,14 @@ export const glass = {
     border: withAlpha(colors.white, 0.55),
     shadowColor: withAlpha(colors.overlayInk, 0.14),
     topHighlight: withAlpha(colors.white, 0.65),
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 1 },
+  },
+  dock: {
+    gradient: [withAlpha(colors.white, 0.7), withAlpha(colors.white, 0.38)],
+    border: withAlpha(colors.white, 0.75),
+    shadowColor: withAlpha(colors.overlayInk, 0.22),
+    topHighlight: withAlpha(colors.white, 0.8),
     start: { x: 0, y: 0 },
     end: { x: 1, y: 1 },
   },
@@ -111,6 +120,7 @@ export const tracking = {
 
 export const spacing = {
   xs: 4,
+  dockItemGap: 3,
   sliderCaptionGap: 6,
   headerLogoGap: 7,
   sm: 8,
@@ -156,6 +166,10 @@ export const radii = {
 
 export const componentSizes = {
   minimumTapTarget: 44,
+  dockHeight: 72,
+  dockIconCircle: 36,
+  dockIconSize: 17,
+  dockIconStrokeWidth: 1.7,
   homeHeaderMark: 18,
   homeHeaderMarkStrokeWidth: 12,
   onboardingContinueHeight: 60,
@@ -237,6 +251,8 @@ export const typography = {
   bodySm: { fontSize: 12.5, fontWeight: '300', letterSpacing: 0, lineHeight: 1.6 },
   small: { fontSize: 12, fontWeight: '300', letterSpacing: 0, lineHeight: 1.6 },
   caption: { fontSize: 11, fontWeight: '400', letterSpacing: 0 },
+  dockLabel: { fontSize: 8.5, fontWeight: '400', letterSpacing: 0.4 },
+  dockLabelActive: { fontSize: 8.5, fontWeight: '500', letterSpacing: 0.4 },
   headerDate: {
     fontSize: 10,
     fontWeight: '400',
