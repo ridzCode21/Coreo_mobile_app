@@ -252,4 +252,46 @@ describe('foundation: theme tokens', () => {
       });
     });
   });
+
+  // Issue #20 — glass dock (23a, design lines 772-844) needs its own sizes/glass recipe: the
+  // dock is brighter (.7/.38 white gradient, .75 border) than the shared `light` recipe
+  // (.62/.2, .55 border), and its 8.5px labels need a weight difference (400 inactive / 500
+  // active), not just a colour difference, so a single `caption` token can't serve both states.
+  describe('glass dock tokens (issue #20)', () => {
+    it("adds the dock's own glass recipe: white .7→.38 gradient, .75 border, .22 overlay-ink shadow, .8 top highlight", () => {
+      expect(glass.dock.gradient).toEqual(['rgba(255,255,255,0.7)', 'rgba(255,255,255,0.38)']);
+      expect(glass.dock.border).toBe('rgba(255,255,255,0.75)');
+      expect(glass.dock.shadowColor).toBe('rgba(18,42,70,0.22)');
+      expect(glass.dock.topHighlight).toBe('rgba(255,255,255,0.8)');
+    });
+
+    it('adds the 72px dock height, 36px icon circle and 17px icon size', () => {
+      expect(componentSizes.dockHeight).toBe(72);
+      expect(componentSizes.dockIconCircle).toBe(36);
+      expect(componentSizes.dockIconSize).toBe(17);
+      expect(componentSizes.dockIconStrokeWidth).toBe(1.7);
+    });
+
+    it('adds the 3px gap between a dock icon and its label', () => {
+      expect(spacing.dockItemGap).toBe(3);
+    });
+
+    it('adds the 8.5px dock label styles that differ only in weight (400 inactive, 500 active)', () => {
+      expect(typography.dockLabel).toEqual({
+        fontSize: 8.5,
+        fontWeight: '400',
+        letterSpacing: 0.4,
+      });
+      expect(typography.dockLabelActive).toEqual({
+        fontSize: 8.5,
+        fontWeight: '500',
+        letterSpacing: 0.4,
+      });
+      expect(textStyle('dockLabel').fontFamily).not.toBe(textStyle('dockLabelActive').fontFamily);
+    });
+
+    it("adds the active dock icon's own shadow colour (.32, distinct from night glass's .34)", () => {
+      expect(colors.dockActiveIconShadow).toBe('rgba(8,24,44,0.32)');
+    });
+  });
 });
