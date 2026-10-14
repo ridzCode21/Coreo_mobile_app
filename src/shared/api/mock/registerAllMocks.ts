@@ -7,6 +7,7 @@
  * built.
  */
 import '@/features/auth/mocks/handlers';
+import '@/features/home/mocks/sources.handlers';
 import '@/features/onboarding/mocks/dietProfile.handlers';
 import '@/features/nutrition/mocks/handlers';
 import '@/features/nutrition/mocks/mealPlan.handlers';

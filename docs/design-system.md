@@ -118,6 +118,8 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `linkSm`           | 11px      | 300              | normal                    | Small understated text links                                          |
 | `label`            | 10–10.5px | 500              | +1.6 to +2.6px, uppercase | Field labels, section eyebrows, nav captions                          |
 | `micro`            | 9px       | 500              | +1.4px, uppercase         | Tiny axis labels, timestamps, labeled auth fields                     |
+| `readingCardLabel` | 9px       | 500              | +1.8px, uppercase         | "Reading you" eyebrow on the calibrating-home sources card            |
+| `petalSubLabel`    | 8px       | 500              | +0.4px                    | Calibrating-home setup state beneath a pillar petal label             |
 | `fine`             | 9.5px     | 300              | normal                    | Fine-print supporting captions                                        |
 | `legal`            | 10.5px    | 300              | normal                    | Privacy notes, fine print, account-password hint                      |
 
@@ -126,6 +128,9 @@ scanner codes and manual barcode entry.
 
 The compact Home header uses `componentSizes.homeHeaderMark` (`18px`) and
 `componentSizes.homeHeaderMarkStrokeWidth` (`12`) for the design's small wave glyph.
+The calibrating-home source rows use `componentSizes.readingSourceIcon` (`13px`) and
+`componentSizes.readingSourceIconStrokeWidth` (`2px`); Strava's distinct source glyph uses
+`componentSizes.readingStravaSourceIconStrokeWidth` (`1.8px`).
 
 Rules:
 

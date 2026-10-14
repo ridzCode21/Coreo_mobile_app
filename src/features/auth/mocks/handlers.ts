@@ -1,5 +1,6 @@
 import { registerMock } from '@/shared/api/mock/router';
 import { mockDb, type MockUser } from '@/shared/api/mock/db';
+import { localDateISO } from '@/features/auth/mocks/calibration';
 import { requireMockUser } from '@/shared/api/mock/auth';
 import { styleAError, styleAOk } from '@/shared/api/mock/envelope';
 import { blacklistMockToken, issueTokenPair, verifyMockToken } from '@/shared/api/mock/tokens';
@@ -220,6 +221,7 @@ registerMock('POST', '/users/register/', (request) => {
     is_premium: false,
     email_verified: false,
     phone_verified: false,
+    calibration_started_on: localDateISO(new Date()),
     created_at: now,
     updated_at: now,
   };

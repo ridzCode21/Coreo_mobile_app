@@ -86,4 +86,47 @@ describe('auth mock: GET /users/profile/ (issue #17)', () => {
     const response = await callProfile('not-a-real-token');
     expect(response.status).toBe(401);
   });
+
+  describe('calibration fields (issue #19, serializers.py:551-620, calibration.py:25-40)', () => {
+    beforeEach(() => {
+      jest.useFakeTimers().setSystemTime(new Date(2026, 9, 14));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('day 1: calibration_started_on today → dashed, not complete', async () => {
+      const user = seedUser({ calibration_started_on: '2026-10-14' });
+      const { access } = issueTokenPair(user);
+
+      const response = await callProfile(access);
+      const body = response.body as { data: { user: Record<string, unknown> } };
+      expect(body.data.user.calibration_day).toBe(1);
+      expect(body.data.user.calibration_complete).toBe(false);
+      expect(body.data.user.wave).toBe('dashed');
+    });
+
+    it('day 4: calibration_started_on three days ago → solid, complete', async () => {
+      const user = seedUser({ calibration_started_on: '2026-10-11' });
+      const { access } = issueTokenPair(user);
+
+      const response = await callProfile(access);
+      const body = response.body as { data: { user: Record<string, unknown> } };
+      expect(body.data.user.calibration_day).toBe(4);
+      expect(body.data.user.calibration_complete).toBe(true);
+      expect(body.data.user.wave).toBe('solid');
+    });
+
+    it('no calibration_started_on (pre-existing seeded user) defaults to already calibrated, not day 1', async () => {
+      const user = seedUser();
+      const { access } = issueTokenPair(user);
+
+      const response = await callProfile(access);
+      const body = response.body as { data: { user: Record<string, unknown> } };
+      expect(body.data.user.calibration_day).toBeNull();
+      expect(body.data.user.calibration_complete).toBe(true);
+      expect(body.data.user.wave).toBe('solid');
+    });
+  });
 });

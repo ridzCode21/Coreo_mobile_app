@@ -7,7 +7,10 @@ import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
 import { colors, fontFamily, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 import { useProfileQuery } from '@/features/auth';
+import { useSourcesQuery } from '@/features/home/api/sourcesApi';
+import { CalibratingWaveCard } from '@/features/home/components/CalibratingWaveCard';
 import { HomeHeader } from '@/features/home/components/HomeHeader';
+import { ReadingYouCard } from '@/features/home/components/ReadingYouCard';
 import { timeOfDayGreeting } from '@/features/home/lib/greeting';
 import { targetQuality, useDietProfileQuery } from '@/features/onboarding';
 import { targetsFromProfile, todayISO, useDailySummaryQuery } from '@/features/nutrition';
@@ -40,6 +43,8 @@ export default function CoreoHomeScreen() {
   const now = new Date();
   const today = todayISO();
   const userProfileQuery = useProfileQuery();
+  const isCalibrating = userProfileQuery.data?.wave === 'dashed';
+  const calibrationDay = userProfileQuery.data?.calibration_day ?? null;
   const profileQuery = useDietProfileQuery();
   const summaryQuery = useDailySummaryQuery(today);
 
@@ -70,79 +75,140 @@ export default function CoreoHomeScreen() {
       <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
         <HomeHeader now={now} />
-        <View style={styles.greetingBlock}>
-          <Text style={styles.greeting}>
-            {timeOfDayGreeting(now)},
-            {firstName ? (
-              <>
-                {' '}
-                <Text style={styles.greetingName}>{firstName}.</Text>
-              </>
-            ) : null}
-          </Text>
-          <Text style={styles.greetingSubtitle}>{headline}</Text>
-        </View>
+        {isCalibrating ? (
+          <>
+            <View style={styles.greetingBlock}>
+              <Text style={styles.greeting}>
+                Welcome in,
+                {firstName ? (
+                  <>
+                    {' '}
+                    <Text style={styles.greetingName}>{firstName}.</Text>
+                  </>
+                ) : null}
+              </Text>
+              <Text style={styles.greetingSubtitle}>
+                Still reading you. The wave stays dashed until day 4.
+              </Text>
+            </View>
 
-        {isLoading ? (
-          <View style={styles.loading}>
-            <ActivityIndicator color={colors.ink45} />
-          </View>
+            <CalibratingWaveCard day={calibrationDay} />
+            <ReadingYouSection />
+
+            <Text style={styles.calibratingPillarIntro}>While I read, go meet your pillars.</Text>
+            <View style={styles.calibratingPetals}>
+              <PetalCluster
+                items={[
+                  {
+                    id: 'wellness',
+                    label: 'Wellness',
+                    subLabel: '30 sec to set up',
+                    onPress: () => router.navigate(WELLNESS_ROUTE),
+                  },
+                  {
+                    id: 'fitness',
+                    label: 'Fitness',
+                    subLabel: '30 sec to set up',
+                    onPress: () => router.navigate(FITNESS_ROUTE),
+                  },
+                  {
+                    id: 'diet',
+                    label: 'Diet',
+                    subLabel: '30 sec to set up',
+                    onPress: () => router.navigate(DIET_ROUTE),
+                  },
+                  {
+                    id: 'core',
+                    label: 'Core',
+                    subLabel: 'Ready',
+                    emphasized: true,
+                  },
+                ]}
+              />
+            </View>
+          </>
         ) : (
           <>
-            <GlassCard variant="light" radius={radii.xl} style={styles.todayCard}>
-              <Text style={styles.cardLabel}>Today</Text>
-              <View style={styles.todayRows}>
-                <TodayRow
-                  label="Nutrition"
-                  value={formatCalories(caloriesIn, targets?.calories)}
-                  onPress={() => router.navigate(DIET_ROUTE)}
-                />
-                <TodayRow
-                  label="Movement"
-                  value={
-                    workoutSessions > 0
-                      ? `${workoutSessions} workout${workoutSessions === 1 ? '' : 's'}`
-                      : 'Not logged yet'
-                  }
-                  onPress={() => router.navigate(FITNESS_ROUTE)}
-                />
-                <TodayRow
-                  label="Hydration"
-                  value={formatHydration(waterMl)}
-                  onPress={() => router.navigate(WELLNESS_ROUTE)}
-                />
-              </View>
-            </GlassCard>
+            <View style={styles.greetingBlock}>
+              <Text style={styles.greeting}>
+                {timeOfDayGreeting(now)},
+                {firstName ? (
+                  <>
+                    {' '}
+                    <Text style={styles.greetingName}>{firstName}.</Text>
+                  </>
+                ) : null}
+              </Text>
+              <Text style={styles.greetingSubtitle}>{headline}</Text>
+            </View>
 
-            <PetalCluster
-              items={[
-                {
-                  id: 'wellness',
-                  label: 'Wellness',
-                  onPress: () => router.navigate(WELLNESS_ROUTE),
-                },
-                {
-                  id: 'fitness',
-                  label: 'Fitness',
-                  onPress: () => router.navigate(FITNESS_ROUTE),
-                },
-                {
-                  id: 'diet',
-                  label: 'Diet',
-                  onPress: () => router.navigate(DIET_ROUTE),
-                },
-                {
-                  id: 'core',
-                  label: 'Core',
-                  emphasized: true,
-                },
-              ]}
-            />
+            {isLoading ? (
+              <View style={styles.loading}>
+                <ActivityIndicator color={colors.ink45} />
+              </View>
+            ) : (
+              <>
+                <GlassCard variant="light" radius={radii.xl} style={styles.todayCard}>
+                  <Text style={styles.cardLabel}>Today</Text>
+                  <View style={styles.todayRows}>
+                    <TodayRow
+                      label="Nutrition"
+                      value={formatCalories(caloriesIn, targets?.calories)}
+                      onPress={() => router.navigate(DIET_ROUTE)}
+                    />
+                    <TodayRow
+                      label="Movement"
+                      value={
+                        workoutSessions > 0
+                          ? `${workoutSessions} workout${workoutSessions === 1 ? '' : 's'}`
+                          : 'Not logged yet'
+                      }
+                      onPress={() => router.navigate(FITNESS_ROUTE)}
+                    />
+                    <TodayRow
+                      label="Hydration"
+                      value={formatHydration(waterMl)}
+                      onPress={() => router.navigate(WELLNESS_ROUTE)}
+                    />
+                  </View>
+                </GlassCard>
+
+                <PetalCluster
+                  items={[
+                    {
+                      id: 'wellness',
+                      label: 'Wellness',
+                      onPress: () => router.navigate(WELLNESS_ROUTE),
+                    },
+                    {
+                      id: 'fitness',
+                      label: 'Fitness',
+                      onPress: () => router.navigate(FITNESS_ROUTE),
+                    },
+                    {
+                      id: 'diet',
+                      label: 'Diet',
+                      onPress: () => router.navigate(DIET_ROUTE),
+                    },
+                    {
+                      id: 'core',
+                      label: 'Core',
+                      emphasized: true,
+                    },
+                  ]}
+                />
+              </>
+            )}
           </>
         )}
       </Screen>
     </View>
   );
+}
+
+function ReadingYouSection() {
+  const sourcesQuery = useSourcesQuery();
+  return <ReadingYouCard sources={sourcesQuery.data ?? []} />;
 }
 
 type TodayRowProps = {
@@ -190,6 +256,15 @@ const styles = StyleSheet.create({
   loading: {
     paddingVertical: spacing.xxxl,
     alignItems: 'center',
+  },
+  calibratingPillarIntro: {
+    ...textStyle('sheetSubtitle'),
+    color: colors.ink50,
+    textAlign: 'center',
+    marginTop: spacing.lg,
+  },
+  calibratingPetals: {
+    marginTop: spacing.lg,
   },
   todayCard: {
     marginTop: spacing.lg,
