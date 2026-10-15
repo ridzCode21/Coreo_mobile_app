@@ -1,5 +1,11 @@
-import type { PropsWithChildren } from 'react';
-import { ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
+import type { PropsWithChildren, ReactElement } from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  View,
+  type RefreshControlProps,
+  type ViewStyle,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, spacing } from '@/shared/theme/tokens';
@@ -12,6 +18,7 @@ type ScreenProps = PropsWithChildren<{
   style?: ViewStyle;
   contentContainerStyle?: ViewStyle;
   background?: string;
+  refreshControl?: ReactElement<RefreshControlProps>;
 }>;
 
 /**
@@ -25,6 +32,7 @@ export function Screen({
   style,
   contentContainerStyle,
   background = colors.zenith,
+  refreshControl,
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const { contentMaxWidth, breakpoint } = useResponsive();
@@ -52,6 +60,7 @@ export function Screen({
     <ScrollView
       style={[styles.flex, { backgroundColor: background }, style]}
       contentContainerStyle={[styles.grow, contentContainerStyle]}
+      refreshControl={refreshControl}
     >
       {content}
     </ScrollView>

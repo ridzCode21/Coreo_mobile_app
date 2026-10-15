@@ -5,7 +5,12 @@
  * §3: derived data is computed from source of truth, not duplicated into a store).
  */
 
-import type { MealType, FoodEntry, MacroSummary } from '@/shared/types/food';
+import type {
+  FoodEntriesMacroSummary,
+  FoodEntry,
+  MacroSummary,
+  MealType,
+} from '@/shared/types/food';
 import type { DietProfile } from '@/shared/types/dietProfile';
 
 export type MacroTargets = {
@@ -38,8 +43,16 @@ export function targetsFromProfile(profile: DietProfile): MacroTargets {
 }
 
 export function normalizeMacroSummary(
-  summary: Partial<MacroSummary> | null | undefined,
+  summary: FoodEntriesMacroSummary | Partial<MacroSummary> | null | undefined,
 ): MacroSummary {
+  if (summary && 'calories' in summary) {
+    return {
+      calories_in: finiteNumber(summary.calories.consumed),
+      protein_g: finiteNumber(summary.protein_g.consumed),
+      carbs_g: finiteNumber(summary.carbs_g.consumed),
+      fat_g: finiteNumber(summary.fat_g.consumed),
+    };
+  }
   return {
     calories_in: finiteNumber(summary?.calories_in),
     protein_g: finiteNumber(summary?.protein_g),
@@ -65,7 +78,7 @@ export function macroFillRatio(consumed: number, target: number): number {
   return Math.min(1, Math.max(0, finiteNumber(consumed) / safeTarget));
 }
 
-const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
+export const MEAL_ORDER: readonly MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
 /** Group a day's entries by meal for a sectioned list, in a stable meal order; empty meals omitted. */
 export function groupEntriesByMeal(

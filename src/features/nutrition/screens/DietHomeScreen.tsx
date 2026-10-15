@@ -1,133 +1,216 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import Svg, { Path, Rect } from 'react-native-svg';
 
+import { useDietProfileQuery } from '@/features/onboarding';
+import { todayISO, useFoodEntriesQuery } from '@/features/nutrition/api/nutritionApi';
+import { LogMealSheet } from '@/features/nutrition/components/LogMealSheet';
+import { MacroSummaryCard } from '@/features/nutrition/components/MacroSummaryCard';
+import { NextMealCard } from '@/features/nutrition/components/NextMealCard';
+import { ReassuranceStrip } from '@/features/nutrition/components/ReassuranceStrip';
+import { formatWeightChip } from '@/features/nutrition/lib/dietHome';
+import { normalizeMacroSummary, targetsFromProfile } from '@/features/nutrition/lib/macros';
 import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
-import { colors, fontFamily, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
-import { targetQuality, useDietProfileQuery } from '@/features/onboarding';
+import { GlassCard } from '@/shared/components/GlassCard';
 import {
-  todayISO,
-  useDeleteFoodEntryMutation,
-  useFoodEntriesQuery,
-} from '@/features/nutrition/api/nutritionApi';
-import {
-  groupEntriesByMeal,
-  normalizeMacroSummary,
-  targetsFromProfile,
-} from '@/features/nutrition/lib/macros';
-import { MacroSummaryCard } from '@/features/nutrition/components/MacroSummaryCard';
-import { FoodEntryRow } from '@/features/nutrition/components/FoodEntryRow';
-import { LogMealSheet } from '@/features/nutrition/components/LogMealSheet';
-import { DietPersonalizationCard } from '@/features/nutrition/components/DietPersonalizationCard';
-import { MealPlanCard } from '@/features/nutrition/components/MealPlanCard';
-import type { MealType } from '@/shared/types/food';
+  colors,
+  componentSizes,
+  glass,
+  radii,
+  spacing,
+  textStyle,
+  withAlpha,
+} from '@/shared/theme/tokens';
 
-const MEAL_LABEL: Record<MealType, string> = {
-  breakfast: 'Breakfast',
-  lunch: 'Lunch',
-  dinner: 'Dinner',
-  snack: 'Snack',
-};
-
-/**
- * Diet home (14a) — the day's calorie budget + macros + logged entries, and the entry point to
- * logging. Driven by `GET /food/entries/` (entries + macro summary) and the committed diet profile
- * (daily targets); see design spec §6/F-N5. The Layer-2 "Next meal" planned-meal card and the
- * `78 → 72` weight chip are intentionally not here yet (marked below) — not faked.
- */
 export default function DietHomeScreen() {
+  const router = useRouter();
   const today = todayISO();
   const [sheetVisible, setSheetVisible] = useState(false);
 
   const profileQuery = useDietProfileQuery();
   const entriesQuery = useFoodEntriesQuery(today);
-  const deleteEntry = useDeleteFoodEntryMutation(today);
-
-  const isLoading = profileQuery.isLoading || entriesQuery.isLoading;
-
   const profile = profileQuery.data;
   const targets = profile ? targetsFromProfile(profile) : null;
   const consumed = normalizeMacroSummary(entriesQuery.data?.macro_summary);
-  const entries = entriesQuery.data?.entries ?? [];
-  const sections = groupEntriesByMeal(entries);
+  const weightChip = profile ? formatWeightChip(profile.weight_kg, profile.target_weight_kg) : null;
+  const refreshing = Boolean(profileQuery.isRefetching || entriesQuery.isRefetching);
+
+  const openLogSheet = () => setSheetVisible(true);
+  const refresh = () => {
+    void Promise.all([profileQuery.refetch(), entriesQuery.refetch()]);
+  };
 
   return (
     <View style={styles.root}>
       <SkyBackground style={StyleSheet.absoluteFill} />
-      <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.eyebrow}>Diet</Text>
-        {/* Two-weight headline treatment matching the design (pageTitle: light lead + medium
-            accent, design-system §2). NOTE: the copy is a static stand-in — the design's dynamic
-            coaching line ("Carbs before 5…") comes from the AI coaching layer (Layer 2); there's no
-            engine to compute it yet, so this renders a fixed on-brand line in the right style. */}
-        <Text style={styles.headline}>
-          Your fuel, <Text style={styles.headlineAccent}>kept honest.</Text>
-        </Text>
+      <Screen
+        background="transparent"
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
+      >
+        <View style={styles.header}>
+          <Pressable
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <LinearGradient
+              colors={[withAlpha(colors.white, 0.6), withAlpha(colors.white, 0.25)]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.backButton}
+            >
+              <Svg
+                width={componentSizes.replaceBackIcon}
+                height={componentSizes.replaceBackIcon}
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <Path
+                  d="M15 18l-6-6 6-6"
+                  stroke={colors.ink80}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+            </LinearGradient>
+          </Pressable>
 
-        {isLoading ? (
-          <View style={styles.loading}>
-            <ActivityIndicator color={colors.ink40} />
-          </View>
-        ) : (
-          <>
-            {profile ? <DietPersonalizationCard profile={profile} /> : null}
+          <Text style={styles.eyebrow}>Diet</Text>
 
-            {targets ? (
-              <MacroSummaryCard
-                targets={targets}
-                consumed={consumed}
-                quality={profile ? targetQuality(profile) : 'unavailable'}
-              />
-            ) : (
-              <Text style={styles.softNote}>
-                Couldn&apos;t load your targets just now. Pull to refresh in a moment.
-              </Text>
-            )}
-
-            <MealPlanCard date={today} />
-
-            <View style={styles.listSection}>
-              {sections.length === 0 ? (
-                <Text style={styles.emptyText}>
-                  Nothing logged yet. Whenever you eat, tell me — five seconds.
-                </Text>
-              ) : (
-                sections.map((section) => (
-                  <View key={section.meal} style={styles.mealGroup}>
-                    <Text style={styles.mealHeader}>{MEAL_LABEL[section.meal]}</Text>
-                    {section.entries.map((entry) => (
-                      <FoodEntryRow
-                        key={entry.id}
-                        entry={entry}
-                        onDelete={(target) => deleteEntry.mutate(target.id)}
-                      />
-                    ))}
-                  </View>
-                ))
-              )}
+          {weightChip ? (
+            <View style={styles.weightChip}>
+              <Text style={styles.weightChipText}>{weightChip}</Text>
             </View>
-          </>
-        )}
+          ) : (
+            <View style={styles.headerSpacer} />
+          )}
+        </View>
 
-        <Pressable
-          onPress={() => setSheetVisible(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Log a meal"
-          style={styles.logPill}
-        >
-          <Text style={styles.logPillText}>Log a meal</Text>
-          <View style={styles.logPlus}>
-            <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M12 5v14M5 12h14"
-                stroke={colors.white}
-                strokeWidth={2}
-                strokeLinecap="round"
-              />
-            </Svg>
-          </View>
-        </Pressable>
+        <View style={styles.headline}>
+          <Text style={styles.headlineLead}>Carbs before 5.</Text>
+          <Text style={styles.headlineSpace}> </Text>
+          <Text style={styles.headlineAccent}>That&apos;s the whole game today.</Text>
+        </View>
+
+        <View style={styles.heroSection}>
+          {profileQuery.isLoading || entriesQuery.isLoading ? (
+            <ActivityIndicator color={colors.ink40} accessibilityLabel="Loading today's numbers" />
+          ) : !profile || profileQuery.isError || !targets ? (
+            <Text style={styles.softNote}>
+              Couldn&apos;t load your targets just now. Pull to refresh in a moment.
+            </Text>
+          ) : entriesQuery.isError || !entriesQuery.data ? (
+            <Text style={styles.softNote}>
+              Couldn&apos;t load today&apos;s numbers. Pull to refresh.
+            </Text>
+          ) : (
+            <MacroSummaryCard targets={targets} consumed={consumed} />
+          )}
+        </View>
+
+        <View style={styles.cardSection}>
+          <NextMealCard date={today} />
+        </View>
+        <View style={styles.cardSection}>
+          <ReassuranceStrip />
+        </View>
+
+        <View style={styles.actions}>
+          <Pressable
+            onPress={openLogSheet}
+            accessibilityRole="button"
+            accessibilityLabel="Log a meal"
+          >
+            <View testID="log-pill-glow" style={styles.logPillGlow}>
+              <LinearGradient
+                colors={glass.chipSelected.gradient}
+                start={glass.chipSelected.start}
+                end={glass.chipSelected.end}
+                style={styles.logPill}
+              >
+                <Text style={styles.logPillText}>Log a meal</Text>
+                <View style={styles.logPlus}>
+                  <Svg
+                    width={componentSizes.dietActionIcon}
+                    height={componentSizes.dietActionIcon}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <Path
+                      d="M12 5v14M5 12h14"
+                      stroke={colors.white}
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </Svg>
+                </View>
+              </LinearGradient>
+            </View>
+          </Pressable>
+
+          <Pressable
+            onPress={openLogSheet}
+            accessibilityRole="button"
+            accessibilityLabel="Say what you ate"
+          >
+            <GlassCard variant="night" radius={radii.dietVoiceBar} padded={false}>
+              <View style={styles.voiceBar}>
+                <Text style={styles.voiceCopy}>Say what you ate. Five seconds</Text>
+                <LinearGradient
+                  colors={[withAlpha(colors.white, 0.28), withAlpha(colors.white, 0.1)]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.voiceMic}
+                >
+                  <Svg
+                    width={componentSizes.dietActionIcon}
+                    height={componentSizes.dietActionIcon}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <Rect
+                      x={9}
+                      y={3}
+                      width={6}
+                      height={11}
+                      rx={3}
+                      stroke={colors.onNight}
+                      strokeWidth={componentSizes.homeAskBarMicStrokeWidth}
+                    />
+                    <Path
+                      d="M5 11a7 7 0 0 0 14 0M12 18v3"
+                      stroke={colors.onNight}
+                      strokeWidth={componentSizes.homeAskBarMicStrokeWidth}
+                      strokeLinecap="round"
+                    />
+                  </Svg>
+                </LinearGradient>
+                <View style={styles.voiceSubmit}>
+                  <Svg
+                    width={componentSizes.dietActionIcon}
+                    height={componentSizes.dietActionIcon}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <Path
+                      d="M12 19V5M6 11l6-6 6 6"
+                      stroke={colors.ink}
+                      strokeWidth={componentSizes.homeAskBarSendStrokeWidth}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </Svg>
+                </View>
+              </View>
+            </GlassCard>
+          </Pressable>
+        </View>
       </Screen>
 
       <LogMealSheet visible={sheetVisible} onClose={() => setSheetVisible(false)} />
@@ -137,71 +220,147 @@ export default function DietHomeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  scrollContent: {
-    paddingBottom: 112,
+  scrollContent: { paddingBottom: componentSizes.dietScreenBottomClearance },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  backButton: {
+    width: componentSizes.dietHeaderControl,
+    height: componentSizes.dietHeaderControl,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: withAlpha(colors.white, 0.65),
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: withAlpha(colors.overlayInk, 0.12),
+    shadowOffset: { width: 0, height: spacing.sm },
+    shadowOpacity: 1,
+    shadowRadius: componentSizes.dietCircleShadowRadius,
+    elevation: componentSizes.dietElevation,
   },
   eyebrow: {
     ...textStyle('label'),
     color: colors.ink45,
     textAlign: 'center',
-    marginBottom: spacing.xl,
   },
+  weightChip: {
+    minWidth: componentSizes.dietHeaderControl,
+    height: componentSizes.dietWeightChipHeight,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.dietWeightChip,
+    backgroundColor: withAlpha(colors.white, 0.5),
+    borderWidth: 1,
+    borderColor: withAlpha(colors.white, 0.65),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  weightChipText: {
+    ...textStyle('weightChip'),
+    color: colors.ink60,
+  },
+  headerSpacer: { width: componentSizes.dietHeaderControl },
   headline: {
-    ...textStyle('pageTitle'),
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: spacing.dietHeadlineTop,
+  },
+  headlineLead: {
+    ...textStyle('sheetTitle'),
     color: colors.ink,
-    marginBottom: spacing.xxl,
+  },
+  headlineSpace: {
+    ...textStyle('sheetTitle'),
   },
   headlineAccent: {
-    fontFamily: fontFamily.poppins500,
+    ...textStyle('dietHeadlineAccent'),
     color: colors.ink,
   },
-  loading: {
-    paddingVertical: spacing.xxxl,
-    alignItems: 'center',
-  },
+  heroSection: { marginTop: spacing.dietHeroTop },
   softNote: {
     ...textStyle('body'),
-    color: colors.ink45,
+    color: colors.ink55,
   },
-  listSection: {
-    marginTop: spacing.xxl,
-    gap: spacing.lg,
+  cardSection: { marginTop: spacing.dietCardGap },
+  actions: {
+    gap: spacing.dietCardGap,
+    marginTop: spacing.xxxl,
   },
-  mealGroup: {
-    gap: spacing.sm,
-  },
-  mealHeader: {
-    ...textStyle('label'),
-    color: colors.ink45,
-    marginBottom: spacing.xs,
-  },
-  emptyText: {
-    ...textStyle('body'),
-    color: colors.ink45,
+  logPillGlow: {
+    borderRadius: radii.dietLogPill,
+    shadowColor: colors.white,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.7,
+    shadowRadius: componentSizes.dietLogPillGlowRadius,
+    elevation: componentSizes.dietElevation,
   },
   logPill: {
+    height: componentSizes.dietLogPillHeight,
+    borderRadius: radii.dietLogPill,
+    borderWidth: 1,
+    borderColor: glass.chipSelected.border,
+    paddingLeft: spacing.dietActionPaddingLeft,
+    paddingRight: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: withAlpha(colors.white, 0.62),
-    borderWidth: 1,
-    borderColor: withAlpha(colors.white, 0.6),
-    borderRadius: radii.pill,
-    paddingLeft: spacing.xxl,
-    paddingRight: spacing.sm,
-    paddingVertical: spacing.sm,
-    marginTop: spacing.xxxl,
+    shadowColor: glass.chipSelected.shadowColor,
+    shadowOffset: { width: 0, height: spacing.lg },
+    shadowOpacity: 1,
+    shadowRadius: componentSizes.dietActionShadowRadius,
+    elevation: componentSizes.dietElevation,
   },
   logPillText: {
-    ...textStyle('bodyLg'),
+    ...textStyle('buttonSm'),
     color: colors.ink,
   },
   logPlus: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.coreBlue,
+    width: componentSizes.dietLogPlus,
+    height: componentSizes.dietLogPlus,
+    borderRadius: radii.pill,
+    backgroundColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: colors.nightShadow,
+    shadowOffset: { width: 0, height: spacing.sm },
+    shadowOpacity: 1,
+    shadowRadius: componentSizes.dietCircleShadowRadius,
+    elevation: componentSizes.dietElevation,
+  },
+  voiceBar: {
+    height: componentSizes.dietVoiceBarHeight,
+    paddingLeft: spacing.dietActionPaddingLeft,
+    paddingRight: spacing.authResetFieldGap,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.ms,
+  },
+  voiceCopy: {
+    ...textStyle('body'),
+    color: withAlpha(colors.fog, 0.55),
+    flex: 1,
+  },
+  voiceMic: {
+    width: componentSizes.dietVoiceIconCircle,
+    height: componentSizes.dietVoiceIconCircle,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: withAlpha(colors.white, 0.3),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  voiceSubmit: {
+    width: componentSizes.dietVoiceIconCircle,
+    height: componentSizes.dietVoiceIconCircle,
+    borderRadius: radii.pill,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.white,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: componentSizes.dietVoiceSubmitGlowRadius,
+    elevation: componentSizes.dietElevation,
   },
 });
