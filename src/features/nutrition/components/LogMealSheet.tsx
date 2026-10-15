@@ -30,6 +30,7 @@ const ICON_SIZE = 24;
 const iconStroke = colors.ink;
 const iconStrokeOnNight = colors.onNight;
 const DIET_CONFIRM_ROUTE = '/diet/confirm';
+const DIET_PHOTO_RESULT_ROUTE = '/diet/photo-result';
 const DIET_SCAN_ROUTE = '/diet/scan' as Href;
 
 function CameraIcon({ stroke }: { stroke: string }) {
@@ -162,15 +163,23 @@ export function LogMealSheet({ visible, onClose }: LogMealSheetProps) {
 
   const analyzePhotoAndConfirm = (file: PhotoUploadFile) => {
     analyzePhoto.mutate(file, {
-      onSuccess: (estimate) =>
-        goConfirm('photo', {
-          food_name: estimate.name,
-          calories: estimate.est_calories,
-          protein_g: estimate.est_protein_g,
-          carbs_g: estimate.est_carbs_g,
-          fat_g: estimate.est_fat_g,
-          items: estimate.items,
-        }),
+      onSuccess: (estimate) => {
+        close();
+        const routeQuery = new URLSearchParams({
+          source: 'photo',
+          photoUri: file.uri,
+          prefill: JSON.stringify({
+            food_name: estimate.name,
+            calories: estimate.est_calories,
+            protein_g: estimate.est_protein_g,
+            carbs_g: estimate.est_carbs_g,
+            fat_g: estimate.est_fat_g,
+            guessed_count: estimate.guessed_count,
+            items: estimate.items,
+          }),
+        });
+        router.push(`${DIET_PHOTO_RESULT_ROUTE}?${routeQuery.toString()}` as Href);
+      },
       onError: (error) =>
         setNotice(apiMessage(error, "I couldn't read that one. Describe it and I'll do the math.")),
     });

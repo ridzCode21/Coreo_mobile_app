@@ -8,6 +8,8 @@ export default function DietTabLayout() {
       <Stack.Screen name="meal/[id]" />
       <Stack.Screen name="confirm" />
       <Stack.Screen name="scan" />
+      <Stack.Screen name="photo-result" />
+      <Stack.Screen name="receipt" />
     </Stack>
   );
 }

@@ -265,7 +265,7 @@ registerMock('POST', '/food/photo/', (request) => {
       est_protein_g: 32,
       est_carbs_g: 74,
       est_fat_g: 22,
-      guessed_count: 0,
+      guessed_count: 1,
       items: [
         {
           name: 'Steamed rice',
@@ -294,17 +294,17 @@ registerMock('POST', '/food/photo/', (request) => {
           remembered: false,
         },
         {
-          name: 'Ghee',
-          portion_label: '1 tbsp',
+          name: 'Dressing',
+          portion_label: null,
           portion_grams: 14,
           est_calories: 135,
           est_protein_g: 0,
           est_carbs_g: 0,
           est_fat_g: 15,
-          confidence: 1,
-          guessed: false,
-          guess_note: null,
-          remembered: true,
+          confidence: 0.5,
+          guessed: true,
+          guess_note: 'The dressing. Ghee or oil changes 90 kcal.',
+          remembered: false,
         },
         {
           name: 'Sautéed greens',

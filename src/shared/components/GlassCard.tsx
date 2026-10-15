@@ -5,7 +5,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { glass, radii } from '@/shared/theme/tokens';
 
-export type GlassCardVariant = 'light' | 'night' | 'dietHero' | 'chip' | 'sheet' | 'dock';
+export type GlassCardVariant =
+  'light' | 'night' | 'dietHero' | 'chip' | 'sheet' | 'dock' | 'afterSnapSurface';
 
 type GlassCardProps = PropsWithChildren<{
   variant?: GlassCardVariant;
@@ -41,6 +42,7 @@ export function GlassCard({
     chip: { intensity: 60, tint: 'light' },
     sheet: { intensity: 90, tint: 'light' },
     dock: { intensity: 90, tint: 'light' },
+    afterSnapSurface: { intensity: 60, tint: 'light' },
   } as const;
 
   return (

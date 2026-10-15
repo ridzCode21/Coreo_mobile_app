@@ -247,6 +247,10 @@ chip, 58px log pill with 42px plus control, 60px voice bar with 44px controls, 4
 24px log-pill glow, 20px voice-submit glow, other glow/shadow geometry, and bottom-dock clearance.
 Photo review 15a uses `mealReviewBackControl` (38px), `mealReviewBackIcon` (15px),
 `mealReviewStepper` (30px), `mealReviewCheckCircle` (42px), and `mealReviewCheckIcon` (16px).
+After-snap screens 21a/21b use the `afterSnap*` spacing, typography, radius, and component-size
+tokens for their 280px photo, 26/30/28/58px result controls, 32/24/56/40px receipt controls,
+and design-exact receipt typography. These semantic tokens keep the two screens free of local
+pixel values while preserving the 390×844 source layout.
 `componentSizes.hairline` is the fixed 1px border width specified by the design for these controls
 and fields. It intentionally differs from React Native's device-pixel `StyleSheet.hairlineWidth`.
 
@@ -268,6 +272,8 @@ The single most important pattern in the system. Shared recipes are exact rather
 | `night`                   | 150deg, `rgb(34,66,102)` `.60` → `rgb(12,28,48)` `.70` | white `.22` | `rgb(8,24,44)` `.34`           |
 | `chip`                    | 135deg, white `.50` → `.14`                            | white `.55` | overlay ink `.14`              |
 | `chipSelected`            | 135deg, white `.94` → `.60`                            | white `.90` | overlay ink `.20`              |
+| `afterSnapNav`            | 135deg, white `.60` → `.25`                            | white `.65` | overlay ink `.12`              |
+| `afterSnapSurface`        | 135deg, white `.62` → `.24`                            | white `.60` | overlay ink `.12`              |
 | `SelectableChip` selected | flat white                                             | none        | overlay ink `.18`              |
 | `sheet`                   | 160deg, white `.82` → `.55`                            | white `.85` | overlay ink `.14`; 36px radius |
 
@@ -434,13 +440,11 @@ underlying functionality behind the product decisions below rather than wiring t
 - **26A/26B "Coreo Plus" paywall** — `product-context.md` §5 lists subscriptions/monetization as
   explicitly out of MVP scope. Treat as a real screen to have ready, but don't integrate real
   billing/entitlements until product scope changes.
-- **21A/21B photo- and receipt-based food logging** — **now in MVP scope** as of 2026-07-26
-  (`product-context.md` §5 scope-change note; feature-map.md flag F-N1). The nutrition Layer-1
+- **21A/21B photo- and receipt-based food logging** — **in MVP scope**. The nutrition Layer-1
   build wires photo (`/food/photo/`) and barcode (`/food/lookup/barcode/`) as first-class logging
-  paths (14b). Note: 21A/21B's richer _per-ingredient_ editable breakdown is **not** built — the
-  photo API returns a single aggregate estimate, so the confirm screen (15a-style) edits the
-  aggregate; the itemized treatment needs a backend change (flag F-N2). Receipt-specific OCR (21B)
-  is still deferred — only the meal-photo path is built.
+  paths (14b). The photo endpoint now returns both aggregate totals and itemized estimates, so
+  21A shows the analyzed items and 21B shows the saved receipt; Check My Math remains the edit
+  path for uncertain items. Receipt-specific OCR is still deferred — this flow is meal-photo only.
 - **25A "couldn't read the plate"** is the error state for the photo-logging flow — now relevant
   (photo logging is built). Layer 1 surfaces the API's own 422/429 copy inline in the log sheet and
   falls back to manual entry; a dedicated full 25A screen can follow.

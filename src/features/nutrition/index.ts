@@ -7,6 +7,8 @@ export { default as ConfirmMealScreen } from '@/features/nutrition/screens/Confi
 export { default as BarcodeScannerScreen } from '@/features/nutrition/screens/BarcodeScannerScreen';
 export { default as MealPlanScreen } from '@/features/nutrition/screens/MealPlanScreen';
 export { default as MealDetailScreen } from '@/features/nutrition/screens/MealDetailScreen';
+export { default as PhotoResultScreen } from '@/features/nutrition/screens/PhotoResultScreen';
+export { default as PhotoReceiptScreen } from '@/features/nutrition/screens/PhotoReceiptScreen';
 export {
   nutritionKeys,
   todayISO,
