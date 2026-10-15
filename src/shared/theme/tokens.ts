@@ -41,6 +41,9 @@ export const colors = {
 
   success: '#3E8E63',
   attention: '#7A5220',
+  unreadablePhotoStart: '#6E7A85',
+  unreadablePhotoEnd: '#454F58',
+  unreadablePhotoOverlay: 'rgba(8,24,44,0.45)',
 } as const;
 
 export function withAlpha(hex: string, alpha: number): string {
@@ -59,6 +62,12 @@ export const skyGradient = {
 export const sheetSkyGradient = {
   colors: ['#A3C4E5', '#7299C6', '#54779F'],
   locations: [0, 0.52, 1],
+} as const;
+
+export const unreadablePhotoGradient = {
+  colors: [colors.unreadablePhotoStart, colors.unreadablePhotoEnd],
+  start: { x: 0.32, y: 0 },
+  end: { x: 0.68, y: 1 },
 } as const;
 
 export const afterSnapPhotoOverlay = {
@@ -131,6 +140,12 @@ export const glass = {
     start: { x: 0, y: 0 },
     end: { x: 1, y: 1 },
   },
+  photoUnreadableAction: {
+    gradient: ['rgba(34,66,102,0.85)', 'rgba(12,28,48,0.9)'],
+    shadowColor: 'rgba(8,24,44,0.28)',
+    start: { x: 0.21, y: 0 },
+    end: { x: 0.79, y: 1 },
+  },
   selectableChipSelected: {
     shadowColor: withAlpha(colors.overlayInk, 0.18),
   },
@@ -202,6 +217,9 @@ export const spacing = {
   afterSnapReceiptListPaddingY: 6,
   afterSnapReceiptRowPaddingY: 11,
   afterSnapReceiptActionGap: 10,
+  photoUnreadableActionPaddingX: 18,
+  photoUnreadableActionShadowRadius: 28,
+  photoUnreadableUsualPaddingX: 14,
   passwordResetFieldPadY: 13,
   passwordResetSignInPaddingX: 28,
 } as const;
@@ -217,6 +235,7 @@ export const radii = {
   xl: 28,
   afterSnapPhoto: 26,
   afterSnapMacro: 16,
+  photoUnreadableUsual: 16,
   dietWeightChip: 13,
   dietNextMeal: 24,
   dietLogPill: 29,
@@ -306,6 +325,12 @@ export const componentSizes = {
   afterSnapReceiptFixHeight: 24,
   afterSnapReceiptActionHeight: 56,
   afterSnapReceiptCheckCircle: 40,
+  photoUnreadablePlaceholderWidth: 140,
+  photoUnreadablePlaceholderHeight: 104,
+  photoUnreadableIcon: 20,
+  photoUnreadableActionIcon: 19,
+  photoUnreadableIconStrokeWidth: 1.6,
+  photoUnreadableUsualHeight: 32,
   hairline: 1,
 } as const;
 
@@ -369,6 +394,20 @@ export const typography = {
   afterSnapReceiptFix: { fontSize: 10, fontWeight: '500', letterSpacing: 0 },
   afterSnapReceiptAction: { fontSize: 12.5, fontWeight: '400', letterSpacing: 0 },
   afterSnapReceiptActionStrong: { fontSize: 12.5, fontWeight: '500', letterSpacing: 0 },
+  photoUnreadableTitle: {
+    fontSize: 26,
+    fontWeight: '200',
+    letterSpacing: -0.4,
+    lineHeight: 1.4,
+  },
+  photoUnreadableActionTitle: { fontSize: 13, fontWeight: '500', letterSpacing: 0 },
+  photoUnreadableUsualLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+  },
+  photoUnreadableUsualChip: { fontSize: 11.5, fontWeight: '400', letterSpacing: 0 },
   dietHeadlineAccent: {
     fontSize: 25,
     fontWeight: '400',
