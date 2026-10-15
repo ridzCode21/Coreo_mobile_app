@@ -79,6 +79,25 @@ export type DailyTotals = MacroSummary & {
   net_calories: number;
 };
 
+export type AiGuess = {
+  name: string;
+  portion_grams: number | null;
+  est_calories: number;
+  est_protein_g: number;
+  est_carbs_g: number;
+  est_fat_g: number;
+  confidence: number;
+};
+
+/** One recognized line item from `POST /food/photo/`. */
+export type PhotoEstimateItem = Omit<AiGuess, 'portion_grams'> & {
+  portion_label: string | null;
+  portion_grams: number;
+  guessed: boolean;
+  guess_note: string | null;
+  remembered: boolean;
+};
+
 /**
  * AI photo estimate — §8 `POST /food/photo/`. This is an ESTIMATE only; the frontend lets the
  * user confirm/edit it and then POSTs it as a real `FoodEntry`. It does not create an entry itself.
@@ -90,10 +109,12 @@ export type PhotoEstimate = {
   est_protein_g: number;
   est_carbs_g: number;
   est_fat_g: number;
+  guessed_count: number;
+  items: PhotoEstimateItem[];
 };
 
 /** A per-serving nutrition-label estimate — §8 `POST /food/label-ocr/`. */
-export type LabelEstimate = PhotoEstimate & {
+export type LabelEstimate = Omit<PhotoEstimate, 'guessed_count' | 'items'> & {
   servings_per_container: number;
   confidence: number;
   guessed: boolean;

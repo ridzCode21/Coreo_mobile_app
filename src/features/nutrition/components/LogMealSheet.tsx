@@ -169,6 +169,7 @@ export function LogMealSheet({ visible, onClose }: LogMealSheetProps) {
           protein_g: estimate.est_protein_g,
           carbs_g: estimate.est_carbs_g,
           fat_g: estimate.est_fat_g,
+          items: estimate.items,
         }),
       onError: (error) =>
         setNotice(apiMessage(error, "I couldn't read that one. Describe it and I'll do the math.")),
