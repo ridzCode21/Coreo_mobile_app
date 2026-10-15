@@ -32,6 +32,7 @@ import {
   confirmPrefillSchema,
   confirmRouteParamsSchema,
   type ConfirmPrefill,
+  type PhotoReceiptSummary,
 } from '@/features/nutrition/schemas';
 import {
   todayISO,
@@ -39,6 +40,8 @@ import {
   useCreateFoodEntryMutation,
   type CreateFoodEntryInput,
 } from '@/features/nutrition/api/nutritionApi';
+import { currentMealByClock, MEAL_LABEL } from '@/features/nutrition/lib/mealClock';
+import { itemToEntry } from '@/features/nutrition/lib/photoResult';
 import type { FoodSource, MealType, PhotoEstimateItem } from '@/shared/types/food';
 
 type FormState = {
@@ -58,13 +61,6 @@ type ReviewItem = {
 };
 
 const MEAL_OPTIONS: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
-const MEAL_LABEL: Record<MealType, string> = {
-  breakfast: 'Breakfast',
-  lunch: 'Lunch',
-  dinner: 'Dinner',
-  snack: 'Snack',
-};
-
 const NUMERIC_FIELDS: { key: keyof FormState; label: string; unit: string }[] = [
   { key: 'calories', label: 'Calories', unit: 'kcal' },
   { key: 'protein_g', label: 'Protein', unit: 'g' },
@@ -83,14 +79,6 @@ const STEPPER_HIT_SLOP_INSETS = {
   bottom: STEPPER_HIT_SLOP,
   left: STEPPER_HIT_SLOP,
 };
-
-function currentMealByClock(): MealType {
-  const hour = new Date().getHours();
-  if (hour < 11) return 'breakfast';
-  if (hour < 16) return 'lunch';
-  if (hour < 21) return 'dinner';
-  return 'snack';
-}
 
 function parsePrefill(raw?: string): ConfirmPrefill | null {
   if (!raw) return null;
@@ -151,9 +139,10 @@ type PhotoReviewProps = {
   prefill: ConfirmPrefill & { items: PhotoEstimateItem[] };
   mealType: MealType;
   onBack: () => void;
+  onSaved: (summary: PhotoReceiptSummary) => void;
 };
 
-function PhotoReview({ prefill, mealType, onBack }: PhotoReviewProps) {
+function PhotoReview({ prefill, mealType, onBack, onSaved }: PhotoReviewProps) {
   const [items, setItems] = useState<ReviewItem[]>(() =>
     prefill.items.map((item) => ({
       original: item,
@@ -177,28 +166,29 @@ function PhotoReview({ prefill, mealType, onBack }: PhotoReviewProps) {
       setSubmitError('Give every item a name.');
       return;
     }
-    const entries: CreateFoodEntryInput[] = items.map(({ original, name, multiplier }) => ({
-      meal_type: mealType,
-      source: 'photo',
-      food_name: name.trim(),
-      portion_g: scaled(original.portion_grams, multiplier),
-      calories: scaled(original.est_calories, multiplier),
-      protein_g: scaled(original.est_protein_g, multiplier),
-      carbs_g: scaled(original.est_carbs_g, multiplier),
-      fat_g: scaled(original.est_fat_g, multiplier),
-      ai_guess: {
-        name: original.name,
-        portion_grams: original.portion_grams,
-        est_calories: original.est_calories,
-        est_protein_g: original.est_protein_g,
-        est_carbs_g: original.est_carbs_g,
-        est_fat_g: original.est_fat_g,
-        confidence: original.confidence,
-      },
-    }));
+    const entries: CreateFoodEntryInput[] = items.map(({ original, name, multiplier }) =>
+      itemToEntry(original, mealType, multiplier, name),
+    );
     try {
       await createEntries.mutateAsync(entries);
-      onBack();
+      const savedItems = items.map(({ original, name, multiplier }) => ({
+        ...original,
+        name: name.trim(),
+        portion_grams: scaled(original.portion_grams, multiplier),
+        est_calories: scaled(original.est_calories, multiplier),
+        est_protein_g: scaled(original.est_protein_g, multiplier),
+        est_carbs_g: scaled(original.est_carbs_g, multiplier),
+        est_fat_g: scaled(original.est_fat_g, multiplier),
+      }));
+      onSaved({
+        food_name: prefill.food_name ?? savedItems.map((item) => item.name).join(', '),
+        meal_type: mealType,
+        calories: entries.reduce((total, entry) => total + entry.calories, 0),
+        protein_g: entries.reduce((total, entry) => total + entry.protein_g, 0),
+        carbs_g: entries.reduce((total, entry) => total + entry.carbs_g, 0),
+        fat_g: entries.reduce((total, entry) => total + entry.fat_g, 0),
+        items: savedItems,
+      });
     } catch {
       setSubmitError("That didn't save — check your connection and try again.");
     }
@@ -414,6 +404,10 @@ export default function ConfirmMealScreen() {
             prefill={photoPrefill}
             mealType={selectedMeal}
             onBack={() => router.back()}
+            onSaved={(summary) => {
+              const query = new URLSearchParams({ summary: JSON.stringify(summary) });
+              router.replace(`/diet/receipt?${query.toString()}`);
+            }}
           />
         ) : (
           <>

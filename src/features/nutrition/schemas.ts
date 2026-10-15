@@ -38,6 +38,15 @@ export const confirmRouteParamsSchema = z.object({
 });
 export type ConfirmRouteParams = z.infer<typeof confirmRouteParamsSchema>;
 
+export const photoResultRouteParamsSchema = z.object({
+  prefill: z.string().min(1),
+  photoUri: z.string().min(1),
+});
+
+export const photoReceiptRouteParamsSchema = z.object({
+  summary: z.string().min(1),
+});
+
 export const photoEstimateItemSchema = z.object({
   name: z.string(),
   portion_label: z.string().nullable(),
@@ -71,9 +80,33 @@ export const confirmPrefillSchema = z.object({
   protein_g: z.number().optional(),
   carbs_g: z.number().optional(),
   fat_g: z.number().optional(),
+  guessed_count: z.number().int().nonnegative().optional(),
   items: z.array(photoEstimateItemSchema).optional(),
 });
 export type ConfirmPrefill = z.infer<typeof confirmPrefillSchema>;
+
+export const photoResultPrefillSchema = z.object({
+  food_name: z.string(),
+  meal_type: mealTypeSchema.optional(),
+  calories: z.number(),
+  protein_g: z.number(),
+  carbs_g: z.number(),
+  fat_g: z.number(),
+  guessed_count: z.number().int().nonnegative(),
+  items: z.array(photoEstimateItemSchema).min(1),
+});
+export type PhotoResultPrefill = z.infer<typeof photoResultPrefillSchema>;
+
+export const photoReceiptSummarySchema = z.object({
+  food_name: z.string(),
+  calories: z.number(),
+  protein_g: z.number(),
+  carbs_g: z.number(),
+  fat_g: z.number(),
+  meal_type: mealTypeSchema,
+  items: z.array(photoEstimateItemSchema),
+});
+export type PhotoReceiptSummary = z.infer<typeof photoReceiptSummarySchema>;
 
 export const replacedFromParamSchema = z.object({
   name: z.string(),

@@ -7,6 +7,13 @@
  * can carry `items`, and the mock's `POST /food/photo/` response includes an `items[]` that matches
  * the design's exact per-row copy (design-spec.md lines 9-26) without disturbing the existing
  * aggregate fields other screens already read.
+ *
+ * Issue #25 — "After the snap screens for photo and receipt." Screen 21a's "One thing I couldn't
+ * see" card (design-spec.md lines 21-23) needs the mock to actually produce a guessed item by
+ * default — there is no top-level `guess_note` on the real backend's `FoodEstimate`
+ * (`apps/core/services/inference.py:119-128`), only per-item. The mock's 3rd item becomes the
+ * design's "Dressing" (`guessed: true`, with its exact guess-note copy) instead of a remembered
+ * "Ghee", and the top-level `guessed_count` becomes `1` to match.
  */
 
 import '@/shared/api/mock/registerAllMocks';
@@ -96,6 +103,7 @@ describe('nutrition mock contract: POST /food/photo/ returns items[] (issue #24)
       est_protein_g: number;
       est_carbs_g: number;
       est_fat_g: number;
+      guessed_count: number;
       items: {
         name: string;
         portion_label: string | null;
@@ -130,10 +138,11 @@ describe('nutrition mock contract: POST /food/photo/ returns items[] (issue #24)
       guessed: false,
       remembered: false,
     });
-    expect(byName['Ghee']).toMatchObject({
-      portion_label: '1 tbsp',
+    expect(byName['Dressing']).toMatchObject({
       est_calories: 135,
-      remembered: true,
+      guessed: true,
+      guess_note: 'The dressing. Ghee or oil changes 90 kcal.',
+      remembered: false,
     });
     expect(byName['Sautéed greens']).toMatchObject({
       portion_label: '1 cup',
@@ -142,9 +151,12 @@ describe('nutrition mock contract: POST /food/photo/ returns items[] (issue #24)
       remembered: false,
     });
 
-    // Only the remembered item is remembered — the other 3 carry neither badge (design-spec.md:
-    // only the Ghee row's markup shows "From your fix last time" + "Fix").
+    // Only the "Dressing" item is guessed — the other 3 carry neither badge (design-spec.md: only
+    // the Dressing row shows "· my guess" + "Fix" / 21a's "Dressing?" chip).
+    const guessedCount = body.items.filter((item) => item.guessed).length;
+    expect(guessedCount).toBe(1);
+    expect(body.guessed_count).toBe(1);
     const rememberedCount = body.items.filter((item) => item.remembered).length;
-    expect(rememberedCount).toBe(1);
+    expect(rememberedCount).toBe(0);
   });
 });
