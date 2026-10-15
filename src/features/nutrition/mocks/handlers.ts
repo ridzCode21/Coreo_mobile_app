@@ -18,6 +18,7 @@ import type {
 } from '@/shared/types/food';
 import type { DailyLog } from '@/shared/types/dailyLog';
 import { SEED_FOOD_ITEMS } from '@/features/nutrition/mocks/fixtures';
+import { mealTypeSchema } from '@/features/nutrition/schemas';
 
 const PHOTO_DAILY_LIMIT = 10; // free tier — API_REFERENCE.md §8/§16
 const LABEL_DAILY_LIMIT = 10; // independent backend quota — views.py label_ocr
@@ -26,6 +27,13 @@ const UNAUTHORIZED = {
   status: 401 as const,
   body: styleAError('UNAUTHORIZED', 'Authentication required.'),
 };
+
+const USUALS_BY_MEAL = {
+  breakfast: ['Oats and fruit', 'Eggs and toast', 'Protein shake'],
+  lunch: ['Rice bowl, paneer', 'Dal, roti, salad', 'Protein shake'],
+  dinner: ['Dal, roti, salad', 'Rice bowl, paneer', 'Protein shake'],
+  snack: ['Protein shake', 'Fruit and yoghurt', 'Nuts and fruit'],
+} as const;
 
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
@@ -221,6 +229,41 @@ registerMock('GET', '/food/search/', (request) => {
     .filter((item) => item.name.toLowerCase().includes(q))
     .slice(0, Number.isFinite(pageSize) ? pageSize : 20);
   return { status: 200, delayMs: 300, body: styleB(results) };
+});
+
+// GET /food/usuals/ — deterministic fixture matching services/usuals.py's bare response shape.
+registerMock('GET', '/food/usuals/', (request) => {
+  const user = requireMockUser(request);
+  if (!user) return UNAUTHORIZED;
+  const requestedMeal = request.query.meal_type ?? 'lunch';
+  const parsedMealType = mealTypeSchema.safeParse(requestedMeal);
+  if (!parsedMealType.success) return { status: 400, body: { error: 'Invalid meal_type.' } };
+  const mealType = parsedMealType.data;
+
+  const observedAt = new Date().toISOString();
+  const lastLoggedOn = '2026-10-15';
+  return {
+    status: 200,
+    delayMs: 250,
+    body: styleB({
+      meal_type: mealType,
+      observed_at: observedAt,
+      suggestions: USUALS_BY_MEAL[mealType].map((foodName, index) => ({
+        kind: index === 2 ? ('yesterday' as const) : ('repeat' as const),
+        food_name: foodName,
+        meal_type: mealType,
+        calories: 0,
+        protein_g: 0,
+        carbs_g: 0,
+        fat_g: 0,
+        portion_g: 0,
+        food_item: null,
+        reason_label: index === 2 ? `Yesterday's ${mealType} again` : `Most weekday ${mealType}s`,
+        times_logged: index === 2 ? 1 : 2,
+        last_logged_on: lastLoggedOn,
+      })),
+    }),
+  };
 });
 
 // GET /food/lookup/barcode/:barcode/ — exact seeded match; else a synthesized generic item for any

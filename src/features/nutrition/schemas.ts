@@ -8,6 +8,34 @@ import { z } from 'zod';
 
 export const mealTypeSchema = z.enum(['breakfast', 'lunch', 'dinner', 'snack']);
 
+export const photoUnreadableRouteParamsSchema = z.object({
+  title: z.string().trim().min(1).optional().catch(undefined),
+  message: z.string().trim().min(1).optional().catch(undefined),
+  mealType: mealTypeSchema.optional().catch(undefined),
+});
+
+export const usualsSuggestionSchema = z.object({
+  kind: z.enum(['repeat', 'yesterday']),
+  food_name: z.string(),
+  meal_type: mealTypeSchema,
+  calories: z.number(),
+  protein_g: z.number(),
+  carbs_g: z.number(),
+  fat_g: z.number(),
+  portion_g: z.number().nullable(),
+  food_item: z.number().nullable(),
+  reason_label: z.string(),
+  times_logged: z.number().int(),
+  last_logged_on: z.string(),
+});
+
+export const usualsResponseSchema = z.object({
+  meal_type: mealTypeSchema,
+  observed_at: z.string(),
+  suggestions: z.array(usualsSuggestionSchema).max(3),
+});
+export type UsualsResponse = z.infer<typeof usualsResponseSchema>;
+
 /**
  * The editable "Check my math" confirm form (15a). Photo/barcode/search all prefill this, then the
  * user edits and commits. Numbers are non-negative and capped at sane ceilings so a fat-fingered

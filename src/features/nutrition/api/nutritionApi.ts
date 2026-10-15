@@ -18,10 +18,16 @@ import type {
   FoodSource,
   LabelEstimate,
   MacroSummary,
+  MealType,
   PhotoEstimate,
 } from '@/shared/types/food';
 import type { DailyLog, DailySummary } from '@/shared/types/dailyLog';
-import { photoEstimateSchema, type ConfirmMealValues } from '@/features/nutrition/schemas';
+import {
+  photoEstimateSchema,
+  usualsResponseSchema,
+  type ConfirmMealValues,
+  type UsualsResponse,
+} from '@/features/nutrition/schemas';
 
 /** Today as `YYYY-MM-DD` in the device's locale-independent ISO date. */
 export function todayISO(): string {
@@ -34,6 +40,7 @@ export const nutritionKeys = {
   foodEntries: (date: string) => ['nutrition', 'food-entries', date] as const,
   foodSearch: (q: string) => ['nutrition', 'food-search', q] as const,
   barcode: (code: string) => ['nutrition', 'barcode', code] as const,
+  usuals: (mealType: MealType) => ['nutrition', 'usuals', mealType] as const,
 };
 
 const macroBudgetEntrySchema = z.object({
@@ -139,6 +146,19 @@ export function useBarcodeLookup(code: string, enabled: boolean) {
     queryFn: () => apiClient.get<FoodItem>(`/food/lookup/barcode/${encodeURIComponent(code)}/`),
     enabled: enabled && code.length > 0,
     retry: false, // a 404 "not found" is a normal outcome, not a transient error to retry
+  });
+}
+
+/** `GET /food/usuals/?meal_type=` — repeat/yesterday suggestions for the current meal slot. */
+export function useUsualsQuery(mealType: MealType) {
+  return useQuery({
+    queryKey: nutritionKeys.usuals(mealType),
+    queryFn: async (): Promise<UsualsResponse> => {
+      const response = await apiClient.get<unknown>(
+        `/food/usuals/?meal_type=${encodeURIComponent(mealType)}`,
+      );
+      return usualsResponseSchema.parse(response);
+    },
   });
 }
 

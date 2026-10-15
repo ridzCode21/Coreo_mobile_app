@@ -17,6 +17,7 @@ import {
   captureMealPhotoFromCamera,
   pickMealPhotoFromLibrary,
 } from '@/features/nutrition/lib/photoCapture';
+import { currentMealByClock } from '@/features/nutrition/lib/mealClock';
 import { scalePer100g } from '@/features/nutrition/lib/macros';
 import type { ConfirmPrefill } from '@/features/nutrition/schemas';
 import type { FoodItem, FoodSource } from '@/shared/types/food';
@@ -31,6 +32,7 @@ const iconStroke = colors.ink;
 const iconStrokeOnNight = colors.onNight;
 const DIET_CONFIRM_ROUTE = '/diet/confirm';
 const DIET_PHOTO_RESULT_ROUTE = '/diet/photo-result';
+const DIET_PHOTO_UNREADABLE_ROUTE = '/diet/photo-unreadable';
 const DIET_SCAN_ROUTE = '/diet/scan' as Href;
 
 function CameraIcon({ stroke }: { stroke: string }) {
@@ -180,8 +182,18 @@ export function LogMealSheet({ visible, onClose }: LogMealSheetProps) {
         });
         router.push(`${DIET_PHOTO_RESULT_ROUTE}?${routeQuery.toString()}` as Href);
       },
-      onError: (error) =>
-        setNotice(apiMessage(error, "I couldn't read that one. Describe it and I'll do the math.")),
+      onError: (error) => {
+        if (error instanceof ApiError && error.status === 422) {
+          const details = error.details as { error?: unknown; message?: unknown } | undefined;
+          const routeQuery = new URLSearchParams({ mealType: currentMealByClock() });
+          if (typeof details?.error === 'string') routeQuery.set('title', details.error);
+          if (typeof details?.message === 'string') routeQuery.set('message', details.message);
+          close();
+          router.push(`${DIET_PHOTO_UNREADABLE_ROUTE}?${routeQuery.toString()}` as Href);
+          return;
+        }
+        setNotice(apiMessage(error, "I couldn't read that one. Describe it and I'll do the math."));
+      },
     });
   };
 

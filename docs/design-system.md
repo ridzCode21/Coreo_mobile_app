@@ -251,6 +251,12 @@ After-snap screens 21a/21b use the `afterSnap*` spacing, typography, radius, and
 tokens for their 280px photo, 26/30/28/58px result controls, 32/24/56/40px receipt controls,
 and design-exact receipt typography. These semantic tokens keep the two screens free of local
 pixel values while preserving the 390×844 source layout.
+Photo-unreadable screen 25a uses the `photoUnreadable*` tokens: 26px/200 title,
+13px/500 action title, 10px/500 usuals label, and 11.5px/400 usual-chip copy; a 140×104px
+broken-photo placeholder with 20px icon; a 19px action icon; and 32px-high, 16px-radius usual
+chips. Its 160deg placeholder ramp (`unreadablePhotoGradient`, `unreadablePhotoStart` →
+`unreadablePhotoEnd`) and dark action gradient (`glass.photoUnreadableAction`, `.85` → `.90`) with
+a 28px shadow radius preserve the source frame exactly.
 `componentSizes.hairline` is the fixed 1px border width specified by the design for these controls
 and fields. It intentionally differs from React Native's device-pixel `StyleSheet.hairlineWidth`.
 
@@ -274,6 +280,7 @@ The single most important pattern in the system. Shared recipes are exact rather
 | `chipSelected`            | 135deg, white `.94` → `.60`                            | white `.90` | overlay ink `.20`              |
 | `afterSnapNav`            | 135deg, white `.60` → `.25`                            | white `.65` | overlay ink `.12`              |
 | `afterSnapSurface`        | 135deg, white `.62` → `.24`                            | white `.60` | overlay ink `.12`              |
+| `photoUnreadableAction`   | 150deg, `rgb(34,66,102)` `.85` → `rgb(12,28,48)` `.90` | white `.20` | `rgb(8,24,44)` `.28`           |
 | `SelectableChip` selected | flat white                                             | none        | overlay ink `.18`              |
 | `sheet`                   | 160deg, white `.82` → `.55`                            | white `.85` | overlay ink `.14`; 36px radius |
 
