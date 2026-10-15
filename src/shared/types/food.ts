@@ -14,12 +14,23 @@ export type FoodEntry = {
   /** `YYYY-MM-DD`. */
   date: string;
   meal_type: MealType;
+  food_item: number | null;
   food_name: string;
+  portion_g: number | null;
   calories: number;
   protein_g: number;
   carbs_g: number;
   fat_g: number;
   source: FoodSource | 'plan';
+  ai_guess: {
+    name: string;
+    portion_grams: number | null;
+    est_calories: number;
+    est_protein_g: number;
+    est_carbs_g: number;
+    est_fat_g: number;
+    confidence: number;
+  } | null;
   /** ISO timestamp. */
   created_at: string;
 };
@@ -45,6 +56,21 @@ export type MacroSummary = {
   protein_g: number;
   carbs_g: number;
   fat_g: number;
+};
+
+export type MacroBudgetEntry = {
+  consumed: number;
+  target: number;
+  remaining: number;
+  over: boolean;
+};
+
+/** Exact `GET /food/entries/` macro shape from `apps.insights.services.build_macro_summary`. */
+export type FoodEntriesMacroSummary = {
+  calories: MacroBudgetEntry;
+  protein_g: MacroBudgetEntry;
+  carbs_g: MacroBudgetEntry;
+  fat_g: MacroBudgetEntry;
 };
 
 /** Returned alongside a created entry — §8 `POST /food/entries/` `daily_totals`. */

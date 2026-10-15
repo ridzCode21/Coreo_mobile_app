@@ -290,12 +290,15 @@ function createFoodEntryFromMeal(meal: PlannedMeal, calories = meal.calories_kca
     id: mockDb.nextFoodEntryId++,
     date: meal.date,
     meal_type: meal.meal_type,
+    food_item: null,
     food_name: meal.name,
+    portion_g: null,
     calories: Math.round(calories),
     protein_g: round1(meal.protein_g * factor),
     carbs_g: round1(meal.carbs_g * factor),
     fat_g: round1(meal.fat_g * factor),
     source: 'plan',
+    ai_guess: null,
     created_at: new Date().toISOString(),
   };
   mockDb.foodEntries.push(entry);
@@ -619,12 +622,15 @@ registerMock('POST', '/meal-plans/:date/ate-something-else/', (request) => {
     id: mockDb.nextFoodEntryId++,
     date: request.params.date,
     meal_type: meal.meal_type,
+    food_item: null,
     food_name: body.description || 'Something else',
+    portion_g: null,
     calories: round1(body.approx_calories || 0),
     protein_g: round1(body.approx_protein_g || 0),
     carbs_g: 0,
     fat_g: 0,
     source: 'manual',
+    ai_guess: null,
     created_at: new Date().toISOString(),
   };
   mockDb.foodEntries.push(entry);

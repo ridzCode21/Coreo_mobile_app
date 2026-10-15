@@ -6,10 +6,12 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { z } from 'zod';
 
 import { apiClient } from '@/shared/api/client';
 import type {
   DailyTotals,
+  FoodEntriesMacroSummary,
   FoodEntry,
   FoodItem,
   FoodSource,
@@ -33,14 +35,69 @@ export const nutritionKeys = {
   barcode: (code: string) => ['nutrition', 'barcode', code] as const,
 };
 
-export type FoodEntriesResponse = { entries: FoodEntry[]; macro_summary: MacroSummary };
+const macroBudgetEntrySchema = z.object({
+  consumed: z.number(),
+  target: z.number(),
+  remaining: z.number(),
+  over: z.boolean(),
+});
+
+const foodEntryResponseSchema = z.object({
+  id: z.number(),
+  date: z.string(),
+  meal_type: z.enum(['breakfast', 'lunch', 'dinner', 'snack']),
+  food_item: z.number().nullable(),
+  food_name: z.string(),
+  portion_g: z.number().nullable(),
+  calories: z.number(),
+  protein_g: z.number(),
+  carbs_g: z.number(),
+  fat_g: z.number(),
+  source: z.enum(['photo', 'barcode', 'manual', 'import', 'plan', 'quick_add', 'label_ocr']),
+  ai_guess: z
+    .object({
+      name: z.string(),
+      portion_grams: z.number().nullable(),
+      est_calories: z.number(),
+      est_protein_g: z.number(),
+      est_carbs_g: z.number(),
+      est_fat_g: z.number(),
+      confidence: z.number(),
+    })
+    .nullable(),
+  created_at: z.string(),
+});
+
+const foodEntriesApiResponseSchema = z.object({
+  entries: z.array(foodEntryResponseSchema),
+  macro_summary: z.object({
+    calories: macroBudgetEntrySchema,
+    protein_g: macroBudgetEntrySchema,
+    carbs_g: macroBudgetEntrySchema,
+    fat_g: macroBudgetEntrySchema,
+  }),
+});
+
+export type FoodEntriesApiResponse = {
+  entries: FoodEntry[];
+  macro_summary: FoodEntriesMacroSummary;
+};
+
+/** Includes the retired flat shape only so older test fixtures remain source-compatible. */
+export type FoodEntriesResponse = {
+  entries: FoodEntry[];
+  macro_summary: FoodEntriesMacroSummary | MacroSummary;
+};
 type CreatedFoodEntry = FoodEntry & { daily_totals: DailyTotals };
 
 /** `GET /food/entries/?date=` — the day's entries + macro summary. Primary source for Diet home. */
 export function useFoodEntriesQuery(date: string = todayISO()) {
   return useQuery({
     queryKey: nutritionKeys.foodEntries(date),
-    queryFn: () => apiClient.get<FoodEntriesResponse>(`/food/entries/?date=${date}`),
+    queryFn: async (): Promise<FoodEntriesApiResponse> => {
+      const response = await apiClient.get<unknown>(`/food/entries/?date=${date}`);
+      return foodEntriesApiResponseSchema.parse(response);
+    },
   });
 }
 

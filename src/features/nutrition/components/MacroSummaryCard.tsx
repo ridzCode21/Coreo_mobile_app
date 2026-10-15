@@ -1,28 +1,33 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
 import { GlassCard } from '@/shared/components/GlassCard';
-import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import {
+  colors,
+  componentSizes,
+  radii,
+  spacing,
+  textStyle,
+  withAlpha,
+} from '@/shared/theme/tokens';
 import {
   computeRemaining,
   macroFillRatio,
   type MacroTargets,
 } from '@/features/nutrition/lib/macros';
-import type { TargetQuality } from '@/features/onboarding';
 import type { MacroSummary } from '@/shared/types/food';
 
 type MacroSummaryCardProps = {
   targets: MacroTargets;
   consumed: MacroSummary;
-  quality: TargetQuality;
 };
 
 /** Muted variants of `onNight` for labels on the dark hero card (opacity ramp of the same token,
  * matching the precedent in `VoiceInputBar`). Bars use white-glass fills — the night analog of
  * `SliderRow`'s documented ink track/fill (design-system §6/§9). */
-const ON_NIGHT_MUTED = 'rgba(239,244,249,0.62)';
-const ON_NIGHT_FAINT = 'rgba(239,244,249,0.45)';
-const BAR_TRACK = 'rgba(255,255,255,0.16)';
-const BAR_FILL = 'rgba(255,255,255,0.6)';
+const ON_NIGHT_LABEL = withAlpha(colors.fog, 0.5);
+const ON_NIGHT_UNIT = withAlpha(colors.fog, 0.55);
+const ON_NIGHT_MACRO = withAlpha(colors.fog, 0.65);
+const BAR_TRACK = withAlpha(colors.white, 0.16);
 
 function formatThousands(value: number): string {
   // Locale-independent grouping (RN's Intl is inconsistent across platforms/Android builds).
@@ -43,29 +48,25 @@ const MACROS: { key: MacroKey; label: string }[] = [
   { key: 'fat_g', label: 'Fat' },
 ];
 
-const QUALITY_LABEL: Record<TargetQuality, string> = {
-  unavailable: 'Unavailable',
-  starter: 'Starter',
-  estimated: 'Estimated',
-  confirmed: 'Confirmed',
-};
-
 /**
  * The Diet home "Left today" hero — the one night-glass card per screen (design-system §4). Shows
  * remaining calories as an oversized weight-200 number (numbers are the hero, §2) plus three thin
  * macro progress bars. Over-budget shows the number neutrally (can be negative) — never red, per
  * the brand's "nothing turns red here" voice (§10). Bars, never wave charts (§6.1).
  */
-export function MacroSummaryCard({ targets, consumed, quality }: MacroSummaryCardProps) {
+export function MacroSummaryCard({ targets, consumed }: MacroSummaryCardProps) {
   const remaining = computeRemaining(targets, consumed);
 
   return (
-    <GlassCard variant="night" radius={radii.xl}>
+    <GlassCard
+      variant="dietHero"
+      radius={radii.xl}
+      contentPaddingVertical={spacing.dietHeroCardPaddingY}
+      contentPaddingHorizontal={spacing.dietCardPaddingX}
+    >
       <View style={styles.headerRow}>
         <Text style={styles.eyebrow}>Left today</Text>
-        <View style={styles.qualityBadge}>
-          <Text style={styles.qualityText}>{QUALITY_LABEL[quality]}</Text>
-        </View>
+        <Text style={styles.cardHint}>Adjusts as I learn you</Text>
       </View>
 
       <View style={styles.heroRow}>
@@ -86,7 +87,10 @@ export function MacroSummaryCard({ targets, consumed, quality }: MacroSummaryCar
                 <Text style={styles.barValue}>{Math.round(eaten)}g</Text>
               </View>
               <View style={styles.track}>
-                <View style={[styles.fill, { width: `${macroFillRatio(eaten, target) * 100}%` }]} />
+                <View
+                  testID={`macro-fill-${key}`}
+                  style={[styles.fill, { width: `${macroFillRatio(eaten, target) * 100}%` }]}
+                />
               </View>
             </View>
           );
@@ -100,46 +104,39 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'baseline',
   },
   eyebrow: {
     ...textStyle('label'),
-    color: ON_NIGHT_FAINT,
+    color: ON_NIGHT_LABEL,
   },
-  qualityBadge: {
-    borderRadius: radii.pill,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  qualityText: {
-    ...textStyle('micro'),
-    color: ON_NIGHT_MUTED,
+  cardHint: {
+    ...textStyle('cardHint'),
+    color: ON_NIGHT_LABEL,
   },
   heroRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginTop: spacing.md,
-    marginBottom: spacing.xl,
+    marginTop: spacing.dietHeroNumberTop,
   },
   heroNumber: {
-    ...textStyle('display'),
+    ...textStyle('kcalHero'),
     color: colors.onNight,
     flexShrink: 1,
   },
   heroUnit: {
-    ...textStyle('bodyLg'),
-    color: ON_NIGHT_MUTED,
-    marginLeft: spacing.sm,
-    marginBottom: spacing.md,
+    ...textStyle('kcalUnit'),
+    color: ON_NIGHT_UNIT,
+    marginLeft: spacing.dietHeroUnitGap,
   },
   bars: {
     flexDirection: 'row',
-    gap: spacing.lg,
+    gap: spacing.ms,
+    marginTop: spacing.dietMacroTop,
   },
   barBlock: {
     flex: 1,
-    gap: spacing.sm,
+    gap: spacing.dietMacroTrackGap,
   },
   barLabelRow: {
     flexDirection: 'row',
@@ -147,22 +144,33 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
   },
   barLabel: {
-    ...textStyle('caption'),
-    color: ON_NIGHT_MUTED,
+    ...textStyle('macroRow'),
+    color: ON_NIGHT_MACRO,
   },
   barValue: {
-    ...textStyle('caption'),
-    color: colors.onNight,
+    ...textStyle('macroRow'),
+    color: ON_NIGHT_MACRO,
   },
   track: {
-    height: 4,
+    height: componentSizes.dietMacroTrackHeight,
     borderRadius: radii.pill,
     backgroundColor: BAR_TRACK,
-    overflow: 'hidden',
   },
   fill: {
     height: '100%',
     borderRadius: radii.pill,
-    backgroundColor: BAR_FILL,
-  },
+    backgroundColor: colors.white,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.white,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.7,
+        shadowRadius: componentSizes.dietMacroGlowRadius,
+      },
+      default: {
+        shadowColor: colors.white,
+        elevation: componentSizes.dietElevation,
+      },
+    }),
+  } as ViewStyle,
 });

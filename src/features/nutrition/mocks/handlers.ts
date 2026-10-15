@@ -10,7 +10,12 @@ import { registerMock } from '@/shared/api/mock/router';
 import { mockDb } from '@/shared/api/mock/db';
 import { requireMockUser } from '@/shared/api/mock/auth';
 import { styleAError, styleB } from '@/shared/api/mock/envelope';
-import type { FoodEntry, MacroSummary } from '@/shared/types/food';
+import type {
+  FoodEntriesMacroSummary,
+  FoodEntry,
+  MacroBudgetEntry,
+  MacroSummary,
+} from '@/shared/types/food';
 import type { DailyLog } from '@/shared/types/dailyLog';
 import { SEED_FOOD_ITEMS } from '@/features/nutrition/mocks/fixtures';
 
@@ -85,6 +90,28 @@ function summarize(entries: FoodEntry[]): MacroSummary {
   );
 }
 
+function budgetEntry(consumed: number, target: number): MacroBudgetEntry {
+  const wholeConsumed = Math.trunc(consumed);
+  const wholeTarget = Math.trunc(target);
+  return {
+    consumed: wholeConsumed,
+    target: wholeTarget,
+    remaining: Math.max(0, wholeTarget - wholeConsumed),
+    over: wholeConsumed > wholeTarget && wholeTarget > 0,
+  };
+}
+
+function foodEntriesMacroSummary(entries: FoodEntry[], userId: string): FoodEntriesMacroSummary {
+  const consumed = summarize(entries);
+  const profile = mockDb.dietProfiles[userId];
+  return {
+    calories: budgetEntry(consumed.calories_in, profile?.daily_calories ?? 0),
+    protein_g: budgetEntry(consumed.protein_g, profile?.daily_protein_g ?? 0),
+    carbs_g: budgetEntry(consumed.carbs_g, profile?.daily_carbs_g ?? 0),
+    fat_g: budgetEntry(consumed.fat_g, profile?.daily_fat_g ?? 0),
+  };
+}
+
 /** Recompute + persist the day's aggregate from its entries, preserving non-food fields if present. */
 function recomputeDailyLog(userId: string, date: string): DailyLog {
   const entries = mockDb.foodEntries.filter((entry) => entry.date === date);
@@ -121,7 +148,7 @@ registerMock('GET', '/food/entries/', (request) => {
   return {
     status: 200,
     delayMs: 250,
-    body: styleB({ entries, macro_summary: summarize(entries) }),
+    body: styleB({ entries, macro_summary: foodEntriesMacroSummary(entries, user.id) }),
   };
 });
 
@@ -141,12 +168,15 @@ registerMock('POST', '/food/entries/', (request) => {
     id: mockDb.nextFoodEntryId++,
     date,
     meal_type: body.meal_type!,
+    food_item: body.food_item ?? null,
     food_name: body.food_name!,
+    portion_g: body.portion_g ?? null,
     calories: body.calories ?? 0,
     protein_g: body.protein_g ?? 0,
     carbs_g: body.carbs_g ?? 0,
     fat_g: body.fat_g ?? 0,
     source: body.source ?? 'manual',
+    ai_guess: body.ai_guess ?? null,
     created_at: new Date().toISOString(),
   };
   mockDb.foodEntries.push(entry);
