@@ -10,6 +10,7 @@ import { z } from 'zod';
 
 import { apiClient } from '@/shared/api/client';
 import type {
+  AiGuess,
   DailyTotals,
   FoodEntriesMacroSummary,
   FoodEntry,
@@ -20,7 +21,7 @@ import type {
   PhotoEstimate,
 } from '@/shared/types/food';
 import type { DailyLog, DailySummary } from '@/shared/types/dailyLog';
-import type { ConfirmMealValues } from '@/features/nutrition/schemas';
+import { photoEstimateSchema, type ConfirmMealValues } from '@/features/nutrition/schemas';
 
 /** Today as `YYYY-MM-DD` in the device's locale-independent ISO date. */
 export function todayISO(): string {
@@ -161,8 +162,12 @@ function imageFormData(image: PhotoUploadFile): FormData {
  */
 export function useAnalyzePhotoMutation() {
   return useMutation({
-    mutationFn: (image: PhotoUploadFile) =>
-      apiClient.post<PhotoEstimate>('/food/photo/', imageFormData(image), { multipart: true }),
+    mutationFn: async (image: PhotoUploadFile): Promise<PhotoEstimate> => {
+      const response = await apiClient.post<unknown>('/food/photo/', imageFormData(image), {
+        multipart: true,
+      });
+      return photoEstimateSchema.parse(response);
+    },
   });
 }
 
@@ -174,21 +179,48 @@ export function useAnalyzeLabelMutation() {
   });
 }
 
+export type CreateFoodEntryInput = ConfirmMealValues & {
+  source: FoodSource;
+  portion_g?: number | null;
+  ai_guess?: AiGuess;
+};
+
+function postFoodEntry(date: string, values: CreateFoodEntryInput) {
+  return apiClient.post<CreatedFoodEntry>('/food/entries/', {
+    date,
+    meal_type: values.meal_type,
+    food_name: values.food_name,
+    ...(values.portion_g !== undefined ? { portion_g: values.portion_g } : {}),
+    calories: values.calories,
+    protein_g: values.protein_g,
+    carbs_g: values.carbs_g,
+    fat_g: values.fat_g,
+    source: values.source,
+    ...(values.ai_guess !== undefined ? { ai_guess: values.ai_guess } : {}),
+  });
+}
+
 /** `POST /food/entries/` — commit a confirmed entry. Invalidates the day's entries + summary. */
 export function useCreateFoodEntryMutation(date: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (values: ConfirmMealValues & { source: FoodSource }) =>
-      apiClient.post<CreatedFoodEntry>('/food/entries/', {
-        date,
-        meal_type: values.meal_type,
-        food_name: values.food_name,
-        calories: values.calories,
-        protein_g: values.protein_g,
-        carbs_g: values.carbs_g,
-        fat_g: values.fat_g,
-        source: values.source,
-      }),
+    mutationFn: (values: CreateFoodEntryInput) => postFoodEntry(date, values),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: nutritionKeys.foodEntries(date) });
+      queryClient.invalidateQueries({ queryKey: nutritionKeys.dailySummary(date) });
+    },
+  });
+}
+
+/** Commit photo line items sequentially, then refresh the day once all items have saved. */
+export function useCreateFoodEntriesMutation(date: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (entries: CreateFoodEntryInput[]) => {
+      const created: CreatedFoodEntry[] = [];
+      for (const entry of entries) created.push(await postFoodEntry(date, entry));
+      return created;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: nutritionKeys.foodEntries(date) });
       queryClient.invalidateQueries({ queryKey: nutritionKeys.dailySummary(date) });

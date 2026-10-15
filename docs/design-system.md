@@ -92,51 +92,55 @@ mid-ramp atmosphere must sit on a scrim or glass surface**, never bare on the gr
 **Single typeface: Poppins, weights 200/300/400/500 only — never 600+.** Hierarchy comes from
 weight contrast within a size, not from adding more sizes or going bold.
 
-| Token                | Size      | Weight           | Tracking                  | Use                                                                   |
-| -------------------- | --------- | ---------------- | ------------------------- | --------------------------------------------------------------------- |
-| `display`            | 78–88px   | 200              | tight (−2 to −2.5px)      | Hero data numbers (rendered as dot-matrix, see §6), lock-screen clock |
-| `heroMarketing`      | 52–64px   | 200              | −1.5 to −2px              | Marketing/brand moments only                                          |
-| `wordmark`           | 38px      | 300              | +6px                      | Logo wordmark exactly — never reuse this size for anything else       |
-| `pageTitle`          | 34px      | 200(+500 accent) | −1px                      | Section/page headers                                                  |
-| `questionTitle`      | 30px      | 200(+400 accent) | −0.5px, line-height 1.4   | Onboarding question headline                                          |
-| `greeting`           | 28px      | 200(+400 accent) | −0.5px, line-height 1.35  | "Morning, {name}." home greeting                                      |
-| `greetingSubtitle`   | 13.5px    | 300              | normal                    | Supporting line below the home greeting                               |
-| `cardValue`          | 22–24px   | 300              | normal                    | Stat values inside cards (age/height/weight, profile name)            |
-| `portionReadout`     | 44px      | 200              | −1px                      | Current multiplier in the adjust-portion sheet                        |
-| `cardTitle`          | 19px      | 300              | −0.3px                    | Card and confirmation titles                                          |
-| `sheetSubtitle`      | 11.5px    | 300              | normal                    | Sheet question subtitles (e.g. "Helps me plan better tomorrow.")      |
-| `sheetTitle`         | 25px      | 200              | −0.5px, line-height 1.4   | Bottom-sheet titles (e.g. paywall)                                    |
-| `dietHeadlineAccent` | 25px      | 400              | −0.5px, line-height 1.4   | Emphasized span in the Diet home headline                             |
-| `kcalHero`           | 38px      | 200              | −1px                      | Diet home remaining-calories number                                   |
-| `weightChip`         | 10px      | 400              | +0.6px                    | Diet home current-to-target weight chip                               |
-| `cardHint`           | 10px      | 300              | normal                    | Quiet hint in a card header                                           |
-| `kcalUnit`           | 12px      | 300              | normal                    | Unit beside the Diet home calorie hero                                |
-| `macroRow`           | 10px      | 400              | normal                    | Diet home macro label/value rows                                      |
-| `nextMealTitle`      | 15px      | 400              | normal                    | Diet home next-meal name                                              |
-| `nextMealSubtitle`   | 11px      | 300              | normal                    | Diet home next-meal macro line                                        |
-| `reassuranceText`    | 11px      | 300              | normal, line-height 1.6   | Calm Diet home reassurance strip                                      |
-| `bodyLg`             | 14–15px   | 300              | normal                    | Assistant responses, emphasized body text                             |
-| `quotaMessage`       | 16px      | 300              | normal, line-height 1.7   | Daily-limit message inside the regenerate sheet                       |
-| `button`             | 14px      | 500              | normal                    | Primary button labels                                                 |
-| `buttonSm`           | 13.5px    | 500              | normal                    | Compact button labels                                                 |
-| `body`               | 13px      | 300              | normal, line-height 1.8   | Default body copy                                                     |
-| `portionEstimate`    | 13px      | 400              | normal                    | Live macro estimate in the adjust-portion sheet                       |
-| `bodySm`             | 12–12.5px | 300              | normal, line-height ~1.6  | Card descriptions, insight text                                       |
-| `small`              | 12px      | 300              | normal, line-height 1.6   | Small supporting text                                                 |
-| `nudgeTitle`         | 12px      | 500              | normal                    | Home nudge card title                                                 |
-| `nudgeTime`          | 10px      | 400              | normal                    | Home nudge card timing label                                          |
-| `caption`            | 11px      | 400              | normal                    | Chip text, secondary metadata                                         |
-| `dockLabel`          | 8.5px     | 400              | +0.4px                    | Inactive glass-dock labels                                            |
-| `dockLabelActive`    | 8.5px     | 500              | +0.4px                    | Active glass-dock label                                               |
-| `headerDate`         | 10px      | 400              | +1.6px, uppercase         | Date in the home header                                               |
-| `linkMd`             | 12px      | 400              | normal                    | Medium understated text links                                         |
-| `linkSm`             | 11px      | 300              | normal                    | Small understated text links                                          |
-| `label`              | 10–10.5px | 500              | +1.6 to +2.6px, uppercase | Field labels, section eyebrows, nav captions                          |
-| `micro`              | 9px       | 500              | +1.4px, uppercase         | Tiny axis labels, timestamps, labeled auth fields                     |
-| `readingCardLabel`   | 9px       | 500              | +1.8px, uppercase         | "Reading you" eyebrow on the calibrating-home sources card            |
-| `petalSubLabel`      | 8px       | 500              | +0.4px                    | Calibrating-home setup state beneath a pillar petal label             |
-| `fine`               | 9.5px     | 300              | normal                    | Fine-print supporting captions                                        |
-| `legal`              | 10.5px    | 300              | normal                    | Privacy notes, fine print, account-password hint                      |
+| Token                    | Size      | Weight           | Tracking                  | Use                                                                   |
+| ------------------------ | --------- | ---------------- | ------------------------- | --------------------------------------------------------------------- |
+| `display`                | 78–88px   | 200              | tight (−2 to −2.5px)      | Hero data numbers (rendered as dot-matrix, see §6), lock-screen clock |
+| `heroMarketing`          | 52–64px   | 200              | −1.5 to −2px              | Marketing/brand moments only                                          |
+| `wordmark`               | 38px      | 300              | +6px                      | Logo wordmark exactly — never reuse this size for anything else       |
+| `pageTitle`              | 34px      | 200(+500 accent) | −1px                      | Section/page headers                                                  |
+| `questionTitle`          | 30px      | 200(+400 accent) | −0.5px, line-height 1.4   | Onboarding question headline                                          |
+| `greeting`               | 28px      | 200(+400 accent) | −0.5px, line-height 1.35  | "Morning, {name}." home greeting                                      |
+| `greetingSubtitle`       | 13.5px    | 300              | normal                    | Supporting line below the home greeting                               |
+| `cardValue`              | 22–24px   | 300              | normal                    | Stat values inside cards (age/height/weight, profile name)            |
+| `portionReadout`         | 44px      | 200              | −1px                      | Current multiplier in the adjust-portion sheet                        |
+| `cardTitle`              | 19px      | 300              | −0.3px                    | Card and confirmation titles                                          |
+| `sheetSubtitle`          | 11.5px    | 300              | normal                    | Sheet question subtitles (e.g. "Helps me plan better tomorrow.")      |
+| `sheetTitle`             | 25px      | 200              | −0.5px, line-height 1.4   | Bottom-sheet titles (e.g. paywall)                                    |
+| `dietHeadlineAccent`     | 25px      | 400              | −0.5px, line-height 1.4   | Emphasized span in the Diet home headline                             |
+| `mealReviewSummaryTitle` | 14px      | 400              | normal                    | Photo-review summary meal name                                        |
+| `mealReviewSummaryValue` | 24px      | 200              | normal                    | Photo-review summary calorie value                                    |
+| `mealReviewRowTitle`     | 12.5px    | 400              | normal                    | Photo-review item names                                               |
+| `mealReviewFix`          | 10.5px    | 400              | normal                    | Photo-review Fix action                                               |
+| `kcalHero`               | 38px      | 200              | −1px                      | Diet home remaining-calories number                                   |
+| `weightChip`             | 10px      | 400              | +0.6px                    | Diet home current-to-target weight chip                               |
+| `cardHint`               | 10px      | 300              | normal                    | Quiet hint in a card header                                           |
+| `kcalUnit`               | 12px      | 300              | normal                    | Unit beside the Diet home calorie hero                                |
+| `macroRow`               | 10px      | 400              | normal                    | Diet home macro label/value rows                                      |
+| `nextMealTitle`          | 15px      | 400              | normal                    | Diet home next-meal name                                              |
+| `nextMealSubtitle`       | 11px      | 300              | normal                    | Diet home next-meal macro line                                        |
+| `reassuranceText`        | 11px      | 300              | normal, line-height 1.6   | Calm Diet home reassurance strip                                      |
+| `bodyLg`                 | 14–15px   | 300              | normal                    | Assistant responses, emphasized body text                             |
+| `quotaMessage`           | 16px      | 300              | normal, line-height 1.7   | Daily-limit message inside the regenerate sheet                       |
+| `button`                 | 14px      | 500              | normal                    | Primary button labels                                                 |
+| `buttonSm`               | 13.5px    | 500              | normal                    | Compact button labels                                                 |
+| `body`                   | 13px      | 300              | normal, line-height 1.8   | Default body copy                                                     |
+| `portionEstimate`        | 13px      | 400              | normal                    | Live macro estimate in the adjust-portion sheet                       |
+| `bodySm`                 | 12–12.5px | 300              | normal, line-height ~1.6  | Card descriptions, insight text                                       |
+| `small`                  | 12px      | 300              | normal, line-height 1.6   | Small supporting text                                                 |
+| `nudgeTitle`             | 12px      | 500              | normal                    | Home nudge card title                                                 |
+| `nudgeTime`              | 10px      | 400              | normal                    | Home nudge card timing label                                          |
+| `caption`                | 11px      | 400              | normal                    | Chip text, secondary metadata                                         |
+| `dockLabel`              | 8.5px     | 400              | +0.4px                    | Inactive glass-dock labels                                            |
+| `dockLabelActive`        | 8.5px     | 500              | +0.4px                    | Active glass-dock label                                               |
+| `headerDate`             | 10px      | 400              | +1.6px, uppercase         | Date in the home header                                               |
+| `linkMd`                 | 12px      | 400              | normal                    | Medium understated text links                                         |
+| `linkSm`                 | 11px      | 300              | normal                    | Small understated text links                                          |
+| `label`                  | 10–10.5px | 500              | +1.6 to +2.6px, uppercase | Field labels, section eyebrows, nav captions                          |
+| `micro`                  | 9px       | 500              | +1.4px, uppercase         | Tiny axis labels, timestamps, labeled auth fields                     |
+| `readingCardLabel`       | 9px       | 500              | +1.8px, uppercase         | "Reading you" eyebrow on the calibrating-home sources card            |
+| `petalSubLabel`          | 8px       | 500              | +0.4px                    | Calibrating-home setup state beneath a pillar petal label             |
+| `fine`                   | 9.5px     | 300              | normal                    | Fine-print supporting captions                                        |
+| `legal`                  | 10.5px    | 300              | normal                    | Privacy notes, fine print, account-password hint                      |
 
 Non-type text tracking overrides also live in the token module; `tracking.wide` is `1px` for
 scanner codes and manual barcode entry.
@@ -194,6 +198,7 @@ plus these as additional padding, not instead of them.
 | `field.padY`             | 15 (labeled glass-field vertical padding)           |
 | `field.padX`             | 18 (labeled glass-field horizontal padding)         |
 | `diet.*`                 | 3–24 (screen-14a card gaps and internal padding)    |
+| `mealReview.*`           | 2 / 13 (remembered-label gap and row padding)       |
 
 **Radius scale:**
 
@@ -240,6 +245,10 @@ steps use `rebuildingStepIndicator` / `rebuildingStepBorderWidth` at 20px / 1.5p
 Diet home 14a uses the `diet*` component-size tokens for its 38px header control, 26px weight
 chip, 58px log pill with 42px plus control, 60px voice bar with 44px controls, 4px macro tracks,
 24px log-pill glow, 20px voice-submit glow, other glow/shadow geometry, and bottom-dock clearance.
+Photo review 15a uses `mealReviewBackControl` (38px), `mealReviewBackIcon` (15px),
+`mealReviewStepper` (30px), `mealReviewCheckCircle` (42px), and `mealReviewCheckIcon` (16px).
+`componentSizes.hairline` is the fixed 1px border width specified by the design for these controls
+and fields. It intentionally differs from React Native's device-pixel `StyleSheet.hairlineWidth`.
 
 `componentSizes.minimumTapTarget` is 44px, the minimum touch target used by compact text actions.
 

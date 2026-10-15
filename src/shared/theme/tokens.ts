@@ -168,6 +168,8 @@ export const spacing = {
   dietNextMealSubtitleGap: 3,
   dietMacroTrackGap: 5,
   dietActionPaddingLeft: 24,
+  mealReviewRememberedTop: 2,
+  mealReviewRowPaddingY: 13,
   passwordResetFieldPadY: 13,
   passwordResetSignInPaddingX: 28,
 } as const;
@@ -256,6 +258,12 @@ export const componentSizes = {
   dietLogPillGlowRadius: 24,
   dietVoiceSubmitGlowRadius: 20,
   dietCircleShadowRadius: 18,
+  mealReviewBackControl: 38,
+  mealReviewBackIcon: 15,
+  mealReviewStepper: 30,
+  mealReviewCheckCircle: 42,
+  mealReviewCheckIcon: 16,
+  hairline: 1,
 } as const;
 
 export const fontFamily = {
@@ -294,6 +302,10 @@ export const typography = {
   cardTitle: { fontSize: 19, fontWeight: '300', letterSpacing: -0.3 },
   sheetSubtitle: { fontSize: 11.5, fontWeight: '300', letterSpacing: 0 },
   sheetTitle: { fontSize: 25, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.4 },
+  mealReviewSummaryTitle: { fontSize: 14, fontWeight: '400', letterSpacing: 0 },
+  mealReviewSummaryValue: { fontSize: 24, fontWeight: '200', letterSpacing: 0 },
+  mealReviewRowTitle: { fontSize: 12.5, fontWeight: '400', letterSpacing: 0 },
+  mealReviewFix: { fontSize: 10.5, fontWeight: '400', letterSpacing: 0 },
   dietHeadlineAccent: {
     fontSize: 25,
     fontWeight: '400',

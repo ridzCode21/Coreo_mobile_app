@@ -38,6 +38,31 @@ export const confirmRouteParamsSchema = z.object({
 });
 export type ConfirmRouteParams = z.infer<typeof confirmRouteParamsSchema>;
 
+export const photoEstimateItemSchema = z.object({
+  name: z.string(),
+  portion_label: z.string().nullable(),
+  portion_grams: z.number(),
+  est_calories: z.number(),
+  est_protein_g: z.number(),
+  est_carbs_g: z.number(),
+  est_fat_g: z.number(),
+  confidence: z.number().min(0).max(1),
+  guessed: z.boolean(),
+  guess_note: z.string().nullable(),
+  remembered: z.boolean(),
+});
+
+export const photoEstimateSchema = z.object({
+  name: z.string(),
+  portion_grams: z.number(),
+  est_calories: z.number(),
+  est_protein_g: z.number(),
+  est_carbs_g: z.number(),
+  est_fat_g: z.number(),
+  guessed_count: z.number().int().nonnegative(),
+  items: z.array(photoEstimateItemSchema),
+});
+
 /** The shape a caller may stringify into the `prefill` route param (all optional — blank = manual). */
 export const confirmPrefillSchema = z.object({
   food_name: z.string().optional(),
@@ -46,6 +71,7 @@ export const confirmPrefillSchema = z.object({
   protein_g: z.number().optional(),
   carbs_g: z.number().optional(),
   fat_g: z.number().optional(),
+  items: z.array(photoEstimateItemSchema).optional(),
 });
 export type ConfirmPrefill = z.infer<typeof confirmPrefillSchema>;
 
