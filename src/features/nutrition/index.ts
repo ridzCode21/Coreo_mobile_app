@@ -6,6 +6,7 @@ export { default as DietHomeScreen } from '@/features/nutrition/screens/DietHome
 export { default as ConfirmMealScreen } from '@/features/nutrition/screens/ConfirmMealScreen';
 export { default as BarcodeScannerScreen } from '@/features/nutrition/screens/BarcodeScannerScreen';
 export { default as MealPlanScreen } from '@/features/nutrition/screens/MealPlanScreen';
+export { default as FullMealPlanScreen } from '@/features/nutrition/screens/FullMealPlanScreen';
 export { default as MealDetailScreen } from '@/features/nutrition/screens/MealDetailScreen';
 export { default as PhotoResultScreen } from '@/features/nutrition/screens/PhotoResultScreen';
 export { default as PhotoUnreadableScreen } from '@/features/nutrition/screens/PhotoUnreadableScreen';

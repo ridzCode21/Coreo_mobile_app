@@ -1,43 +1,36 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { GlassCard } from '@/shared/components/GlassCard';
-import { Screen } from '@/shared/components/Screen';
-import { SkyBackground } from '@/shared/components/SkyBackground';
-import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 import { useDietProfileQuery, useUpdateDietProfileMutation } from '@/features/onboarding';
-import { QuotaBanner } from '@/features/nutrition/components/QuotaBanner';
 import {
-  RebuildingPlanCard,
-  type BuildingStatus,
-} from '@/features/nutrition/components/RebuildingPlanCard';
-import { RegenerateSheet } from '@/features/nutrition/components/RegenerateSheet';
-import {
+  useAssistantPromptsQuery,
+  useCreateMealPlanMutation,
   useMealPlanQuery,
   useRegenerateMealPlanMutation,
 } from '@/features/nutrition/api/mealPlanApi';
+import { todayISO, useFoodEntriesQuery } from '@/features/nutrition/api/nutritionApi';
+import { PlanBuildingState } from '@/features/nutrition/components/PlanBuildingState';
+import { PlanAssistantFlow } from '@/features/nutrition/components/PlanAssistantFlow';
+import { PlanFailedState } from '@/features/nutrition/components/PlanFailedState';
+import { PlanNoPlanState } from '@/features/nutrition/components/PlanNoPlanState';
+import { PlanReadyState } from '@/features/nutrition/components/PlanReadyState';
+import { PlanScreenHeader } from '@/features/nutrition/components/PlanScreenHeader';
+import { RebuildingPlanCard } from '@/features/nutrition/components/RebuildingPlanCard';
+import { RegenerateSheet } from '@/features/nutrition/components/RegenerateSheet';
+import type { BuildingStatus } from '@/features/nutrition/lib/planBuildSteps';
+import { normalizeMacroSummary, targetsFromProfile } from '@/features/nutrition/lib/macros';
 import { quotaErrorFrom } from '@/features/nutrition/lib/quotaError';
-import { todayISO } from '@/features/nutrition/api/nutritionApi';
+import { ApiError } from '@/shared/api/errors';
+import { Screen } from '@/shared/components/Screen';
+import { SkyBackground } from '@/shared/components/SkyBackground';
+import { colors, componentSizes, spacing, textStyle } from '@/shared/theme/tokens';
 import type { BudgetTier, CookingFrequency } from '@/shared/types/dietProfile';
-import type { MealPlanStatus, PlannedMeal, RegenerationReason } from '@/shared/types/mealPlan';
+import type { MealPlanStatus, RegenerationReason } from '@/shared/types/mealPlan';
 
-const MEAL_LABEL: Record<PlannedMeal['meal_type'], string> = {
-  breakfast: 'Breakfast',
-  lunch: 'Lunch',
-  snack: 'Snack',
-  dinner: 'Dinner',
-};
-
-function displayNumber(value: number | null | undefined): string {
-  return String(Math.round(typeof value === 'number' && Number.isFinite(value) ? value : 0));
-}
-
-function statusLabel(status: PlannedMeal['status']): string {
-  if (status === 'logged_as_planned') return 'Logged';
-  if (status === 'logged_modified') return 'Modified';
-  if (status === 'eaten_outside') return 'Outside';
-  return status.replaceAll('_', ' ');
+function isNotFound(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 404;
 }
 
 function isBuildingStatus(status: MealPlanStatus): status is BuildingStatus {
@@ -46,28 +39,39 @@ function isBuildingStatus(status: MealPlanStatus): status is BuildingStatus {
 
 export default function MealPlanScreen() {
   const router = useRouter();
+  const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const date = todayISO();
   const planQuery = useMealPlanQuery(date);
+  const createPlan = useCreateMealPlanMutation(date);
+  const regeneratePlan = useRegenerateMealPlanMutation(date);
   const profileQuery = useDietProfileQuery();
+  const entriesQuery = useFoodEntriesQuery(date);
+  const promptsQuery = useAssistantPromptsQuery('meal_plan');
   const updateProfile = useUpdateDietProfileMutation();
-  const regenerate = useRegenerateMealPlanMutation(date);
   const [reasonOpen, setReasonOpen] = useState(false);
   const [reason, setReason] = useState<RegenerationReason>('too_boring');
   const [activeReason, setActiveReason] = useState<RegenerationReason | null>(null);
   const [contextAsk, setContextAsk] = useState<'budget' | 'cooking' | null>(null);
   const [budget, setBudget] = useState<BudgetTier>('moderate');
   const [cooking, setCooking] = useState<CookingFrequency>('once_daily');
+  const [assistantPromptId, setAssistantPromptId] = useState<number | null>(null);
 
+  const noPlan = planQuery.isError && isNotFound(planQuery.error);
   const plan = planQuery.data?.status === 'ready' ? planQuery.data : null;
+  const failedPlan = planQuery.data?.status === 'failed';
   const buildingStatus =
     planQuery.data && isBuildingStatus(planQuery.data.status) ? planQuery.data.status : null;
-  const failedPlan = planQuery.data?.status === 'failed';
-  const quotaError = quotaErrorFrom(regenerate.error);
+  const createQuotaError = quotaErrorFrom(createPlan.error);
+  const regenerateQuotaError = quotaErrorFrom(regeneratePlan.error);
+  const profile = profileQuery.data;
+  const targets = profile ? targetsFromProfile(profile) : null;
+  const consumed = normalizeMacroSummary(entriesQuery.data?.macro_summary);
 
-  const regenerateNow = (selectedReason = reason) => {
-    setActiveReason(selectedReason);
-    regenerate.mutate(
-      { regeneration_reason: selectedReason },
+  const regenerateNow = () => {
+    setActiveReason(reason);
+    regeneratePlan.mutate(
+      { regeneration_reason: reason },
       {
         onSuccess: () => {
           setReasonOpen(false);
@@ -79,7 +83,6 @@ export default function MealPlanScreen() {
   };
 
   const submitReason = () => {
-    const profile = profileQuery.data;
     if (reason === 'too_expensive' && !profile?.budget_tier) {
       setContextAsk('budget');
       return;
@@ -94,111 +97,104 @@ export default function MealPlanScreen() {
   const saveContextAsk = () => {
     const patch =
       contextAsk === 'budget' ? { budget_tier: budget } : { cooking_frequency: cooking };
-    updateProfile.mutate(patch, {
-      onSuccess: () => regenerateNow(),
-    });
+    updateProfile.mutate(patch, { onSuccess: regenerateNow });
   };
+
+  const content = (() => {
+    if (planQuery.isLoading) {
+      return (
+        <View style={styles.loading}>
+          <ActivityIndicator color={colors.ink45} accessibilityLabel="Loading today's plan" />
+        </View>
+      );
+    }
+    if (noPlan) {
+      return (
+        <PlanNoPlanState
+          pending={createPlan.isPending}
+          quotaError={createQuotaError}
+          onGenerate={() => createPlan.mutate()}
+        />
+      );
+    }
+    if (buildingStatus) {
+      return activeReason ? (
+        <RebuildingPlanCard status={buildingStatus} reason={activeReason} />
+      ) : (
+        <PlanBuildingState status={buildingStatus} />
+      );
+    }
+    if (failedPlan) {
+      return (
+        <PlanFailedState
+          pending={createPlan.isPending}
+          quotaError={createQuotaError}
+          onRetry={() => createPlan.mutate()}
+          onManualLog={() => router.push('/diet')}
+        />
+      );
+    }
+    if (plan) {
+      if (profileQuery.isLoading || entriesQuery.isLoading) {
+        return (
+          <View style={styles.loading}>
+            <ActivityIndicator color={colors.ink45} accessibilityLabel="Loading today's numbers" />
+          </View>
+        );
+      }
+      if (!targets || profileQuery.isError || entriesQuery.isError || !entriesQuery.data) {
+        return (
+          <View style={styles.errorState}>
+            <Text style={styles.errorText}>
+              Couldn&apos;t load today&apos;s numbers. Pull to refresh in a moment.
+            </Text>
+          </View>
+        );
+      }
+      return (
+        <PlanReadyState
+          plan={plan}
+          targets={targets}
+          consumed={consumed}
+          prompts={promptsQuery.data?.options ?? []}
+          onMeal={(mealId) => router.push(`/diet/meal/${mealId}` as Href)}
+          onPrompt={setAssistantPromptId}
+          onSeeFullPlan={() => router.push('/diet/plan/full')}
+          onRegenerate={() => setReasonOpen(true)}
+        />
+      );
+    }
+    if (planQuery.isError) {
+      return (
+        <View style={styles.errorState}>
+          <Text style={styles.errorText}>
+            Couldn&apos;t load today&apos;s plan. Pull to refresh in a moment.
+          </Text>
+        </View>
+      );
+    }
+    return (
+      <View style={styles.errorState}>
+        <Text style={styles.errorText}>Couldn&apos;t load today&apos;s plan. Pull to refresh.</Text>
+      </View>
+    );
+  })();
 
   return (
     <View style={styles.root}>
       <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()} accessibilityRole="button" style={styles.back}>
-            <Text style={styles.backText}>‹</Text>
-          </Pressable>
-          <Text style={styles.eyebrow}>Today&apos;s plan</Text>
-          <View style={styles.back} />
+        <View
+          style={[
+            styles.screenFrame,
+            {
+              minHeight: Math.max(0, height - insets.top - insets.bottom - spacing.md - spacing.md),
+            },
+          ]}
+        >
+          <PlanScreenHeader onBack={() => router.back()} />
+          {content}
         </View>
-
-        {planQuery.isLoading ? (
-          <View style={styles.loading}>
-            <ActivityIndicator color={colors.ink45} />
-          </View>
-        ) : plan ? (
-          <>
-            {!plan.validation_result.macro_ok ? (
-              <GlassCard variant="light" radius={radii.lg} style={styles.warning}>
-                <Text style={styles.warningText}>
-                  {plan.validation_result.self_check_issues.join(' ') ||
-                    'Macros landed a touch off today — still within range.'}
-                </Text>
-              </GlassCard>
-            ) : null}
-            <View style={styles.mealList}>
-              {plan.meals.map((meal) => {
-                const done = meal.status !== 'planned' && meal.status !== 'missed';
-                return (
-                  <Pressable
-                    key={meal.id}
-                    onPress={() => router.push(`/diet/meal/${meal.id}` as Href)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${MEAL_LABEL[meal.meal_type]} ${meal.name}`}
-                    style={[styles.mealRow, done && styles.mealRowDone]}
-                  >
-                    <View style={styles.mealCopy}>
-                      <Text style={done ? styles.mealMetaDone : styles.mealMeta}>
-                        {MEAL_LABEL[meal.meal_type]}
-                      </Text>
-                      <Text style={done ? styles.mealNameDone : styles.mealName}>{meal.name}</Text>
-                      <Text style={done ? styles.mealMacrosDone : styles.mealMacros}>
-                        {meal.calories_kcal} kcal · {Math.round(meal.protein_g)}g protein
-                      </Text>
-                    </View>
-                    <Text style={done ? styles.statusDone : styles.status}>
-                      {statusLabel(meal.status)}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-            <GlassCard variant="night" radius={radii.xl} style={styles.totalCard}>
-              <Text style={styles.darkLabel}>Day total</Text>
-              <View style={styles.totalRow}>
-                <Metric label="kcal" value={displayNumber(plan.total_calories)} />
-                <Metric label="protein" value={`${displayNumber(plan.total_protein_g)}g`} />
-                <Metric label="carbs" value={`${displayNumber(plan.total_carbs_g)}g`} />
-                <Metric label="fat" value={`${displayNumber(plan.total_fat_g)}g`} />
-              </View>
-            </GlassCard>
-            <Pressable
-              onPress={() => setReasonOpen(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Regenerate plan"
-              style={styles.regenerate}
-            >
-              <Text style={styles.regenerateText}>Regenerate plan</Text>
-            </Pressable>
-          </>
-        ) : buildingStatus ? (
-          <RebuildingPlanCard status={buildingStatus} reason={activeReason} />
-        ) : failedPlan ? (
-          <>
-            <GlassCard variant="night" radius={radii.xl} style={styles.totalCard}>
-              <Text style={styles.darkLabel}>Plan failed</Text>
-              <Text style={styles.failedBody}>
-                The backend finished without meals for today. Regenerate it and I&apos;ll keep
-                watching for the new result.
-              </Text>
-            </GlassCard>
-            {quotaError ? <QuotaBanner error={quotaError} /> : null}
-            <Pressable
-              onPress={() => regenerateNow('surprise_me')}
-              disabled={regenerate.isPending}
-              accessibilityRole="button"
-              accessibilityLabel="Try generating plan again"
-              style={styles.regenerate}
-            >
-              {regenerate.isPending ? (
-                <ActivityIndicator color={colors.ink45} />
-              ) : (
-                <Text style={styles.regenerateText}>Try again</Text>
-              )}
-            </Pressable>
-          </>
-        ) : (
-          <Text style={styles.emptyText}>No plan is ready yet. Generate one from Diet.</Text>
-        )}
       </Screen>
       <RegenerateSheet
         visible={reasonOpen}
@@ -206,8 +202,8 @@ export default function MealPlanScreen() {
         contextAsk={contextAsk}
         budget={budget}
         cooking={cooking}
-        saving={regenerate.isPending || updateProfile.isPending}
-        quotaError={quotaError}
+        saving={regeneratePlan.isPending || updateProfile.isPending}
+        quotaError={regenerateQuotaError}
         onReason={setReason}
         onBudget={setBudget}
         onCooking={setCooking}
@@ -217,95 +213,32 @@ export default function MealPlanScreen() {
         }}
         onSubmit={contextAsk ? saveContextAsk : submitReason}
       />
-    </View>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.metric}>
-      <Text style={styles.metricValue}>{value}</Text>
-      <Text style={styles.metricLabel}>{label}</Text>
+      {assistantPromptId !== null ? (
+        <PlanAssistantFlow
+          date={date}
+          promptId={assistantPromptId}
+          onClose={() => setAssistantPromptId(null)}
+        />
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  scrollContent: { paddingBottom: 112 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.lg,
-  },
-  back: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: withAlpha(colors.white, 0.42),
+  scrollContent: { flexGrow: 1, paddingBottom: spacing.screenPadBottom },
+  screenFrame: { flexGrow: 1 },
+  loading: {
+    minHeight: componentSizes.planHeroIcon,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: spacing.xxxl,
   },
-  backText: { ...textStyle('cardValue'), color: colors.ink },
-  eyebrow: { ...textStyle('label'), color: colors.ink45 },
-  loading: { paddingVertical: spacing.xxxl, alignItems: 'center' },
-  warning: { marginBottom: spacing.lg },
-  warningText: { ...textStyle('bodySm'), color: colors.ink62 },
-  mealList: { gap: spacing.sm },
-  mealRow: {
-    minHeight: 82,
-    borderRadius: radii.lg,
-    padding: spacing.lg,
-    backgroundColor: withAlpha(colors.white, 0.52),
-    borderWidth: 1,
-    borderColor: withAlpha(colors.white, 0.66),
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.md,
-  },
-  mealRowDone: { backgroundColor: colors.ink },
-  mealCopy: { flex: 1 },
-  mealMeta: { ...textStyle('micro'), color: colors.ink45 },
-  mealMetaDone: { ...textStyle('micro'), color: withAlpha(colors.fog, 0.55) },
-  mealName: { ...textStyle('bodyLg'), color: colors.ink, marginTop: spacing.xs },
-  mealNameDone: { ...textStyle('bodyLg'), color: colors.onNight, marginTop: spacing.xs },
-  mealMacros: { ...textStyle('caption'), color: colors.ink62, marginTop: spacing.xs },
-  mealMacrosDone: {
-    ...textStyle('caption'),
-    color: withAlpha(colors.fog, 0.62),
-    marginTop: spacing.xs,
-  },
-  status: { ...textStyle('micro'), color: colors.ink62, textTransform: 'capitalize' },
-  statusDone: {
-    ...textStyle('micro'),
-    color: withAlpha(colors.fog, 0.7),
-    textTransform: 'capitalize',
-  },
-  totalCard: { marginTop: spacing.lg },
-  darkLabel: { ...textStyle('label'), color: withAlpha(colors.fog, 0.55) },
-  failedBody: {
-    ...textStyle('body'),
-    color: withAlpha(colors.fog, 0.72),
-    marginTop: spacing.lg,
-  },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.lg },
-  metric: { alignItems: 'center' },
-  metricValue: { ...textStyle('bodyLg'), color: colors.onNight },
-  metricLabel: {
-    ...textStyle('micro'),
-    color: withAlpha(colors.fog, 0.55),
-    marginTop: spacing.xs,
-  },
-  regenerate: {
-    minHeight: 54,
-    borderRadius: radii.pill,
-    backgroundColor: withAlpha(colors.white, 0.62),
+  errorState: {
+    flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: spacing.lg,
+    paddingVertical: spacing.xxxl,
   },
-  regenerateText: { ...textStyle('body'), color: colors.ink },
-  emptyText: { ...textStyle('body'), color: colors.ink62 },
+  errorText: { ...textStyle('body'), color: colors.ink55, textAlign: 'center' },
 });
