@@ -11,6 +11,8 @@ export { default as MealDetailScreen } from '@/features/nutrition/screens/MealDe
 export { default as PhotoResultScreen } from '@/features/nutrition/screens/PhotoResultScreen';
 export { default as PhotoUnreadableScreen } from '@/features/nutrition/screens/PhotoUnreadableScreen';
 export { default as PhotoReceiptScreen } from '@/features/nutrition/screens/PhotoReceiptScreen';
+export { default as LabelResultScreen } from '@/features/nutrition/screens/LabelResultScreen';
+export { default as LabelUnreadableScreen } from '@/features/nutrition/screens/LabelUnreadableScreen';
 export {
   nutritionKeys,
   todayISO,

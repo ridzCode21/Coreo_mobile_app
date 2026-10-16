@@ -36,8 +36,13 @@ export const colors = {
 
   white: '#FFFFFF',
   onNight: '#F0F4F8',
+  onNight60: 'rgba(240,244,248,0.6)',
   fog: '#EFF4F8',
   overlayInk: '#122A46',
+  labelPreviewBorder: 'rgba(255,255,255,0.6)',
+  labelPreviewMuted: 'rgba(255,255,255,0.45)',
+  labelPreviewStrong: 'rgba(255,255,255,0.75)',
+  labelPreviewShade: 'rgba(8,24,44,0.45)',
 
   success: '#3E8E63',
   attention: '#7A5220',
@@ -75,6 +80,10 @@ export const afterSnapPhotoOverlay = {
   locations: [0.55, 1],
 } as const;
 
+export const labelUnreadablePreviewGradient = {
+  colors: ['#6E7A85', '#454F58'],
+} as const;
+
 export const glass = {
   light: {
     gradient: [withAlpha(colors.white, 0.62), withAlpha(colors.white, 0.2)],
@@ -96,6 +105,14 @@ export const glass = {
     gradient: ['rgba(34,66,102,0.6)', 'rgba(12,28,48,0.7)'],
     border: withAlpha(colors.white, 0.22),
     shadowColor: 'rgba(8,24,44,0.34)',
+    topHighlight: withAlpha(colors.white, 0.22),
+    start: { x: 0.21, y: 0 },
+    end: { x: 0.79, y: 1 },
+  },
+  labelRecovery: {
+    gradient: ['rgba(34,66,102,0.85)', 'rgba(12,28,48,0.9)'],
+    border: withAlpha(colors.white, 0.22),
+    shadowColor: 'rgba(8,24,44,0.28)',
     topHighlight: withAlpha(colors.white, 0.22),
     start: { x: 0.21, y: 0 },
     end: { x: 0.79, y: 1 },
@@ -232,6 +249,8 @@ export const spacing = {
   photoUnreadableActionPaddingX: 18,
   photoUnreadableActionShadowRadius: 28,
   photoUnreadableUsualPaddingX: 14,
+  labelUnreadablePreviewTop: 18,
+  labelUnreadableTitleTop: 20,
   passwordResetFieldPadY: 13,
   passwordResetSignInPaddingX: 28,
 } as const;
@@ -370,6 +389,11 @@ export const componentSizes = {
   photoUnreadableActionIcon: 19,
   photoUnreadableIconStrokeWidth: 1.6,
   photoUnreadableUsualHeight: 32,
+  labelUnreadablePreviewWidth: 104,
+  labelUnreadablePreviewHeight: 140,
+  labelUnreadablePreviewIcon: 20,
+  labelUnreadableActionIcon: 19,
+  labelScanIconStrokeWidth: 1.6,
   hairline: 1,
 } as const;
 
@@ -439,6 +463,19 @@ export const typography = {
     letterSpacing: -0.4,
     lineHeight: 1.4,
   },
+  labelResultHeadline: { fontSize: 23, fontWeight: '200', letterSpacing: -0.4, lineHeight: 1.4 },
+  labelResultHeadlineAccent: {
+    fontSize: 23,
+    fontWeight: '400',
+    letterSpacing: -0.4,
+    lineHeight: 1.4,
+  },
+  labelUnreadableTitle: {
+    fontSize: 26,
+    fontWeight: '200',
+    letterSpacing: -0.4,
+    lineHeight: 1.4,
+  },
   photoUnreadableActionTitle: { fontSize: 13, fontWeight: '500', letterSpacing: 0 },
   photoUnreadableUsualLabel: {
     fontSize: 10,
@@ -447,6 +484,8 @@ export const typography = {
     textTransform: 'uppercase',
   },
   photoUnreadableUsualChip: { fontSize: 11.5, fontWeight: '400', letterSpacing: 0 },
+  labelRecoveryTitle: { fontSize: 13, fontWeight: '500', letterSpacing: 0 },
+  labelRecoveryTitleLight: { fontSize: 13, fontWeight: '400', letterSpacing: 0 },
   dietHeadlineAccent: {
     fontSize: 25,
     fontWeight: '400',

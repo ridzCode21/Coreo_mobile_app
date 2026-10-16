@@ -75,6 +75,30 @@ export const photoReceiptRouteParamsSchema = z.object({
   summary: z.string().min(1),
 });
 
+export const labelResultRouteParamsSchema = z.object({
+  prefill: z.string().min(1),
+});
+
+export const labelResultPrefillSchema = z.object({
+  name: z.string(),
+  portion_grams: z.number(),
+  est_calories: z.number(),
+  est_protein_g: z.number(),
+  est_carbs_g: z.number(),
+  est_fat_g: z.number(),
+  servings_per_container: z.number().positive(),
+  confidence: z.number().min(0).max(1),
+  guessed: z.boolean(),
+  guess_note: z.string().nullable(),
+  remembered: z.boolean(),
+});
+export type LabelResultPrefill = z.infer<typeof labelResultPrefillSchema>;
+
+export const labelUnreadableRouteParamsSchema = z.object({
+  title: z.string().min(1).optional(),
+  message: z.string().min(1).optional(),
+});
+
 export const photoEstimateItemSchema = z.object({
   name: z.string(),
   portion_label: z.string().nullable(),

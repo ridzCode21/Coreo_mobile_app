@@ -3,8 +3,15 @@
  * the plate'. It sends the picture to the plate photo endpoint, so labels are read as food."
  * (`src/features/nutrition/components/LogMealSheet.tsx:201` wired `onPress={runPhoto}` on the
  * label tile, the same handler as Snap.) This protects: the label tile driving its own mutation
- * (not the photo one), the confirm hand-off tagging `source=label_ocr` with the label's own
- * values, the label-specific error fallback copy, and that Snap the plate keeps working.
+ * (not the photo one), the label-specific error fallback copy, and that Snap the plate keeps
+ * working.
+ *
+ * Issue #26 — "Label scan result, servings and could-not-read screens" changed what a successful
+ * or failed label scan does next: a readable label now routes to the 21c result screen
+ * (`/diet/label-result`) instead of straight to Check My Math, and a 422 ("couldn't read it") now
+ * routes to the 25d recovery screen (`/diet/label-unreadable`) instead of only showing an inline
+ * notice. Other errors (e.g. the 429 daily-quota message) still show the inline notice — the
+ * calm-recovery screen is only for "I couldn't read that label," per the design.
  */
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react-native';
@@ -13,8 +20,9 @@ import { LogMealSheet } from '@/features/nutrition/components/LogMealSheet';
 import { ApiError } from '@/shared/api/errors';
 
 const mockPush = jest.fn();
+const mockReplace = jest.fn();
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
 }));
 
 const mockCaptureMealPhotoFromCamera = jest.fn();
@@ -43,6 +51,11 @@ const LABEL_ESTIMATE = {
   est_protein_g: 20,
   est_carbs_g: 22,
   est_fat_g: 6,
+  servings_per_container: 2.5,
+  confidence: 0.95,
+  guessed: false,
+  guess_note: null,
+  remembered: false,
 };
 
 function pressTile(name: RegExp) {
@@ -68,7 +81,7 @@ describe('nutrition: LogMealSheet (issue #23 — label tile must call label-ocr,
     expect(mockAnalyzePhotoMutate).not.toHaveBeenCalled();
   });
 
-  it("routes to confirm with source=label_ocr and the label's own values on a successful scan", async () => {
+  it('routes to the label result screen (21c) with the full label estimate on a successful scan (#26)', async () => {
     mockAnalyzeLabelMutate.mockImplementation((_file, handlers) =>
       handlers.onSuccess(LABEL_ESTIMATE),
     );
@@ -78,24 +91,36 @@ describe('nutrition: LogMealSheet (issue #23 — label tile must call label-ocr,
 
     await waitFor(() => expect(mockPush).toHaveBeenCalled());
     const pushedUrl = String(mockPush.mock.calls[0][0]);
-    expect(pushedUrl).toContain('source=label_ocr');
-    expect(pushedUrl).not.toContain('source=photo');
+    expect(pushedUrl).toContain('/diet/label-result');
 
     const prefillParam = new URLSearchParams(pushedUrl.split('?')[1]).get('prefill');
-    expect(JSON.parse(prefillParam ?? '{}')).toEqual({
-      food_name: 'Protein bar',
-      calories: 210,
-      protein_g: 20,
-      carbs_g: 22,
-      fat_g: 6,
-    });
+    expect(JSON.parse(prefillParam ?? '{}')).toEqual(LABEL_ESTIMATE);
   });
 
-  it("shows the API's own error copy and does not navigate when the label scan fails", async () => {
+  it("routes to the could-not-read screen (25d) on a 422 'unreadable label' response, without logging anything (#26)", async () => {
     mockAnalyzeLabelMutate.mockImplementation((_file, handlers) =>
       handlers.onError(
         new ApiError('unprocessable', 'validation', 422, {
-          error: "Label couldn't be read. Enter your meal manually.",
+          error: "I couldn't read that label.",
+          message: "Too blurry, maybe. Describe it and I've got you.",
+        }),
+      ),
+    );
+    render(<LogMealSheet visible onClose={jest.fn()} />);
+
+    pressTile(/^Nutrition label/);
+
+    await waitFor(() => expect(mockPush).toHaveBeenCalled());
+    const pushedUrl = String(mockPush.mock.calls[0][0]);
+    expect(pushedUrl).toContain('/diet/label-unreadable');
+    expect(screen.queryByText(/couldn't read/i)).toBeNull(); // no inline notice — the 25d screen owns that copy
+  });
+
+  it('still shows the inline notice (does not navigate to 25d) for a non-422 label error, e.g. the daily quota (#26)', async () => {
+    mockAnalyzeLabelMutate.mockImplementation((_file, handlers) =>
+      handlers.onError(
+        new ApiError('rate_limited', 'unknown', 429, {
+          error: 'Daily label scan limit reached. Enter meal manually.',
         }),
       ),
     );
@@ -104,7 +129,7 @@ describe('nutrition: LogMealSheet (issue #23 — label tile must call label-ocr,
     pressTile(/^Nutrition label/);
 
     await waitFor(() =>
-      expect(screen.getByText("Label couldn't be read. Enter your meal manually.")).toBeTruthy(),
+      expect(screen.getByText('Daily label scan limit reached. Enter meal manually.')).toBeTruthy(),
     );
     expect(mockPush).not.toHaveBeenCalled();
   });
