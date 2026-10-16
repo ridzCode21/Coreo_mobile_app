@@ -16,6 +16,7 @@ export const colors = {
   ink70: 'rgba(23,25,29,0.7)',
   ink75: 'rgba(23,25,29,0.75)',
   ink80: 'rgba(23,25,29,0.8)',
+  ink85: 'rgba(23,25,29,0.85)',
   label: '#5F6B76',
 
   zenith: '#EDF4FB',
@@ -317,6 +318,7 @@ export const spacing = {
 
 export const radii = {
   weekReviewBar: 5,
+  foodSourceBadge: 8,
   xs: 12,
   legal: 14,
   sm: 15,
@@ -625,6 +627,7 @@ export const typography = {
   button: { fontSize: 14, fontWeight: '500', letterSpacing: 0 },
   buttonSm: { fontSize: 13.5, fontWeight: '500', letterSpacing: 0 },
   body: { fontSize: 13, fontWeight: '300', letterSpacing: 0, lineHeight: 1.8 },
+  inputValue: { fontSize: 13, fontWeight: '400', letterSpacing: 0 },
   portionEstimate: { fontSize: 13, fontWeight: '400', letterSpacing: 0 },
   bodySm: { fontSize: 12.5, fontWeight: '300', letterSpacing: 0, lineHeight: 1.6 },
   small: { fontSize: 12, fontWeight: '300', letterSpacing: 0, lineHeight: 1.6 },

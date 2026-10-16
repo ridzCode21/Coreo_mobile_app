@@ -41,6 +41,7 @@ these rules, it's probably the wrong component, not an exception to add.
 | `ink70`                     | `rgba(23,25,29,.7)`    | Live portion-estimate text                                                              |
 | `ink75`                     | `rgba(23,25,29,.75)`   | High-emphasis secondary text                                                            |
 | `ink80`                     | `rgba(23,25,29,.8)`    | Google sign-in label on the Save your core screen                                       |
+| `ink85`                     | `rgba(23,25,29,.85)`   | User-entered values in light-glass input fields                                         |
 | `label`                     | `#5F6B76`              | Muted caption/label color used inside light glass cards (e.g. field labels)             |
 | `zenith`                    | `#EDF4FB`              | Atmosphere · highest/lightest (morning)                                                 |
 | `day`                       | `#D3E6F8`              | Atmosphere · high                                                                       |
@@ -141,6 +142,7 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `button`                 | 14px      | 500              | normal                    | Primary button labels                                                 |
 | `buttonSm`               | 13.5px    | 500              | normal                    | Compact button labels                                                 |
 | `body`                   | 13px      | 300              | normal, line-height 1.8   | Default body copy                                                     |
+| `inputValue`             | 13px      | 400              | normal                    | User-entered values in light-glass input fields                       |
 | `portionEstimate`        | 13px      | 400              | normal                    | Live macro estimate in the adjust-portion sheet                       |
 | `bodySm`                 | 12–12.5px | 300              | normal, line-height ~1.6  | Card descriptions, insight text                                       |
 | `small`                  | 12px      | 300              | normal, line-height 1.6   | Small supporting text                                                 |
@@ -225,6 +227,7 @@ plus these as additional padding, not instead of them.
 | ------------------------ | ----------------------- | --------------------------------------------------------------------- |
 | `radius.xs`              | 12                      | Compact badges and controls                                           |
 | `radius.weekReviewBar`   | 5                       | Week-review daily adherence bars                                      |
+| `radius.foodSourceBadge` | 8                       | OpenFoodFacts source badge on food-search rows                        |
 | `radius.legal`           | 14                      | Privacy and legal-note cards                                          |
 | `radius.sm`              | 14–16                   | Small chips/tags                                                      |
 | `radius.control`         | 18                      | Compact input rows                                                    |
