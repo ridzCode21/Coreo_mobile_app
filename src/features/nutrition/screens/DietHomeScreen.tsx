@@ -134,6 +134,33 @@ export default function DietHomeScreen() {
         <View style={styles.cardSection}>
           <ReassuranceStrip />
         </View>
+        <View style={styles.cardSection}>
+          <Pressable
+            onPress={() => router.push('/diet/week-review')}
+            accessibilityRole="button"
+            accessibilityLabel="Week in review"
+          >
+            <GlassCard variant="light" radius={radii.md} padded={false} blurred={false}>
+              <View style={styles.weekReviewEntry}>
+                <Text style={styles.weekReviewEntryLabel}>Week in review</Text>
+                <Svg
+                  width={componentSizes.planMealChevronIcon}
+                  height={componentSizes.planMealChevronIcon}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <Path
+                    d="M9 18l6-6-6-6"
+                    stroke={colors.ink60}
+                    strokeWidth={componentSizes.planHeaderStrokeWidth}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              </View>
+            </GlassCard>
+          </Pressable>
+        </View>
 
         <View style={styles.actions}>
           <Pressable
@@ -308,6 +335,14 @@ const styles = StyleSheet.create({
     color: colors.ink55,
   },
   cardSection: { marginTop: spacing.dietCardGap },
+  weekReviewEntry: {
+    minHeight: componentSizes.minimumTapTarget,
+    paddingHorizontal: spacing.dietCardPaddingX,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  weekReviewEntryLabel: { ...textStyle('label'), color: colors.label },
   actions: {
     gap: spacing.dietCardGap,
     marginTop: spacing.xxxl,

@@ -13,6 +13,7 @@ export { default as PhotoUnreadableScreen } from '@/features/nutrition/screens/P
 export { default as PhotoReceiptScreen } from '@/features/nutrition/screens/PhotoReceiptScreen';
 export { default as LabelResultScreen } from '@/features/nutrition/screens/LabelResultScreen';
 export { default as LabelUnreadableScreen } from '@/features/nutrition/screens/LabelUnreadableScreen';
+export { default as WeekInReviewScreen } from '@/features/nutrition/screens/WeekInReviewScreen';
 export {
   nutritionKeys,
   todayISO,

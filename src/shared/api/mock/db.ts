@@ -14,6 +14,7 @@ import type {
   MealPlanDetail,
   ReplacePreviewAlternative,
 } from '@/shared/types/mealPlan';
+import type { WeeklyDietReview } from '@/shared/types/weeklyDietReview';
 
 export type MockUser = {
   id: string;
@@ -47,6 +48,8 @@ type MockDb = {
   foodEntries: FoodEntry[];
   /** Recomputed daily aggregates, keyed `${userId}:${date}`. §10. */
   dailyLogs: Record<string, DailyLog>;
+  /** Stored Sunday reviews keyed by user id, matching WeeklyDietReview rows in the backend. */
+  weeklyDietReviews: Record<string, WeeklyDietReview[]>;
   /** Seeded food database backing search + barcode lookup (see nutrition `mocks/fixtures.ts`). §8. */
   foodItems: FoodItem[];
   /** AI-photo usage counter, keyed `${userId}:${date}`, enforcing the 10/day free limit. §8/§16. */
@@ -99,6 +102,7 @@ function createEmptyDb(): MockDb {
     dietProfiles: {},
     foodEntries: [],
     dailyLogs: {},
+    weeklyDietReviews: {},
     foodItems: [],
     photoQuotaByUserDate: {},
     labelOcrQuotaByUserDate: {},
@@ -124,6 +128,7 @@ export function __resetMockDbForTests(): void {
   mockDb.dietProfiles = {};
   mockDb.foodEntries = [];
   mockDb.dailyLogs = {};
+  mockDb.weeklyDietReviews = {};
   mockDb.foodItems = [];
   mockDb.photoQuotaByUserDate = {};
   mockDb.labelOcrQuotaByUserDate = {};

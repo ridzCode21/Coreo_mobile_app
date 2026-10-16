@@ -36,6 +36,42 @@ export const usualsResponseSchema = z.object({
 });
 export type UsualsResponse = z.infer<typeof usualsResponseSchema>;
 
+export const weeklyDietReviewDaySchema = z.object({
+  date: z.string().date(),
+  weekday: z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']),
+  calories_in: z.number().int().nonnegative(),
+  protein_g: z.number().nonnegative(),
+  weight_kg: z.number().nullable(),
+  target_calories: z.number().int().nonnegative().nullable(),
+  on_target: z.boolean(),
+  late_dinner: z.boolean(),
+});
+
+export const weeklyDietReviewTargetChangeSchema = z.object({
+  previous_calories: z.number().int().nonnegative().nullable(),
+  new_calories: z.number().int().nonnegative(),
+  changed_at: z.string().datetime({ offset: true }),
+  source: z.enum(['manual', 'calculated']),
+  note: z.string(),
+});
+
+export const weeklyDietReviewSchema = z.object({
+  week_start: z.string().date(),
+  week_end: z.string().date(),
+  generated_at: z.string().datetime({ offset: true }),
+  days_on_target: z.number().int().min(0).max(7),
+  headline: z.string().min(1),
+  subtitle: z.string(),
+  adherence_line: z.string().min(1),
+  pattern_callout: z.string().min(1),
+  recommendation: z.object({
+    title: z.string().min(1),
+    detail: z.string().min(1),
+  }),
+  days: z.array(weeklyDietReviewDaySchema).length(7),
+  target_changes: z.array(weeklyDietReviewTargetChangeSchema),
+});
+
 /**
  * The editable "Check my math" confirm form (15a). Photo/barcode/search all prefill this, then the
  * user edits and commits. Numbers are non-negative and capped at sane ceilings so a fat-fingered

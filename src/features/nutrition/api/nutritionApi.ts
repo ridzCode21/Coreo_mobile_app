@@ -22,10 +22,12 @@ import type {
   PhotoEstimate,
 } from '@/shared/types/food';
 import type { DailyLog, DailySummary } from '@/shared/types/dailyLog';
+import type { WeeklyDietReview } from '@/shared/types/weeklyDietReview';
 import {
   labelResultPrefillSchema,
   photoEstimateSchema,
   usualsResponseSchema,
+  weeklyDietReviewSchema,
   type ConfirmMealValues,
   type UsualsResponse,
 } from '@/features/nutrition/schemas';
@@ -42,7 +44,20 @@ export const nutritionKeys = {
   foodSearch: (q: string) => ['nutrition', 'food-search', q] as const,
   barcode: (code: string) => ['nutrition', 'barcode', code] as const,
   usuals: (mealType: MealType) => ['nutrition', 'usuals', mealType] as const,
+  weeklyDietReview: ['nutrition', 'weekly-diet-review'] as const,
 };
+
+/** `GET /insights/weekly-diet-review/` — latest stored Sunday review, or a normal 404. */
+export function useWeeklyDietReviewQuery() {
+  return useQuery({
+    queryKey: nutritionKeys.weeklyDietReview,
+    queryFn: async (): Promise<WeeklyDietReview> => {
+      const response = await apiClient.get<unknown>('/insights/weekly-diet-review/');
+      return weeklyDietReviewSchema.parse(response);
+    },
+    retry: false,
+  });
+}
 
 const macroBudgetEntrySchema = z.object({
   consumed: z.number(),

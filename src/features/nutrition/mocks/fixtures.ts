@@ -6,6 +6,7 @@
  */
 
 import type { FoodEntry, FoodItem } from '@/shared/types/food';
+import type { WeeklyDietReview } from '@/shared/types/weeklyDietReview';
 
 export const SEED_FOOD_ITEMS: FoodItem[] = [
   {
@@ -143,3 +144,100 @@ export function starterDayEntries(date: string, startId: number): FoodEntry[] {
     },
   ];
 }
+
+/** Seedable success-state fixture for the stored, user-scoped Sunday review endpoint. */
+export const WEEKLY_DIET_REVIEW_FIXTURE: WeeklyDietReview = {
+  week_start: '2026-09-28',
+  week_end: '2026-10-04',
+  generated_at: '2026-10-04T18:00:00+00:00',
+  days_on_target: 5,
+  headline: "It's working.",
+  subtitle: 'Protein up, weight following.',
+  adherence_line: 'Five of seven on target.',
+  pattern_callout: "Fridays and Saturdays run late and heavy, that's a pattern, not a failure.",
+  recommendation: {
+    title: 'Move Friday dinner earlier',
+    detail: 'Late Friday dinners cost you Saturday too. Move it an hour. That fixes both days.',
+  },
+  days: [
+    {
+      date: '2026-09-28',
+      weekday: 'Monday',
+      calories_in: 2000,
+      protein_g: 100,
+      weight_kg: 79,
+      target_calories: 2000,
+      on_target: true,
+      late_dinner: false,
+    },
+    {
+      date: '2026-09-29',
+      weekday: 'Tuesday',
+      calories_in: 1900,
+      protein_g: 95,
+      weight_kg: null,
+      target_calories: 2000,
+      on_target: true,
+      late_dinner: false,
+    },
+    {
+      date: '2026-09-30',
+      weekday: 'Wednesday',
+      calories_in: 1900,
+      protein_g: 90,
+      weight_kg: null,
+      target_calories: 1960,
+      on_target: true,
+      late_dinner: false,
+    },
+    {
+      date: '2026-10-01',
+      weekday: 'Thursday',
+      calories_in: 1960,
+      protein_g: 100,
+      weight_kg: null,
+      target_calories: 1960,
+      on_target: true,
+      late_dinner: false,
+    },
+    {
+      date: '2026-10-02',
+      weekday: 'Friday',
+      calories_in: 2500,
+      protein_g: 100,
+      weight_kg: null,
+      target_calories: 1960,
+      on_target: false,
+      late_dinner: true,
+    },
+    {
+      date: '2026-10-03',
+      weekday: 'Saturday',
+      calories_in: 2400,
+      protein_g: 90,
+      weight_kg: null,
+      target_calories: 1960,
+      on_target: false,
+      late_dinner: true,
+    },
+    {
+      date: '2026-10-04',
+      weekday: 'Sunday',
+      calories_in: 1900,
+      protein_g: 100,
+      weight_kg: 79,
+      target_calories: 1960,
+      on_target: true,
+      late_dinner: false,
+    },
+  ],
+  target_changes: [
+    {
+      previous_calories: 2000,
+      new_calories: 1960,
+      changed_at: '2026-09-30T09:00:00+00:00',
+      source: 'calculated',
+      note: 'Targets were recalculated from your profile.',
+    },
+  ],
+};
