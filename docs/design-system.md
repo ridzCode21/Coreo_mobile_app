@@ -108,6 +108,9 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `cardTitle`              | 19px      | 300              | −0.3px                    | Card and confirmation titles                                          |
 | `sheetSubtitle`          | 11.5px    | 300              | normal                    | Sheet question subtitles (e.g. "Helps me plan better tomorrow.")      |
 | `sheetTitle`             | 25px      | 200              | −0.5px, line-height 1.4   | Bottom-sheet titles (e.g. paywall)                                    |
+| `weekReviewTargetValue`  | 22px      | 200              | −0.5px                    | Week-review updated calorie target                                    |
+| `weekReviewDaysEyebrow`  | 10px      | 500              | +2.4px, uppercase         | Week-review adherence-card label                                      |
+| `weekReviewDaysBody`     | 10.5px    | 300              | normal, line-height 1.6   | Week-review adherence and pattern sentence                            |
 | `dietHeadlineAccent`     | 25px      | 400              | −0.5px, line-height 1.4   | Emphasized span in the Diet home headline                             |
 | `planReadyTitle*`        | 19px      | 200 / 400        | −0.4px, line-height 1.4   | Today-plan ready headline and accent                                  |
 | `planFailedTitle`        | 22px      | 200              | −0.4px, line-height 1.4   | Today-plan failed-state headline                                      |
@@ -221,6 +224,7 @@ plus these as additional padding, not instead of them.
 | Token                    | px                      | Use                                                                   |
 | ------------------------ | ----------------------- | --------------------------------------------------------------------- |
 | `radius.xs`              | 12                      | Compact badges and controls                                           |
+| `radius.weekReviewBar`   | 5                       | Week-review daily adherence bars                                      |
 | `radius.legal`           | 14                      | Privacy and legal-note cards                                          |
 | `radius.sm`              | 14–16                   | Small chips/tags                                                      |
 | `radius.control`         | 18                      | Compact input rows                                                    |
@@ -237,7 +241,8 @@ plus these as additional padding, not instead of them.
 | `radius.usualSuggestion` | 24                      | Your-usuals suggestion cards                                          |
 | `radius.plan*`           | 22 / 24 / 26            | Today-plan meal list, summary card, and footer actions                |
 
-**Component sizes:** `componentSizes.onboardingContinueHeight` is 60px for the core onboarding
+**Component sizes:** `componentSizes.weekReviewBarsHeight` is 64px for the seven-day adherence
+chart. `componentSizes.onboardingContinueHeight` is 60px for the core onboarding
 solid Continue pill; `componentSizes.onboardingArrowIcon` and `onboardingArrowStrokeWidth` define
 its 16px, 2px-stroke trailing arrow.
 The glass dock uses `dockHeight` (72px), `dockIconCircle` (36px), `dockIconSize` (17px), and

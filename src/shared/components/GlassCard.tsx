@@ -22,6 +22,7 @@ type GlassCardProps = PropsWithChildren<{
   variant?: GlassCardVariant;
   style?: ViewStyle;
   radius?: number;
+  blurred?: boolean;
   /** Set false only for the rare screen that already has its own dark/night hero card visible —
    * design-system.md §4 caps this at one per screen. */
   padded?: boolean;
@@ -39,6 +40,7 @@ export function GlassCard({
   variant = 'light',
   style,
   radius,
+  blurred = true,
   padded = true,
   contentPaddingVertical,
   contentPaddingHorizontal,
@@ -76,7 +78,7 @@ export function GlassCard({
          * relying on the gradient alone is the documented fallback (§4: "a fallback (semi-opaque
          * solid color, no blur) ... if it looks bad") — revisit if/when blurTarget is wired up
          * app-wide for real Android blur. */}
-        {Platform.OS !== 'android' ? (
+        {blurred && Platform.OS !== 'android' ? (
           <BlurView
             intensity={blur[variant].intensity}
             tint={blur[variant].tint}

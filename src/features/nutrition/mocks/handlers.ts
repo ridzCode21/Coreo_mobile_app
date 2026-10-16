@@ -17,7 +17,7 @@ import type {
   MacroSummary,
 } from '@/shared/types/food';
 import type { DailyLog } from '@/shared/types/dailyLog';
-import { SEED_FOOD_ITEMS } from '@/features/nutrition/mocks/fixtures';
+import { SEED_FOOD_ITEMS, WEEKLY_DIET_REVIEW_FIXTURE } from '@/features/nutrition/mocks/fixtures';
 import { mealTypeSchema } from '@/features/nutrition/schemas';
 
 const PHOTO_DAILY_LIMIT = 10; // free tier — API_REFERENCE.md §8/§16
@@ -39,8 +39,20 @@ function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+function validISODate(value: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value ? null : date;
+}
+
 function ensureFoodDbSeeded(): void {
   if (mockDb.foodItems.length === 0) mockDb.foodItems = [...SEED_FOOD_ITEMS];
+}
+
+function ensureWeeklyDietReviewSeeded(userId: string): void {
+  if (mockDb.weeklyDietReviews[userId] === undefined) {
+    mockDb.weeklyDietReviews[userId] = [{ ...WEEKLY_DIET_REVIEW_FIXTURE }];
+  }
 }
 
 // EAN-8/UPC-A/EAN-13/ITF-14 are the digit-length formats `BarcodeScannerView`'s
@@ -145,6 +157,30 @@ function recomputeDailyLog(userId: string, date: string): DailyLog {
   mockDb.dailyLogs[key] = log;
   return log;
 }
+
+// GET /insights/weekly-diet-review/ — latest stored review, optionally filtered by Monday.
+registerMock('GET', '/insights/weekly-diet-review/', (request) => {
+  const user = requireMockUser(request);
+  if (!user) return UNAUTHORIZED;
+
+  const weekStart = request.query.week_start;
+  if (weekStart !== undefined) {
+    const parsed = validISODate(weekStart);
+    if (!parsed) return { status: 400, body: { error: 'Invalid week_start.' } };
+    if (parsed.getUTCDay() !== 1) {
+      return { status: 400, body: { error: 'week_start must be a Monday.' } };
+    }
+  }
+
+  ensureWeeklyDietReviewSeeded(user.id);
+  const reviews = mockDb.weeklyDietReviews[user.id];
+  const review = weekStart
+    ? reviews.find((candidate) => candidate.week_start === weekStart)
+    : [...reviews].sort((a, b) => b.week_start.localeCompare(a.week_start))[0];
+
+  if (!review) return { status: 404, body: { error: 'no_review' } };
+  return { status: 200, delayMs: 250, body: styleB(review) };
+});
 
 // GET /food/entries/ — the day's entries + macro summary (§8).
 registerMock('GET', '/food/entries/', (request) => {

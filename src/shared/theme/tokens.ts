@@ -68,6 +68,8 @@ export const skyGradient = {
 export const sheetSkyGradient = {
   colors: ['#A3C4E5', '#7299C6', '#54779F'],
   locations: [0, 0.52, 1],
+  start: { x: 0.4, y: 0 },
+  end: { x: 0.6, y: 1 },
 } as const;
 
 export const unreadablePhotoGradient = {
@@ -281,6 +283,7 @@ export const spacing = {
 } as const;
 
 export const radii = {
+  weekReviewBar: 5,
   xs: 12,
   legal: 14,
   sm: 15,
@@ -308,6 +311,7 @@ export const radii = {
 } as const;
 
 export const componentSizes = {
+  weekReviewBarsHeight: 64,
   minimumTapTarget: 44,
   dockHeight: 72,
   dockIconCircle: 36,
@@ -461,6 +465,19 @@ export const typography = {
   cardTitle: { fontSize: 19, fontWeight: '300', letterSpacing: -0.3 },
   sheetSubtitle: { fontSize: 11.5, fontWeight: '300', letterSpacing: 0 },
   sheetTitle: { fontSize: 25, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.4 },
+  weekReviewTargetValue: { fontSize: 22, fontWeight: '200', letterSpacing: -0.5 },
+  weekReviewDaysEyebrow: {
+    fontSize: 10,
+    fontWeight: '500',
+    letterSpacing: 2.4,
+    textTransform: 'uppercase',
+  },
+  weekReviewDaysBody: {
+    fontSize: 10.5,
+    fontWeight: '300',
+    letterSpacing: 0,
+    lineHeight: 1.6,
+  },
   mealReviewSummaryTitle: { fontSize: 14, fontWeight: '400', letterSpacing: 0 },
   usualRowTitle: { fontSize: 14, fontWeight: '400', letterSpacing: 0 },
   usualRowSubtitle: { fontSize: 10.5, fontWeight: '300', letterSpacing: 0 },
