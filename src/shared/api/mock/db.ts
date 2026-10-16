@@ -15,6 +15,7 @@ import type {
   ReplacePreviewAlternative,
 } from '@/shared/types/mealPlan';
 import type { WeeklyDietReview } from '@/shared/types/weeklyDietReview';
+import type { FitnessProfile } from '@/shared/types/fitnessProfile';
 
 export type MockUser = {
   id: string;
@@ -44,6 +45,8 @@ type MockDb = {
   /** Keyed by user id — one diet profile per user, seeded lazily on first GET/PUT (see
    * `features/onboarding/mocks/dietProfile.handlers.ts`). */
   dietProfiles: Record<string, DietProfile>;
+  /** Keyed by user id — one fitness profile per user, seeded lazily on first GET/PUT. */
+  fitnessProfiles: Record<string, FitnessProfile>;
   /** All logged food entries (all users); handlers filter by the authed user + date. §8. */
   foodEntries: FoodEntry[];
   /** Recomputed daily aggregates, keyed `${userId}:${date}`. §10. */
@@ -104,6 +107,7 @@ function createEmptyDb(): MockDb {
     users: [],
     passwordResetTokens: {},
     dietProfiles: {},
+    fitnessProfiles: {},
     foodEntries: [],
     dailyLogs: {},
     weeklyDietReviews: {},
@@ -132,6 +136,7 @@ export function __resetMockDbForTests(): void {
   mockDb.users = [];
   mockDb.passwordResetTokens = {};
   mockDb.dietProfiles = {};
+  mockDb.fitnessProfiles = {};
   mockDb.foodEntries = [];
   mockDb.dailyLogs = {};
   mockDb.weeklyDietReviews = {};

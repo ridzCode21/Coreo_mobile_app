@@ -17,6 +17,11 @@ export { default as CreateAccountScreen } from '@/features/onboarding/screens/Cr
 export { firstUnansweredFlowStep, flowStepRoute } from '@/features/onboarding/lib/steps';
 export { useOnboardingStore } from '@/features/onboarding/store/onboardingStore';
 export {
+  OnboardingStepScaffold,
+  onboardingTitleStyles,
+} from '@/features/onboarding/components/OnboardingStepScaffold';
+export { NextBar } from '@/features/onboarding/components/NextBar';
+export {
   useDietProfileQuery,
   useUpdateDietProfileMutation,
   dietProfileKeys,

@@ -32,6 +32,7 @@ export function SelectableChip({
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
+        accessibilityLabel={label}
         accessibilityState={{ selected }}
         style={[styles.base, styles.selected, style]}
       >
@@ -41,7 +42,12 @@ export function SelectableChip({
   }
 
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityState={{ selected }}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+    >
       <SelectableChipDisplay label={label} selected={false} style={style} variant={variant} />
     </Pressable>
   );
