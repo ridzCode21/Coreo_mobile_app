@@ -809,3 +809,8 @@ Centralize this instead of scattering `Dimensions`/`useWindowDimensions` calls t
   and component-size tokens for screens 28a–28d. `MacroSummaryCard` gained a compact plan variant
   so 28c keeps the shared remaining-macro logic while matching its 24px card, 22px kcal value,
   9px macro rows, and 3px tracks.
+- **v2.0 (fitness interview, screens 16a·1–16a·5):** The authenticated five-question flow reuses
+  `OnboardingStepScaffold` with compact horizontal padding, `onboardingTitleStyles.compact`, a
+  five-segment `ProgressDots` rail, and the existing `NextBar`. Goal, sports, and protected-area
+  answers use `SelectableChip`; place answers use compact `ToggleRow` cards; the optional movement
+  note uses a night-glass text field in the body and the screen's single `NextBar` submit action.

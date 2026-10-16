@@ -56,6 +56,7 @@ export function ToggleRow({
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
+        accessibilityLabel={title}
         accessibilityState={{ selected }}
         style={[styles.wrap, { borderRadius: radius }, selected && styles.selectedShadow, style]}
       >
