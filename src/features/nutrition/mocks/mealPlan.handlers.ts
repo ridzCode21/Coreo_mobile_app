@@ -354,6 +354,19 @@ registerMock('POST', '/meal-plans/', (request) => {
   const key = planKey(user.id, body.date);
   const existing = mockDb.mealPlans[key];
   if (existing) {
+    // Mock-only QA convenience: the real create endpoint returns a failed plan unchanged. Re-run
+    // it here without consuming quota so the intended failed → building → ready UI can be tested
+    // until the backend exposes a free failed-plan requeue path (issue #31).
+    if (existing.status === 'failed') {
+      const plan = createPlan(user.id, body.date, planMode);
+      mockDb.mealPlans[key] = plan;
+      mockDb.mealPlanPollCounts[key] = 0;
+      return {
+        status: 202,
+        delayMs: 300,
+        body: styleB<MealPlanCreateResponse>({ plan_id: plan.id, status: plan.status }),
+      };
+    }
     return {
       status: 200,
       delayMs: 200,

@@ -19,6 +19,9 @@ import type { MacroSummary } from '@/shared/types/food';
 type MacroSummaryCardProps = {
   targets: MacroTargets;
   consumed: MacroSummary;
+  hint?: string | null;
+  macroDisplay?: 'consumed' | 'remaining';
+  variant?: 'home' | 'plan';
 };
 
 /** Muted variants of `onNight` for labels on the dark hero card (opacity ramp of the same token,
@@ -54,39 +57,67 @@ const MACROS: { key: MacroKey; label: string }[] = [
  * macro progress bars. Over-budget shows the number neutrally (can be negative) — never red, per
  * the brand's "nothing turns red here" voice (§10). Bars, never wave charts (§6.1).
  */
-export function MacroSummaryCard({ targets, consumed }: MacroSummaryCardProps) {
+export function MacroSummaryCard({
+  targets,
+  consumed,
+  hint = 'Adjusts as I learn you',
+  macroDisplay = 'consumed',
+  variant = 'home',
+}: MacroSummaryCardProps) {
   const remaining = computeRemaining(targets, consumed);
+  const compact = variant === 'plan';
 
   return (
     <GlassCard
       variant="dietHero"
-      radius={radii.xl}
-      contentPaddingVertical={spacing.dietHeroCardPaddingY}
-      contentPaddingHorizontal={spacing.dietCardPaddingX}
+      radius={compact ? radii.planSummaryCard : radii.xl}
+      contentPaddingVertical={compact ? spacing.planSummaryPaddingY : spacing.dietHeroCardPaddingY}
+      contentPaddingHorizontal={compact ? spacing.planSummaryPaddingX : spacing.dietCardPaddingX}
     >
-      <View style={styles.headerRow}>
-        <Text style={styles.eyebrow}>Left today</Text>
-        <Text style={styles.cardHint}>Adjusts as I learn you</Text>
-      </View>
+      {compact ? (
+        <View style={styles.headerRow}>
+          <Text style={styles.eyebrow}>Left today</Text>
+          <View style={styles.compactValueRow}>
+            <Text
+              style={[styles.heroNumber, styles.compactHeroNumber]}
+              allowFontScaling
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              {formatThousands(remaining.calories)}
+            </Text>
+            <Text style={[styles.heroUnit, styles.compactHeroUnit]}>kcal</Text>
+          </View>
+        </View>
+      ) : (
+        <>
+          <View style={styles.headerRow}>
+            <Text style={styles.eyebrow}>Left today</Text>
+            {hint ? <Text style={styles.cardHint}>{hint}</Text> : null}
+          </View>
+          <View style={styles.heroRow}>
+            <Text style={styles.heroNumber} allowFontScaling numberOfLines={1} adjustsFontSizeToFit>
+              {formatThousands(remaining.calories)}
+            </Text>
+            <Text style={styles.heroUnit}>kcal</Text>
+          </View>
+        </>
+      )}
 
-      <View style={styles.heroRow}>
-        <Text style={styles.heroNumber} allowFontScaling numberOfLines={1} adjustsFontSizeToFit>
-          {formatThousands(remaining.calories)}
-        </Text>
-        <Text style={styles.heroUnit}>kcal</Text>
-      </View>
-
-      <View style={styles.bars}>
+      <View style={[styles.bars, compact && styles.compactBars]}>
         {MACROS.map(({ key, label }) => {
           const target = targets[key];
           const eaten = consumed[key];
+          const displayValue = macroDisplay === 'remaining' ? remaining[key] : eaten;
           return (
             <View key={key} style={styles.barBlock}>
               <View style={styles.barLabelRow}>
-                <Text style={styles.barLabel}>{label}</Text>
-                <Text style={styles.barValue}>{Math.round(eaten)}g</Text>
+                <Text style={[styles.barLabel, compact && styles.compactBarText]}>{label}</Text>
+                <Text style={[styles.barValue, compact && styles.compactBarText]}>
+                  {Math.round(displayValue)}g
+                </Text>
               </View>
-              <View style={styles.track}>
+              <View style={[styles.track, compact && styles.compactTrack]}>
                 <View
                   testID={`macro-fill-${key}`}
                   style={[styles.fill, { width: `${macroFillRatio(eaten, target) * 100}%` }]}
@@ -124,16 +155,20 @@ const styles = StyleSheet.create({
     color: colors.onNight,
     flexShrink: 1,
   },
+  compactValueRow: { flexDirection: 'row', alignItems: 'baseline' },
+  compactHeroNumber: { ...textStyle('planKcalHero') },
   heroUnit: {
     ...textStyle('kcalUnit'),
     color: ON_NIGHT_UNIT,
     marginLeft: spacing.dietHeroUnitGap,
   },
+  compactHeroUnit: { ...textStyle('planKcalUnit') },
   bars: {
     flexDirection: 'row',
     gap: spacing.ms,
     marginTop: spacing.dietMacroTop,
   },
+  compactBars: { marginTop: spacing.planSummaryMacroTop },
   barBlock: {
     flex: 1,
     gap: spacing.dietMacroTrackGap,
@@ -151,11 +186,13 @@ const styles = StyleSheet.create({
     ...textStyle('macroRow'),
     color: ON_NIGHT_MACRO,
   },
+  compactBarText: { ...textStyle('planMacroRow') },
   track: {
     height: componentSizes.dietMacroTrackHeight,
     borderRadius: radii.pill,
     backgroundColor: BAR_TRACK,
   },
+  compactTrack: { height: componentSizes.planMacroTrackHeight },
   fill: {
     height: '100%',
     borderRadius: radii.pill,

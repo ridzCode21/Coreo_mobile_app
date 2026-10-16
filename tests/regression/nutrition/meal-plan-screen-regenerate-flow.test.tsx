@@ -5,8 +5,8 @@
  * `meal-detail-replace-flow.test.tsx`.
  *
  * Covers the two broken moments from the issue:
- *  1. A plan whose status is pending/generating/validating must show the rebuilding card, never
- *     "No plan is ready yet." (`MealPlanScreen.tsx:209` pre-fix).
+ *  1. A plan whose status is pending/generating/validating shows the first-build state until a
+ *     regenerate reason has actually been submitted, then preserves that regenerate context.
  *  2. A 429 quota error must flow into the still-open sheet (not a screen-body `QuotaBanner` drawn
  *     behind the open modal, `MealPlanScreen.tsx:83-86,174,270` pre-fix).
  */
@@ -26,7 +26,14 @@ jest.mock('expo-router', () => ({
 
 jest.mock('@/features/onboarding', () => ({
   useDietProfileQuery: () => ({
-    data: { budget_tier: 'moderate', cooking_frequency: 'once_daily' },
+    data: {
+      budget_tier: 'moderate',
+      cooking_frequency: 'once_daily',
+      daily_calories: 2000,
+      daily_protein_g: 150,
+      daily_carbs_g: 200,
+      daily_fat_g: 60,
+    },
   }),
   useUpdateDietProfileMutation: () => ({ mutate: jest.fn(), isPending: false }),
 }));
@@ -36,11 +43,30 @@ let mockRegenerateError: unknown = null;
 const mockRegenerateMutate = jest.fn();
 
 jest.mock('@/features/nutrition/api/mealPlanApi', () => ({
-  useMealPlanQuery: () => ({ data: mockPlanData, isLoading: false }),
+  useMealPlanQuery: () => ({ data: mockPlanData, isLoading: false, isError: false, error: null }),
+  useCreateMealPlanMutation: () => ({ mutate: jest.fn(), isPending: false, error: null }),
   useRegenerateMealPlanMutation: () => ({
     mutate: mockRegenerateMutate,
     isPending: false,
     error: mockRegenerateError,
+  }),
+  useAssistantPromptsQuery: () => ({ data: { options: [] } }),
+}));
+
+jest.mock('@/features/nutrition/api/nutritionApi', () => ({
+  todayISO: () => '2026-10-14',
+  useFoodEntriesQuery: () => ({
+    data: {
+      entries: [],
+      macro_summary: {
+        calories: { consumed: 0, target: 2000, remaining: 2000, over: false },
+        protein_g: { consumed: 0, target: 150, remaining: 150, over: false },
+        carbs_g: { consumed: 0, target: 200, remaining: 200, over: false },
+        fat_g: { consumed: 0, target: 60, remaining: 60, over: false },
+      },
+    },
+    isLoading: false,
+    isError: false,
   }),
 }));
 
@@ -96,12 +122,12 @@ beforeEach(() => {
 
 describe('MealPlanScreen regenerate flow (issue #36)', () => {
   it.each(['pending', 'generating', 'validating'] as const)(
-    'shows the rebuilding card and never "No plan is ready yet." when status=%s',
+    'shows the first-build state and never the regenerate card when status=%s without a reason',
     (status) => {
       mockPlanData = { ...PLAN, status };
       render(<MealPlanScreen />);
-      expect(screen.getByTestId('rebuilding-plan-card-stub')).toBeTruthy();
-      expect(screen.queryByText('No plan is ready yet. Generate one from Diet.')).toBeNull();
+      expect(screen.getByText(/Building today's plate/)).toBeTruthy();
+      expect(screen.queryByTestId('rebuilding-plan-card-stub')).toBeNull();
     },
   );
 

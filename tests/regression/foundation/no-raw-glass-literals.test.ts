@@ -91,13 +91,12 @@ describe('foundation: nine screens use the shared SkyBackground (issue #53)', ()
 });
 
 describe('foundation: raw sizes cited by the issue move to tokens (issue #53)', () => {
-  it('MealPlanScreen back arrow uses Poppins, not a bare fontSize/lineHeight pair', () => {
-    const src = read('src/features/nutrition/screens/MealPlanScreen.tsx');
-    const match = src.match(/backText:\s*\{([^}]*)\}/);
-    expect(match).not.toBeNull();
-    const body = match![1];
-    expect(body).not.toMatch(/fontSize:\s*28/);
-    expect(body).toMatch(/textStyle\(|fontFamily/);
+  it('MealPlanScreen header uses the token-sized SVG chevron, not a raw text glyph', () => {
+    const src = read('src/features/nutrition/components/PlanScreenHeader.tsx');
+    expect(src).toMatch(/<Svg[\s\S]*d="M15 18l-6-6 6-6"/);
+    expect(src).toMatch(/strokeWidth=\{componentSizes\.planHeaderStrokeWidth\}/);
+    expect(src).not.toMatch(/<Text[^>]*>‹<\/Text>/);
+    expect(src).not.toMatch(/fontSize:\s*28/);
   });
 
   it('NextBar label no longer hardcodes fontSize 13.5', () => {

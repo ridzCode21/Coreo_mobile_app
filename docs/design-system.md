@@ -107,6 +107,15 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `sheetSubtitle`          | 11.5px    | 300              | normal                    | Sheet question subtitles (e.g. "Helps me plan better tomorrow.")      |
 | `sheetTitle`             | 25px      | 200              | −0.5px, line-height 1.4   | Bottom-sheet titles (e.g. paywall)                                    |
 | `dietHeadlineAccent`     | 25px      | 400              | −0.5px, line-height 1.4   | Emphasized span in the Diet home headline                             |
+| `planReadyTitle*`        | 19px      | 200 / 400        | −0.4px, line-height 1.4   | Today-plan ready headline and accent                                  |
+| `planFailedTitle`        | 22px      | 200              | −0.4px, line-height 1.4   | Today-plan failed-state headline                                      |
+| `planMealName*`          | 12.5–13px | 400 / 500        | normal                    | Today-plan meal names and next-up emphasis                            |
+| `planMealCalories`       | 11.5px    | 400              | normal                    | Today-plan meal calories                                              |
+| `planQuickAction`        | 11px      | 400              | normal                    | Today-plan quick-action chips                                         |
+| `planKcalHero`           | 22px      | 200              | normal                    | Compact ready-plan remaining-calorie value                            |
+| `planKcalUnit`           | 10px      | 300              | normal                    | Compact ready-plan calorie unit                                       |
+| `planMacroRow`           | 9px       | 400              | normal                    | Compact ready-plan macro labels and values                            |
+| `planFooterAction`       | 13px      | 500              | normal                    | Today-plan full-plan action                                           |
 | `mealReviewSummaryTitle` | 14px      | 400              | normal                    | Photo-review summary meal name                                        |
 | `mealReviewSummaryValue` | 24px      | 200              | normal                    | Photo-review summary calorie value                                    |
 | `mealReviewRowTitle`     | 12.5px    | 400              | normal                    | Photo-review item names                                               |
@@ -199,6 +208,7 @@ plus these as additional padding, not instead of them.
 | `field.padX`             | 18 (labeled glass-field horizontal padding)         |
 | `diet.*`                 | 3–24 (screen-14a card gaps and internal padding)    |
 | `mealReview.*`           | 2 / 13 (remembered-label gap and row padding)       |
+| `plan.*`                 | 2–22 (screens 28a–28d rhythm and card padding)      |
 
 **Radius scale:**
 
@@ -218,6 +228,7 @@ plus these as additional padding, not instead of them.
 | `radius.circle`    | `50%`                   | Icon buttons, avatars, orb                                            |
 | `radius.petal`     | 125 (outer corner only) | Petal-cluster cells, see §6                                           |
 | `radius.diet*`     | 13 / 24 / 29 / 30       | Diet weight chip, next-meal card, log pill, and voice bar             |
+| `radius.plan*`     | 22 / 24 / 26            | Today-plan meal list, summary card, and footer actions                |
 
 **Component sizes:** `componentSizes.onboardingContinueHeight` is 60px for the core onboarding
 solid Continue pill; `componentSizes.onboardingArrowIcon` and `onboardingArrowStrokeWidth` define
@@ -245,6 +256,12 @@ steps use `rebuildingStepIndicator` / `rebuildingStepBorderWidth` at 20px / 1.5p
 Diet home 14a uses the `diet*` component-size tokens for its 38px header control, 26px weight
 chip, 58px log pill with 42px plus control, 60px voice bar with 44px controls, 4px macro tracks,
 24px log-pill glow, 20px voice-submit glow, other glow/shadow geometry, and bottom-dock clearance.
+Today-plan screens 28a–28d use the `plan*` tokens for their 64px empty-state icon, 46px failure
+icon, 22px build indicators, 58/56/52px actions, 17/13/10px row and regenerate icons, 3px compact
+macro tracks, 32px quick chips, 18–36px action glows/shadows, 1.3–3px icon strokes, and a 260px
+failure-copy measure. The relocated detail screen uses 82px full-plan rows and a 54px regenerate
+action. Their `spacing.plan*` and `radii.plan*` tokens keep the four state layouts aligned without
+component-local design values.
 Photo review 15a uses `mealReviewBackControl` (38px), `mealReviewBackIcon` (15px),
 `mealReviewStepper` (30px), `mealReviewCheckCircle` (42px), and `mealReviewCheckIcon` (16px).
 After-snap screens 21a/21b use the `afterSnap*` spacing, typography, radius, and component-size
@@ -757,3 +774,7 @@ Centralize this instead of scattering `Dimensions`/`useWindowDimensions` calls t
 - **v1.12 (issue #20 — glass dock alignment):** Added the dock-specific light-glass recipe,
   72px dock and 36px/17px icon geometry, 3px item gap, 8.5px inactive/active label styles, and the
   active-icon shadow token. Corrected `BottomDock` from night glass to the brighter 23A recipe.
+- **v1.13 (issue #31 — today-plan states):** Added semantic `plan*` typography, spacing, radius,
+  and component-size tokens for screens 28a–28d. `MacroSummaryCard` gained a compact plan variant
+  so 28c keeps the shared remaining-macro logic while matching its 24px card, 22px kcal value,
+  9px macro rows, and 3px tracks.

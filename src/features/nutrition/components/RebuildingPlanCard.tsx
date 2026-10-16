@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { regenerateReasonLabel } from '@/features/nutrition/lib/regenerateReasons';
+import { buildStepIndex, type BuildingStatus } from '@/features/nutrition/lib/planBuildSteps';
 import { GlassCard } from '@/shared/components/GlassCard';
 import {
   colors,
@@ -11,9 +12,9 @@ import {
   textStyle,
   withAlpha,
 } from '@/shared/theme/tokens';
-import type { MealPlanStatus, RegenerationReason } from '@/shared/types/mealPlan';
+import type { RegenerationReason } from '@/shared/types/mealPlan';
 
-export type BuildingStatus = Extract<MealPlanStatus, 'pending' | 'generating' | 'validating'>;
+export type { BuildingStatus } from '@/features/nutrition/lib/planBuildSteps';
 type StepState = 'done' | 'active' | 'pending';
 
 const STEP_LABELS = [
@@ -22,19 +23,13 @@ const STEP_LABELS = [
   'Double-checking it adds up',
 ] as const;
 
-const ACTIVE_STEP: Record<BuildingStatus, number> = {
-  pending: 0,
-  generating: 1,
-  validating: 2,
-};
-
 type RebuildingPlanCardProps = {
   status: BuildingStatus;
   reason: RegenerationReason | null;
 };
 
 export function RebuildingPlanCard({ status, reason }: RebuildingPlanCardProps) {
-  const activeStep = ACTIVE_STEP[status];
+  const activeStep = buildStepIndex(status);
 
   return (
     <GlassCard variant="sheet" radius={radii.xxl} style={styles.card}>
