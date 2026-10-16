@@ -119,6 +119,9 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `planMacroRow`           | 9px       | 400              | normal                    | Compact ready-plan macro labels and values                            |
 | `planFooterAction`       | 13px      | 500              | normal                    | Today-plan full-plan action                                           |
 | `mealReviewSummaryTitle` | 14px      | 400              | normal                    | Photo-review summary meal name                                        |
+| `usualRowTitle`          | 14px      | 400              | normal                    | Your-usuals suggestion title                                          |
+| `usualRowSubtitle`       | 10.5px    | 300              | normal                    | Your-usuals reason/food and calorie line                              |
+| `usualFooter`            | 11px      | 300              | normal, line-height 1.6   | Your-usuals learned-repeats note                                      |
 | `mealReviewSummaryValue` | 24px      | 200              | normal                    | Photo-review summary calorie value                                    |
 | `mealReviewRowTitle`     | 12.5px    | 400              | normal                    | Photo-review item names                                               |
 | `mealReviewFix`          | 10.5px    | 400              | normal                    | Photo-review Fix action                                               |
@@ -215,23 +218,24 @@ plus these as additional padding, not instead of them.
 
 **Radius scale:**
 
-| Token              | px                      | Use                                                                   |
-| ------------------ | ----------------------- | --------------------------------------------------------------------- |
-| `radius.xs`        | 12                      | Compact badges and controls                                           |
-| `radius.legal`     | 14                      | Privacy and legal-note cards                                          |
-| `radius.sm`        | 14–16                   | Small chips/tags                                                      |
-| `radius.control`   | 18                      | Compact input rows                                                    |
-| `radius.md`        | 20                      | Compact rows, small cards                                             |
-| `radius.ml`        | 22                      | Compact glass rows                                                    |
-| `radius.lg`        | 22–24                   | Standard glass card (default)                                         |
-| `radius.xl`        | 26–30                   | Hero/primary glass card, nav dock                                     |
-| `radius.quotaCard` | 32                      | Regenerate daily-limit card                                           |
-| `radius.xxl`       | 36                      | Large sheet and dock corners                                          |
-| `radius.pill`      | `height / 2`            | Any full pill button/bar — compute from actual height, don't hardcode |
-| `radius.circle`    | `50%`                   | Icon buttons, avatars, orb                                            |
-| `radius.petal`     | 125 (outer corner only) | Petal-cluster cells, see §6                                           |
-| `radius.diet*`     | 13 / 24 / 29 / 30       | Diet weight chip, next-meal card, log pill, and voice bar             |
-| `radius.plan*`     | 22 / 24 / 26            | Today-plan meal list, summary card, and footer actions                |
+| Token                    | px                      | Use                                                                   |
+| ------------------------ | ----------------------- | --------------------------------------------------------------------- |
+| `radius.xs`              | 12                      | Compact badges and controls                                           |
+| `radius.legal`           | 14                      | Privacy and legal-note cards                                          |
+| `radius.sm`              | 14–16                   | Small chips/tags                                                      |
+| `radius.control`         | 18                      | Compact input rows                                                    |
+| `radius.md`              | 20                      | Compact rows, small cards                                             |
+| `radius.ml`              | 22                      | Compact glass rows                                                    |
+| `radius.lg`              | 22–24                   | Standard glass card (default)                                         |
+| `radius.xl`              | 26–30                   | Hero/primary glass card, nav dock                                     |
+| `radius.quotaCard`       | 32                      | Regenerate daily-limit card                                           |
+| `radius.xxl`             | 36                      | Large sheet and dock corners                                          |
+| `radius.pill`            | `height / 2`            | Any full pill button/bar — compute from actual height, don't hardcode |
+| `radius.circle`          | `50%`                   | Icon buttons, avatars, orb                                            |
+| `radius.petal`           | 125 (outer corner only) | Petal-cluster cells, see §6                                           |
+| `radius.diet*`           | 13 / 24 / 29 / 30       | Diet weight chip, next-meal card, log pill, and voice bar             |
+| `radius.usualSuggestion` | 24                      | Your-usuals suggestion cards                                          |
+| `radius.plan*`           | 22 / 24 / 26            | Today-plan meal list, summary card, and footer actions                |
 
 **Component sizes:** `componentSizes.onboardingContinueHeight` is 60px for the core onboarding
 solid Continue pill; `componentSizes.onboardingArrowIcon` and `onboardingArrowStrokeWidth` define
@@ -259,6 +263,9 @@ steps use `rebuildingStepIndicator` / `rebuildingStepBorderWidth` at 20px / 1.5p
 Diet home 14a uses the `diet*` component-size tokens for its 38px header control, 26px weight
 chip, 58px log pill with 42px plus control, 60px voice bar with 44px controls, 4px macro tracks,
 24px log-pill glow, 20px voice-submit glow, other glow/shadow geometry, and bottom-dock clearance.
+Your-usuals 15b reuses those controls and adds `usualHighlightShadowRadius` (44px) and
+`usualCardShadowRadius` (26px) for its ranked suggestion surfaces. The highlighted subtitle uses
+`colors.usualOnNightMuted`, the design's exact `rgba(239,244,249,.55)` value.
 Today-plan screens 28a–28d use the `plan*` tokens for their 64px empty-state icon, 46px failure
 icon, 22px build indicators, 58/56/52px actions, 17/13/10px row and regenerate icons, 3px compact
 macro tracks, 32px quick chips, 18–36px action glows/shadows, 1.3–3px icon strokes, and a 260px
@@ -303,6 +310,9 @@ The single most important pattern in the system. Shared recipes are exact rather
 | `chipSelected`            | 135deg, white `.94` → `.60`                            | white `.90` | overlay ink `.20`              |
 | `afterSnapNav`            | 135deg, white `.60` → `.25`                            | white `.65` | overlay ink `.12`              |
 | `afterSnapSurface`        | 135deg, white `.62` → `.24`                            | white `.60` | overlay ink `.12`              |
+| `usualHighlight`          | 150deg, `rgb(34,66,102)` `.60` → `rgb(12,28,48)` `.70` | white `.22` | `rgb(8,24,44)` `.32`           |
+| `usualCard`               | 135deg, white `.62` → `.24`                            | white `.60` | overlay ink `.12`              |
+| `usualNote`               | 135deg, white `.44` → `.10`                            | white `.45` | none                           |
 | `photoUnreadableAction`   | 150deg, `rgb(34,66,102)` `.85` → `rgb(12,28,48)` `.90` | white `.20` | `rgb(8,24,44)` `.28`           |
 | `SelectableChip` selected | flat white                                             | none        | overlay ink `.18`              |
 | `sheet`                   | 160deg, white `.82` → `.55`                            | white `.85` | overlay ink `.14`; 36px radius |

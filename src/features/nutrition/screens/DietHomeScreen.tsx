@@ -5,12 +5,18 @@ import { useRouter } from 'expo-router';
 import Svg, { Path, Rect } from 'react-native-svg';
 
 import { useDietProfileQuery } from '@/features/onboarding';
-import { todayISO, useFoodEntriesQuery } from '@/features/nutrition/api/nutritionApi';
+import {
+  todayISO,
+  useFoodEntriesQuery,
+  useUsualsQuery,
+} from '@/features/nutrition/api/nutritionApi';
 import { LogMealSheet } from '@/features/nutrition/components/LogMealSheet';
 import { MacroSummaryCard } from '@/features/nutrition/components/MacroSummaryCard';
 import { NextMealCard } from '@/features/nutrition/components/NextMealCard';
 import { ReassuranceStrip } from '@/features/nutrition/components/ReassuranceStrip';
+import { YourUsualsSheet } from '@/features/nutrition/components/YourUsualsSheet';
 import { formatWeightChip } from '@/features/nutrition/lib/dietHome';
+import { currentMealByClock } from '@/features/nutrition/lib/mealClock';
 import { normalizeMacroSummary, targetsFromProfile } from '@/features/nutrition/lib/macros';
 import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
@@ -28,17 +34,26 @@ import {
 export default function DietHomeScreen() {
   const router = useRouter();
   const today = todayISO();
+  const mealType = currentMealByClock();
   const [sheetVisible, setSheetVisible] = useState(false);
+  const [usualsVisible, setUsualsVisible] = useState(false);
 
   const profileQuery = useDietProfileQuery();
   const entriesQuery = useFoodEntriesQuery(today);
+  const usualsQuery = useUsualsQuery(mealType);
   const profile = profileQuery.data;
   const targets = profile ? targetsFromProfile(profile) : null;
   const consumed = normalizeMacroSummary(entriesQuery.data?.macro_summary);
   const weightChip = profile ? formatWeightChip(profile.weight_kg, profile.target_weight_kg) : null;
   const refreshing = Boolean(profileQuery.isRefetching || entriesQuery.isRefetching);
 
-  const openLogSheet = () => setSheetVisible(true);
+  const handleLogMealPress = () => {
+    if ((usualsQuery.data?.suggestions.length ?? 0) > 0) {
+      setUsualsVisible(true);
+      return;
+    }
+    setSheetVisible(true);
+  };
   const refresh = () => {
     void Promise.all([profileQuery.refetch(), entriesQuery.refetch()]);
   };
@@ -122,7 +137,7 @@ export default function DietHomeScreen() {
 
         <View style={styles.actions}>
           <Pressable
-            onPress={openLogSheet}
+            onPress={handleLogMealPress}
             accessibilityRole="button"
             accessibilityLabel="Log a meal"
           >
@@ -155,7 +170,7 @@ export default function DietHomeScreen() {
           </Pressable>
 
           <Pressable
-            onPress={openLogSheet}
+            onPress={() => setSheetVisible(true)}
             accessibilityRole="button"
             accessibilityLabel="Say what you ate"
           >
@@ -214,6 +229,16 @@ export default function DietHomeScreen() {
       </Screen>
 
       <LogMealSheet visible={sheetVisible} onClose={() => setSheetVisible(false)} />
+      <YourUsualsSheet
+        visible={usualsVisible}
+        mealType={mealType}
+        date={today}
+        onClose={() => setUsualsVisible(false)}
+        onSomethingNew={() => {
+          setUsualsVisible(false);
+          setSheetVisible(true);
+        }}
+      />
     </View>
   );
 }

@@ -42,6 +42,9 @@ let mockEntries: Partial<FoodEntriesResponse> | undefined;
 let mockEntriesLoading = false;
 let mockEntriesError = false;
 const mockEntriesRefetch = jest.fn();
+let mockUsualsSuggestions: unknown[] = [];
+let mockUsualsLoading = false;
+let mockUsualsError = false;
 jest.mock('@/features/nutrition/api/nutritionApi', () => ({
   todayISO: () => '2026-07-06',
   useFoodEntriesQuery: () => ({
@@ -49,6 +52,11 @@ jest.mock('@/features/nutrition/api/nutritionApi', () => ({
     isLoading: mockEntriesLoading,
     isError: mockEntriesError,
     refetch: mockEntriesRefetch,
+  }),
+  useUsualsQuery: () => ({
+    data: mockUsualsLoading || mockUsualsError ? undefined : { suggestions: mockUsualsSuggestions },
+    isLoading: mockUsualsLoading,
+    isError: mockUsualsError,
   }),
 }));
 
@@ -64,7 +72,32 @@ jest.mock('@/features/nutrition/components/ReassuranceStrip', () => {
 
 jest.mock('@/features/nutrition/components/LogMealSheet', () => {
   const { Text } = jest.requireActual('react-native');
-  return { LogMealSheet: () => <Text testID="log-meal-sheet-stub">log-meal-sheet-stub</Text> };
+  return {
+    LogMealSheet: ({ visible }: { visible: boolean }) =>
+      visible ? <Text testID="log-meal-sheet-stub">log-meal-sheet-stub</Text> : null,
+  };
+});
+
+jest.mock('@/features/nutrition/components/YourUsualsSheet', () => {
+  const { Pressable, Text } = jest.requireActual('react-native');
+  return {
+    YourUsualsSheet: ({
+      visible,
+      onSomethingNew,
+    }: {
+      visible: boolean;
+      onSomethingNew: () => void;
+    }) =>
+      visible ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="usuals-something-new"
+          onPress={onSomethingNew}
+        >
+          <Text testID="your-usuals-sheet-stub">your-usuals-sheet-stub</Text>
+        </Pressable>
+      ) : null,
+  };
 });
 
 const FULL_PROFILE: Partial<DietProfile> = {
@@ -90,6 +123,9 @@ describe('nutrition: DietHomeScreen (issue #22)', () => {
     mockEntries = FULL_ENTRIES;
     mockEntriesLoading = false;
     mockEntriesError = false;
+    mockUsualsSuggestions = [];
+    mockUsualsLoading = false;
+    mockUsualsError = false;
   });
 
   it('shows the design\'s two-weight headline, not the old "Your fuel, kept honest." copy', () => {
@@ -126,6 +162,42 @@ describe('nutrition: DietHomeScreen (issue #22)', () => {
     render(<DietHomeScreen />);
     expect(screen.getByText('Say what you ate. Five seconds')).toBeTruthy();
     expect(screen.getByLabelText('Log a meal')).toBeTruthy();
+  });
+
+  it('opens Your usuals instead of the normal log sheet when suggestions exist', () => {
+    mockUsualsSuggestions = [{ food_name: 'Poha' }];
+    render(<DietHomeScreen />);
+    fireEvent.press(screen.getByLabelText('Log a meal'));
+    expect(screen.getByTestId('your-usuals-sheet-stub')).toBeTruthy();
+    expect(screen.queryByTestId('log-meal-sheet-stub')).toBeNull();
+  });
+
+  it('opens the normal log sheet when suggestions are empty', () => {
+    render(<DietHomeScreen />);
+    fireEvent.press(screen.getByLabelText('Log a meal'));
+    expect(screen.getByTestId('log-meal-sheet-stub')).toBeTruthy();
+    expect(screen.queryByTestId('your-usuals-sheet-stub')).toBeNull();
+  });
+
+  it.each(['loading', 'error'] as const)(
+    'opens the normal log sheet when usuals are %s',
+    (state) => {
+      mockUsualsLoading = state === 'loading';
+      mockUsualsError = state === 'error';
+      render(<DietHomeScreen />);
+      fireEvent.press(screen.getByLabelText('Log a meal'));
+      expect(screen.getByTestId('log-meal-sheet-stub')).toBeTruthy();
+      expect(screen.queryByTestId('your-usuals-sheet-stub')).toBeNull();
+    },
+  );
+
+  it('switches from Your usuals to the normal log sheet', () => {
+    mockUsualsSuggestions = [{ food_name: 'Poha' }];
+    render(<DietHomeScreen />);
+    fireEvent.press(screen.getByLabelText('Log a meal'));
+    fireEvent.press(screen.getByLabelText('usuals-something-new'));
+    expect(screen.queryByTestId('your-usuals-sheet-stub')).toBeNull();
+    expect(screen.getByTestId('log-meal-sheet-stub')).toBeTruthy();
   });
 
   it("renders the Log a meal pill with the design's separate white outer glow", () => {
