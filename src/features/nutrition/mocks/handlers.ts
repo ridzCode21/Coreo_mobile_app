@@ -13,6 +13,7 @@ import { styleAError, styleB } from '@/shared/api/mock/envelope';
 import type {
   FoodEntriesMacroSummary,
   FoodEntry,
+  FoodItem,
   MacroBudgetEntry,
   MacroSummary,
 } from '@/shared/types/food';
@@ -254,16 +255,104 @@ registerMock('DELETE', '/food/entries/:id/', (request) => {
   return { status: 204, delayMs: 200 };
 });
 
-// GET /food/search/ — substring match over the seeded food DB (§8).
+// POST /food/items/ — create a user-owned food; owner/source are server-controlled (§8).
+registerMock('POST', '/food/items/', (request) => {
+  const user = requireMockUser(request);
+  if (!user) return UNAUTHORIZED;
+  ensureFoodDbSeeded();
+
+  const body = (request.body ?? {}) as Record<string, unknown>;
+  const requiredNumbers = [
+    'calories_per_100g',
+    'protein_g_per_100g',
+    'carbs_g_per_100g',
+    'fat_g_per_100g',
+  ] as const;
+  const fieldErrors: Record<string, string[]> = {};
+  const name = typeof body.name === 'string' ? body.name.trim() : null;
+  if (name === null) {
+    fieldErrors.name = ['This field is required.'];
+  } else if (name.length === 0) {
+    fieldErrors.name = ['This field may not be blank.'];
+  } else if (name.length > 255) {
+    fieldErrors.name = ['Ensure this field has no more than 255 characters.'];
+  }
+  const barcodeValue = typeof body.barcode === 'string' ? body.barcode.trim() : body.barcode;
+  if (typeof barcodeValue === 'string' && barcodeValue.length > 50) {
+    fieldErrors.barcode = ['Ensure this field has no more than 50 characters.'];
+  }
+  const parsedNumbers: Record<(typeof requiredNumbers)[number], number> = {
+    calories_per_100g: 0,
+    protein_g_per_100g: 0,
+    carbs_g_per_100g: 0,
+    fat_g_per_100g: 0,
+  };
+  for (const field of requiredNumbers) {
+    const rawValue = body[field];
+    const value =
+      typeof rawValue === 'number' || (typeof rawValue === 'string' && rawValue.trim().length > 0)
+        ? Number(rawValue)
+        : Number.NaN;
+    if (!Number.isFinite(value)) {
+      fieldErrors[field] = ['A valid number is required.'];
+    } else {
+      parsedNumbers[field] = value;
+    }
+  }
+  if (Object.keys(fieldErrors).length > 0) return { status: 400, body: fieldErrors };
+
+  const barcode = typeof barcodeValue === 'string' && barcodeValue.length > 0 ? barcodeValue : null;
+  if (
+    barcode &&
+    mockDb.foodItems.some(
+      (item) => item.barcode === barcode && mockDb.foodItemOwnerByItemId[item.id] === user.id,
+    )
+  ) {
+    return {
+      status: 400,
+      body: { barcode: ['A food with this barcode already exists.'] },
+    };
+  }
+
+  const item: FoodItem = {
+    id: mockDb.nextFoodItemId++,
+    barcode,
+    name: name ?? '',
+    ...parsedNumbers,
+    source: 'custom',
+    last_fetched: new Date().toISOString(),
+  };
+  mockDb.foodItems.push(item);
+  mockDb.foodItemOwnerByItemId[item.id] = user.id;
+  return { status: 201, delayMs: 300, body: styleB(item) };
+});
+
+// GET /food/search/ — caller's custom matches first, then shared catalog matches (§8).
 registerMock('GET', '/food/search/', (request) => {
   const user = requireMockUser(request);
   if (!user) return UNAUTHORIZED;
   ensureFoodDbSeeded();
-  const q = (request.query.q ?? '').toLowerCase();
-  const pageSize = Number(request.query.page_size ?? 20);
-  const results = mockDb.foodItems
-    .filter((item) => item.name.toLowerCase().includes(q))
-    .slice(0, Number.isFinite(pageSize) ? pageSize : 20);
+  const q = (request.query.q ?? '').trim().toLowerCase();
+  const rawPageSize = request.query.page_size;
+  const parsedPageSize = rawPageSize && /^-?\d+$/.test(rawPageSize) ? Number(rawPageSize) : 20;
+  const pageSize = Math.min(Math.max(1, parsedPageSize), 50);
+  const matches = (item: FoodItem) => item.name.toLowerCase().includes(q);
+  const customHits = q
+    ? mockDb.foodItems.filter(
+        (item) => mockDb.foodItemOwnerByItemId[item.id] === user.id && matches(item),
+      )
+    : [];
+  const catalogHits = mockDb.foodItems.filter(
+    (item) => mockDb.foodItemOwnerByItemId[item.id] === undefined && matches(item),
+  );
+  const seen = new Set<number>();
+  const results: FoodItem[] = [];
+  for (const item of [...customHits, ...catalogHits]) {
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    results.push(item);
+    if (results.length >= pageSize) break;
+  }
   return { status: 200, delayMs: 300, body: styleB(results) };
 });
 

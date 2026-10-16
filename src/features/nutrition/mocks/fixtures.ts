@@ -17,7 +17,7 @@ export const SEED_FOOD_ITEMS: FoodItem[] = [
     protein_g_per_100g: 10,
     carbs_g_per_100g: 3.6,
     fat_g_per_100g: 0.4,
-    source: 'openfoodfacts',
+    source: 'off',
     last_fetched: '2026-07-01T00:00:00Z',
   },
   {
@@ -28,7 +28,7 @@ export const SEED_FOOD_ITEMS: FoodItem[] = [
     protein_g_per_100g: 18,
     carbs_g_per_100g: 3.4,
     fat_g_per_100g: 25,
-    source: 'openfoodfacts',
+    source: 'off',
     last_fetched: '2026-07-01T00:00:00Z',
   },
   {
@@ -39,7 +39,7 @@ export const SEED_FOOD_ITEMS: FoodItem[] = [
     protein_g_per_100g: 2.7,
     carbs_g_per_100g: 28,
     fat_g_per_100g: 0.3,
-    source: 'openfoodfacts',
+    source: 'off',
     last_fetched: '2026-07-01T00:00:00Z',
   },
   {
@@ -50,7 +50,7 @@ export const SEED_FOOD_ITEMS: FoodItem[] = [
     protein_g_per_100g: 7,
     carbs_g_per_100g: 20,
     fat_g_per_100g: 0.4,
-    source: 'openfoodfacts',
+    source: 'off',
     last_fetched: '2026-07-01T00:00:00Z',
   },
   {
@@ -61,7 +61,7 @@ export const SEED_FOOD_ITEMS: FoodItem[] = [
     protein_g_per_100g: 1.1,
     carbs_g_per_100g: 23,
     fat_g_per_100g: 0.3,
-    source: 'openfoodfacts',
+    source: 'off',
     last_fetched: '2026-07-01T00:00:00Z',
   },
   {
@@ -72,7 +72,7 @@ export const SEED_FOOD_ITEMS: FoodItem[] = [
     protein_g_per_100g: 11,
     carbs_g_per_100g: 51,
     fat_g_per_100g: 7,
-    source: 'openfoodfacts',
+    source: 'off',
     last_fetched: '2026-07-01T00:00:00Z',
   },
   {
@@ -83,7 +83,7 @@ export const SEED_FOOD_ITEMS: FoodItem[] = [
     protein_g_per_100g: 3,
     carbs_g_per_100g: 6,
     fat_g_per_100g: 3,
-    source: 'openfoodfacts',
+    source: 'off',
     last_fetched: '2026-07-01T00:00:00Z',
   },
   {
@@ -94,7 +94,7 @@ export const SEED_FOOD_ITEMS: FoodItem[] = [
     protein_g_per_100g: 3,
     carbs_g_per_100g: 14,
     fat_g_per_100g: 2.5,
-    source: 'openfoodfacts',
+    source: 'off',
     last_fetched: '2026-07-01T00:00:00Z',
   },
   {
@@ -105,7 +105,7 @@ export const SEED_FOOD_ITEMS: FoodItem[] = [
     protein_g_per_100g: 13,
     carbs_g_per_100g: 1.1,
     fat_g_per_100g: 11,
-    source: 'openfoodfacts',
+    source: 'off',
     last_fetched: '2026-07-01T00:00:00Z',
   },
   {
@@ -116,7 +116,7 @@ export const SEED_FOOD_ITEMS: FoodItem[] = [
     protein_g_per_100g: 21,
     carbs_g_per_100g: 22,
     fat_g_per_100g: 50,
-    source: 'openfoodfacts',
+    source: 'off',
     last_fetched: '2026-07-01T00:00:00Z',
   },
 ];

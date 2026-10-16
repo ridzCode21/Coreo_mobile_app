@@ -24,10 +24,12 @@ import type {
 import type { DailyLog, DailySummary } from '@/shared/types/dailyLog';
 import type { WeeklyDietReview } from '@/shared/types/weeklyDietReview';
 import {
+  foodItemSchema,
   labelResultPrefillSchema,
   photoEstimateSchema,
   usualsResponseSchema,
   weeklyDietReviewSchema,
+  type AddFoodValues,
   type ConfirmMealValues,
   type UsualsResponse,
 } from '@/features/nutrition/schemas';
@@ -41,6 +43,7 @@ export const nutritionKeys = {
   all: ['nutrition'] as const,
   dailySummary: (date: string) => ['nutrition', 'daily-summary', date] as const,
   foodEntries: (date: string) => ['nutrition', 'food-entries', date] as const,
+  foodSearchAll: ['nutrition', 'food-search'] as const,
   foodSearch: (q: string) => ['nutrition', 'food-search', q] as const,
   barcode: (code: string) => ['nutrition', 'barcode', code] as const,
   usuals: (mealType: MealType) => ['nutrition', 'usuals', mealType] as const,
@@ -152,6 +155,23 @@ export function useFoodSearchQuery(q: string) {
     queryFn: () => apiClient.get<FoodItem[]>(`/food/search/?q=${encodeURIComponent(q)}`),
     enabled: q.trim().length >= 2,
     placeholderData: (previous) => previous, // don't flash empty while the user keeps typing
+  });
+}
+
+/** `POST /food/items/` — save a user-owned food, then refresh every cached search. */
+export function useCreateFoodItemMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (values: AddFoodValues): Promise<FoodItem> => {
+      const response = await apiClient.post<unknown>('/food/items/', values);
+      return foodItemSchema.parse(response);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: nutritionKeys.foodSearchAll,
+        exact: false,
+      });
+    },
   });
 }
 

@@ -14,6 +14,8 @@ export { default as PhotoReceiptScreen } from '@/features/nutrition/screens/Phot
 export { default as LabelResultScreen } from '@/features/nutrition/screens/LabelResultScreen';
 export { default as LabelUnreadableScreen } from '@/features/nutrition/screens/LabelUnreadableScreen';
 export { default as WeekInReviewScreen } from '@/features/nutrition/screens/WeekInReviewScreen';
+export { default as AddFoodScreen } from '@/features/nutrition/screens/AddFoodScreen';
+export { default as SearchFoodsScreen } from '@/features/nutrition/screens/SearchFoodsScreen';
 export {
   nutritionKeys,
   todayISO,

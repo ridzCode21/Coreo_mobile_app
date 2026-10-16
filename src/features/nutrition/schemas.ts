@@ -105,6 +105,35 @@ export const confirmMealSchema = z.object({
 });
 export type ConfirmMealValues = z.infer<typeof confirmMealSchema>;
 
+const requiredMacro = (maximum: number) =>
+  z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.coerce.number().min(0, 'Cannot be negative').max(maximum),
+  );
+
+/** The custom-food form and `POST /food/items/` payload, expressed per 100 grams. */
+export const addFoodSchema = z.object({
+  name: z.string().trim().min(1, 'Give it a name').max(255, 'Keep the name under 256 characters'),
+  calories_per_100g: requiredMacro(10000),
+  protein_g_per_100g: requiredMacro(1000),
+  carbs_g_per_100g: requiredMacro(1000),
+  fat_g_per_100g: requiredMacro(1000),
+});
+export type AddFoodValues = z.infer<typeof addFoodSchema>;
+
+/** Bare `<FoodItem>` response returned by `POST /food/items/`. */
+export const foodItemSchema = z.object({
+  id: z.number().int(),
+  barcode: z.string().nullable(),
+  name: z.string(),
+  calories_per_100g: z.number(),
+  protein_g_per_100g: z.number(),
+  carbs_g_per_100g: z.number(),
+  fat_g_per_100g: z.number(),
+  source: z.string(),
+  last_fetched: z.string(),
+});
+
 /** Manual-entry alias — identical today; kept separate so the two forms can diverge without churn. */
 export const manualEntrySchema = confirmMealSchema;
 export type ManualEntryValues = z.infer<typeof manualEntrySchema>;

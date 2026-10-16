@@ -52,6 +52,8 @@ type MockDb = {
   weeklyDietReviews: Record<string, WeeklyDietReview[]>;
   /** Seeded food database backing search + barcode lookup (see nutrition `mocks/fixtures.ts`). §8. */
   foodItems: FoodItem[];
+  /** Custom-food ownership keyed by item id. Missing keys are shared catalog foods. */
+  foodItemOwnerByItemId: Record<number, string>;
   /** AI-photo usage counter, keyed `${userId}:${date}`, enforcing the 10/day free limit. §8/§16. */
   photoQuotaByUserDate: Record<string, number>;
   /** Label-scan usage counter, keyed `${userId}:${date}`, independently enforcing 10/day. §8. */
@@ -87,6 +89,8 @@ type MockDb = {
   >;
   /** Monotonic id source for created food entries. */
   nextFoodEntryId: number;
+  /** Monotonic id source for user-created food items. */
+  nextFoodItemId: number;
   /** Monotonic id source for created meal plans. */
   nextMealPlanId: number;
   /** Monotonic id source for planned meals. */
@@ -104,6 +108,7 @@ function createEmptyDb(): MockDb {
     dailyLogs: {},
     weeklyDietReviews: {},
     foodItems: [],
+    foodItemOwnerByItemId: {},
     photoQuotaByUserDate: {},
     labelOcrQuotaByUserDate: {},
     mealPlans: {},
@@ -113,6 +118,7 @@ function createEmptyDb(): MockDb {
     generatedRecipeMealIds: new Set<number>(),
     assistantProposals: {},
     nextFoodEntryId: 1,
+    nextFoodItemId: 11,
     nextMealPlanId: 1,
     nextPlannedMealId: 100,
     nextMealFeedbackId: 1,
@@ -130,6 +136,7 @@ export function __resetMockDbForTests(): void {
   mockDb.dailyLogs = {};
   mockDb.weeklyDietReviews = {};
   mockDb.foodItems = [];
+  mockDb.foodItemOwnerByItemId = {};
   mockDb.photoQuotaByUserDate = {};
   mockDb.labelOcrQuotaByUserDate = {};
   mockDb.mealPlans = {};
@@ -139,6 +146,7 @@ export function __resetMockDbForTests(): void {
   mockDb.generatedRecipeMealIds = new Set<number>();
   mockDb.assistantProposals = {};
   mockDb.nextFoodEntryId = 1;
+  mockDb.nextFoodItemId = 11;
   mockDb.nextMealPlanId = 1;
   mockDb.nextPlannedMealId = 100;
   mockDb.nextMealFeedbackId = 1;

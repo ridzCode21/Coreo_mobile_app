@@ -36,6 +36,8 @@ const DIET_PHOTO_UNREADABLE_ROUTE = '/diet/photo-unreadable';
 const DIET_LABEL_RESULT_ROUTE = '/diet/label-result';
 const DIET_LABEL_UNREADABLE_ROUTE = '/diet/label-unreadable';
 const DIET_SCAN_ROUTE = '/diet/scan' as Href;
+const DIET_SEARCH_ROUTE = '/diet/food-search' as Href;
+const DIET_ADD_FOOD_ROUTE = '/diet/add-food' as Href;
 
 function CameraIcon({ stroke }: { stroke: string }) {
   return (
@@ -73,6 +75,13 @@ function DescribeIcon({ stroke }: { stroke: string }) {
   return (
     <Svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none">
       <Path d="M4 5h16v11H9l-4 3v-3H4z" stroke={stroke} strokeWidth={1.6} strokeLinejoin="round" />
+    </Svg>
+  );
+}
+function AddIcon({ stroke }: { stroke: string }) {
+  return (
+    <Svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 5v14M5 12h14" stroke={stroke} strokeWidth={1.6} strokeLinecap="round" />
     </Svg>
   );
 }
@@ -131,6 +140,11 @@ export function LogMealSheet({ visible, onClose }: LogMealSheetProps) {
   const openScanner = () => {
     close();
     router.push(DIET_SCAN_ROUTE);
+  };
+
+  const openRoute = (route: Href) => {
+    close();
+    router.push(route);
   };
 
   const onPickSearchResult = (item: FoodItem) => {
@@ -279,6 +293,20 @@ export function LogMealSheet({ visible, onClose }: LogMealSheetProps) {
                 subtitle="Type or talk it out"
                 icon={<DescribeIcon stroke={iconStroke} />}
                 onPress={() => setAutoFocusInput(true)}
+              />
+            </View>
+            <View style={styles.gridRow}>
+              <LoggingOptionTile
+                title="Search"
+                subtitle="Find foods you know"
+                icon={<DescribeIcon stroke={iconStroke} />}
+                onPress={() => openRoute(DIET_SEARCH_ROUTE)}
+              />
+              <LoggingOptionTile
+                title="Add a food"
+                subtitle="Save your own macros"
+                icon={<AddIcon stroke={iconStroke} />}
+                onPress={() => openRoute(DIET_ADD_FOOD_ROUTE)}
               />
             </View>
           </View>
