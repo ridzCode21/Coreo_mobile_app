@@ -1,139 +1,142 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, type Href } from 'expo-router';
+import Svg, { Circle, Path } from 'react-native-svg';
 
-import { useDietProfileQuery, useUpdateDietProfileMutation } from '@/features/onboarding';
-import {
-  useMealPlanQuery,
-  useRegenerateMealPlanMutation,
-} from '@/features/nutrition/api/mealPlanApi';
-import { RegenerateSheet } from '@/features/nutrition/components/RegenerateSheet';
-import { MEAL_LABEL } from '@/features/nutrition/lib/mealClock';
-import { quotaErrorFrom } from '@/features/nutrition/lib/quotaError';
+import { useMealPlanQuery } from '@/features/nutrition/api/mealPlanApi';
 import { todayISO } from '@/features/nutrition/api/nutritionApi';
+import {
+  FULL_PLAN_ROW_LABEL,
+  fullPlanRowState,
+  type FullPlanRowState,
+} from '@/features/nutrition/lib/fullPlanRow';
+import { MEAL_LABEL } from '@/features/nutrition/lib/mealClock';
 import { GlassCard } from '@/shared/components/GlassCard';
 import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
 import {
   colors,
   componentSizes,
+  glass,
   radii,
   spacing,
   textStyle,
   withAlpha,
 } from '@/shared/theme/tokens';
-import type { BudgetTier, CookingFrequency } from '@/shared/types/dietProfile';
-import type { PlannedMeal, RegenerationReason } from '@/shared/types/mealPlan';
+import type { PlannedMeal } from '@/shared/types/mealPlan';
 
-function displayNumber(value: number | null | undefined): string {
-  return String(Math.round(typeof value === 'number' && Number.isFinite(value) ? value : 0));
-}
+const PLAN_DISPLAY_ORDER: readonly PlannedMeal['meal_type'][] = [
+  'breakfast',
+  'lunch',
+  'snack',
+  'dinner',
+];
 
-function statusLabel(status: PlannedMeal['status']): string {
-  if (status === 'logged_as_planned') return 'Logged';
-  if (status === 'logged_modified') return 'Modified';
-  if (status === 'eaten_outside') return 'Outside';
-  return status.replaceAll('_', ' ');
+const BANNER_COPY =
+  'Macros landed a touch off today — still within range. Tomorrow adjusts, nothing repeats.';
+
+type RowPalette = (typeof glass)[
+  'planRowLogged' | 'planRowNext' | 'planRowSkipped' | 'planRowPlanned'];
+
+const ROW_PALETTE: Record<FullPlanRowState, RowPalette> = {
+  logged: glass.planRowLogged,
+  next: glass.planRowNext,
+  skipped: glass.planRowSkipped,
+  planned: glass.planRowPlanned,
+};
+
+function displayNumber(value: number | null): string {
+  return value === null ? '—' : Math.round(value).toLocaleString('en-US');
 }
 
 export default function FullMealPlanScreen() {
   const router = useRouter();
-  const date = todayISO();
-  const planQuery = useMealPlanQuery(date);
-  const profileQuery = useDietProfileQuery();
-  const updateProfile = useUpdateDietProfileMutation();
-  const regenerate = useRegenerateMealPlanMutation(date);
-  const [reasonOpen, setReasonOpen] = useState(false);
-  const [reason, setReason] = useState<RegenerationReason>('too_boring');
-  const [contextAsk, setContextAsk] = useState<'budget' | 'cooking' | null>(null);
-  const [budget, setBudget] = useState<BudgetTier>('moderate');
-  const [cooking, setCooking] = useState<CookingFrequency>('once_daily');
-
+  const planQuery = useMealPlanQuery(todayISO());
   const plan = planQuery.data?.status === 'ready' ? planQuery.data : null;
-  const quotaError = quotaErrorFrom(regenerate.error);
-
-  const regenerateNow = () => {
-    regenerate.mutate(
-      { regeneration_reason: reason },
-      {
-        onSuccess: () => {
-          setReasonOpen(false);
-          setContextAsk(null);
-        },
-      },
-    );
-  };
-
-  const submitReason = () => {
-    const profile = profileQuery.data;
-    if (reason === 'too_expensive' && !profile?.budget_tier) {
-      setContextAsk('budget');
-      return;
-    }
-    if (reason === 'too_much_cooking' && !profile?.cooking_frequency) {
-      setContextAsk('cooking');
-      return;
-    }
-    regenerateNow();
-  };
-
-  const saveContextAsk = () => {
-    const patch =
-      contextAsk === 'budget' ? { budget_tier: budget } : { cooking_frequency: cooking };
-    updateProfile.mutate(patch, { onSuccess: regenerateNow });
-  };
+  const meals = plan
+    ? [...plan.meals].sort(
+        (left, right) =>
+          PLAN_DISPLAY_ORDER.indexOf(left.meal_type) - PLAN_DISPLAY_ORDER.indexOf(right.meal_type),
+      )
+    : [];
+  const nextMeal = meals.find((meal) => meal.status === 'planned') ?? null;
 
   return (
     <View style={styles.root}>
       <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} accessibilityRole="button" style={styles.back}>
+          <Pressable
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+            style={styles.back}
+          >
             <Text style={styles.backText}>‹</Text>
           </Pressable>
           <Text style={styles.eyebrow}>Today&apos;s plan</Text>
-          <View style={styles.back} />
+          <View style={styles.backPlaceholder} />
         </View>
 
-        {plan ? (
+        {planQuery.isLoading ? (
+          <View style={styles.stateContainer}>
+            <ActivityIndicator color={colors.ink45} />
+          </View>
+        ) : planQuery.isError ? (
+          <Text style={styles.stateText}>
+            Couldn&apos;t load today&apos;s plan. Pull to try again.
+          </Text>
+        ) : plan ? (
           <>
-            {!plan.validation_result.macro_ok ? (
-              <GlassCard variant="light" radius={radii.lg} style={styles.warning}>
-                <Text style={styles.warningText}>
-                  {plan.validation_result.self_check_issues.join(' ') ||
-                    'Macros landed a touch off today — still within range.'}
-                </Text>
+            {plan.validation_result.macro_ok === false ? (
+              <GlassCard
+                variant="light"
+                radius={radii.control}
+                style={styles.warning}
+                contentPaddingVertical={spacing.md}
+                contentPaddingHorizontal={spacing.lg}
+              >
+                <View style={styles.warningRow}>
+                  <Svg
+                    width={componentSizes.planMealCheckIcon}
+                    height={componentSizes.planMealCheckIcon}
+                  >
+                    <Circle
+                      cx={componentSizes.planMealCheckIcon / 2}
+                      cy={componentSizes.planMealCheckIcon / 2}
+                      r={componentSizes.planMealCheckIcon / 2 - componentSizes.hairline}
+                      fill="none"
+                      stroke={colors.ink55}
+                      strokeWidth={componentSizes.hairline}
+                    />
+                    <Path
+                      d="M6.5 3.5v4M6.5 9.5h.01"
+                      stroke={colors.ink55}
+                      strokeWidth={componentSizes.hairline}
+                      strokeLinecap="round"
+                    />
+                  </Svg>
+                  <Text style={styles.warningText}>{BANNER_COPY}</Text>
+                </View>
               </GlassCard>
             ) : null}
             <View style={styles.mealList}>
-              {plan.meals.map((meal) => {
-                const done = meal.status !== 'planned' && meal.status !== 'missed';
-                return (
-                  <Pressable
-                    key={meal.id}
-                    onPress={() => router.push(`/diet/meal/${meal.id}` as Href)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${MEAL_LABEL[meal.meal_type]} ${meal.name}`}
-                    style={[styles.mealRow, done && styles.mealRowDone]}
-                  >
-                    <View style={styles.mealCopy}>
-                      <Text style={done ? styles.mealMetaDone : styles.mealMeta}>
-                        {MEAL_LABEL[meal.meal_type]}
-                      </Text>
-                      <Text style={done ? styles.mealNameDone : styles.mealName}>{meal.name}</Text>
-                      <Text style={done ? styles.mealMacrosDone : styles.mealMacros}>
-                        {meal.calories_kcal} kcal · {Math.round(meal.protein_g)}g protein
-                      </Text>
-                    </View>
-                    <Text style={done ? styles.statusDone : styles.status}>
-                      {statusLabel(meal.status)}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+              {meals.map((meal) => (
+                <MealRow
+                  key={meal.id}
+                  meal={meal}
+                  state={fullPlanRowState(meal, nextMeal?.id ?? null)}
+                  onPress={() => router.push(`/diet/meal/${meal.id}` as Href)}
+                />
+              ))}
             </View>
-            <GlassCard variant="night" radius={radii.xl} style={styles.totalCard}>
-              <Text style={styles.darkLabel}>Day total</Text>
+            <GlassCard
+              variant="dietHero"
+              radius={radii.ml}
+              style={styles.totalCard}
+              contentPaddingVertical={spacing.lg}
+              contentPaddingHorizontal={spacing.xl}
+            >
               <View style={styles.totalRow}>
                 <Metric label="kcal" value={displayNumber(plan.total_calories)} />
                 <Metric label="protein" value={`${displayNumber(plan.total_protein_g)}g`} />
@@ -141,37 +144,68 @@ export default function FullMealPlanScreen() {
                 <Metric label="fat" value={`${displayNumber(plan.total_fat_g)}g`} />
               </View>
             </GlassCard>
-            <Pressable
-              onPress={() => setReasonOpen(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Regenerate plan"
-              style={styles.regenerate}
-            >
-              <Text style={styles.regenerateText}>Regenerate plan</Text>
-            </Pressable>
           </>
         ) : (
-          <Text style={styles.emptyText}>No plan is ready yet.</Text>
+          <Text style={styles.stateText}>No plan is ready yet.</Text>
         )}
       </Screen>
-      <RegenerateSheet
-        visible={reasonOpen}
-        reason={reason}
-        contextAsk={contextAsk}
-        budget={budget}
-        cooking={cooking}
-        saving={regenerate.isPending || updateProfile.isPending}
-        quotaError={quotaError}
-        onReason={setReason}
-        onBudget={setBudget}
-        onCooking={setCooking}
-        onClose={() => {
-          setReasonOpen(false);
-          setContextAsk(null);
-        }}
-        onSubmit={contextAsk ? saveContextAsk : submitReason}
-      />
     </View>
+  );
+}
+
+type MealRowProps = {
+  meal: PlannedMeal;
+  state: FullPlanRowState;
+  onPress: () => void;
+};
+
+function MealRow({ meal, state, onPress }: MealRowProps) {
+  const palette = ROW_PALETTE[state];
+  const logged = state === 'logged';
+  const isNext = state === 'next';
+  const skipped = state === 'skipped';
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${MEAL_LABEL[meal.meal_type]} ${meal.name}`}
+      style={[styles.mealRowShadow, isNext && styles.nextShadow]}
+    >
+      <LinearGradient
+        colors={palette.gradient}
+        start={palette.start}
+        end={palette.end}
+        style={[styles.mealRow, { borderColor: palette.border }, skipped && styles.skippedRow]}
+      >
+        <View style={styles.mealCopy}>
+          <Text style={[styles.mealMeta, logged && styles.mealMetaLogged]}>
+            {MEAL_LABEL[meal.meal_type]}
+          </Text>
+          <Text
+            style={[
+              styles.mealName,
+              logged && styles.mealNameLogged,
+              isNext && styles.mealNameNext,
+              skipped && styles.mealNameSkipped,
+            ]}
+          >
+            {meal.name}
+          </Text>
+        </View>
+        <View
+          style={[
+            styles.statePill,
+            logged && styles.loggedPill,
+            isNext && styles.nextPill,
+            skipped && styles.skippedPill,
+          ]}
+        >
+          <Text style={[styles.stateTextLabel, logged && styles.stateTextLogged]}>
+            {FULL_PLAN_ROW_LABEL[state]}
+          </Text>
+        </View>
+      </LinearGradient>
+    </Pressable>
   );
 }
 
@@ -186,74 +220,81 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  scrollContent: { paddingBottom: componentSizes.dietScreenBottomClearance },
+  scrollContent: { flexGrow: 1, paddingBottom: spacing.xxxl },
   header: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: spacing.lg,
   },
   back: {
-    width: componentSizes.dietHeaderControl,
-    height: componentSizes.dietHeaderControl,
-    borderRadius: radii.pill,
-    backgroundColor: withAlpha(colors.white, 0.42),
     alignItems: 'center',
+    backgroundColor: withAlpha(colors.white, 0.42),
+    borderColor: withAlpha(colors.white, 0.65),
+    borderRadius: radii.pill,
+    borderWidth: componentSizes.hairline,
+    height: componentSizes.dietHeaderControl,
     justifyContent: 'center',
+    width: componentSizes.dietHeaderControl,
+  },
+  backPlaceholder: {
+    height: componentSizes.dietHeaderControl,
+    width: componentSizes.dietHeaderControl,
   },
   backText: { ...textStyle('cardValue'), color: colors.ink },
   eyebrow: { ...textStyle('label'), color: colors.ink45 },
-  warning: { marginBottom: spacing.lg },
-  warningText: { ...textStyle('bodySm'), color: colors.ink62 },
-  mealList: { gap: spacing.sm },
+  warning: { marginTop: spacing.ml },
+  warningRow: { alignItems: 'center', flexDirection: 'row', gap: spacing.sm },
+  warningText: { ...textStyle('caption'), color: colors.ink62, flex: 1 },
+  mealList: { gap: spacing.ms, marginTop: spacing.ml },
+  mealRowShadow: { borderRadius: radii.md },
+  nextShadow: {
+    elevation: 3,
+    shadowColor: glass.planRowNext.shadowColor,
+    shadowOffset: { width: 0, height: spacing.md },
+    shadowOpacity: 1,
+    shadowRadius: spacing.xxl,
+  },
   mealRow: {
-    minHeight: componentSizes.fullPlanMealRowHeight,
-    borderRadius: radii.lg,
-    padding: spacing.lg,
-    backgroundColor: withAlpha(colors.white, 0.52),
-    borderWidth: componentSizes.hairline,
-    borderColor: withAlpha(colors.white, 0.66),
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    borderRadius: radii.md,
+    borderWidth: componentSizes.hairline,
+    flexDirection: 'row',
     gap: spacing.md,
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.sheetTitleGap,
+    paddingVertical: spacing.ml,
   },
-  mealRowDone: { backgroundColor: colors.ink },
+  skippedRow: { opacity: 0.6 },
   mealCopy: { flex: 1 },
-  mealMeta: { ...textStyle('micro'), color: colors.ink45 },
-  mealMetaDone: { ...textStyle('micro'), color: withAlpha(colors.fog, 0.55) },
-  mealName: { ...textStyle('bodyLg'), color: colors.ink, marginTop: spacing.xs },
-  mealNameDone: { ...textStyle('bodyLg'), color: colors.onNight, marginTop: spacing.xs },
-  mealMacros: { ...textStyle('caption'), color: colors.ink62, marginTop: spacing.xs },
-  mealMacrosDone: {
-    ...textStyle('caption'),
-    color: withAlpha(colors.fog, 0.62),
-    marginTop: spacing.xs,
+  mealMeta: { ...textStyle('micro'), color: colors.label },
+  mealMetaLogged: { color: withAlpha(colors.fog, 0.55) },
+  mealName: { ...textStyle('fullPlanMealName'), color: colors.ink, marginTop: spacing.dockItemGap },
+  mealNameLogged: { color: colors.onNight },
+  mealNameNext: { ...textStyle('fullPlanMealNameNext') },
+  mealNameSkipped: { textDecorationLine: 'line-through' },
+  statePill: {
+    alignItems: 'center',
+    backgroundColor: withAlpha(colors.white, 0.6),
+    borderColor: withAlpha(colors.white, 0.75),
+    borderRadius: radii.xs,
+    borderWidth: componentSizes.hairline,
+    justifyContent: 'center',
+    minHeight: spacing.xxl,
+    paddingHorizontal: spacing.ms,
   },
-  status: { ...textStyle('micro'), color: colors.ink62, textTransform: 'capitalize' },
-  statusDone: {
-    ...textStyle('micro'),
-    color: withAlpha(colors.fog, 0.7),
-    textTransform: 'capitalize',
+  loggedPill: {
+    backgroundColor: withAlpha(colors.white, 0.18),
+    borderColor: 'transparent',
   },
-  totalCard: { marginTop: spacing.lg },
-  darkLabel: { ...textStyle('label'), color: withAlpha(colors.fog, 0.55) },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.lg },
+  nextPill: { backgroundColor: colors.white },
+  skippedPill: { backgroundColor: 'transparent', borderColor: 'transparent' },
+  stateTextLabel: { ...textStyle('fullPlanStateLabel'), color: colors.ink62 },
+  stateTextLogged: { color: colors.onNight },
+  totalCard: { marginTop: 'auto' },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between' },
   metric: { alignItems: 'center' },
   metricValue: { ...textStyle('bodyLg'), color: colors.onNight },
-  metricLabel: {
-    ...textStyle('micro'),
-    color: withAlpha(colors.fog, 0.55),
-    marginTop: spacing.xs,
-  },
-  regenerate: {
-    minHeight: componentSizes.fullPlanActionHeight,
-    borderRadius: radii.pill,
-    backgroundColor: withAlpha(colors.white, 0.62),
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.lg,
-  },
-  regenerateText: { ...textStyle('body'), color: colors.ink },
-  emptyText: { ...textStyle('body'), color: colors.ink62 },
+  metricLabel: { ...textStyle('dockLabel'), color: withAlpha(colors.fog, 0.55) },
+  stateContainer: { alignItems: 'center', flex: 1, justifyContent: 'center' },
+  stateText: { ...textStyle('body'), color: colors.ink62, marginTop: spacing.xl },
 });

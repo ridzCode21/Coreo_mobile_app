@@ -260,16 +260,37 @@ function findMeal(plan: MealPlanDetail, mealId: number): PlannedMeal | null {
 }
 
 function recipeFor(meal: PlannedMeal): RecipeJson {
+  if (meal.prep_time_minutes === null) {
+    throw new Error(
+      'Mock meal fixtures must include prep_time_minutes before generating a recipe.',
+    );
+  }
   return {
-    title: meal.name,
-    ingredients: meal.ingredients_json,
+    name: meal.name,
+    servings: meal.serving_size,
+    ingredients: meal.ingredients_json.map(({ name: item, quantity }) => ({ item, quantity })),
     prep_time_minutes: meal.prep_time_minutes,
-    note: meal.confidence_note || 'A practical mock recipe for the current plan.',
+    cook_time_minutes: meal.prep_time_minutes,
+    nutrition_note: meal.confidence_note || 'A practical mock recipe for the current plan.',
     steps: [
-      'Prep the ingredients and keep the portion close to the serving size.',
-      'Cook on medium heat until the protein is done and vegetables stay bright.',
-      'Plate it simply, then log as planned if the portion matches.',
+      {
+        step: 1,
+        instruction: 'Prep the ingredients and keep the portion close to the serving size.',
+      },
+      {
+        step: 2,
+        instruction: 'Cook on medium heat until the protein is done and vegetables stay bright.',
+      },
+      { step: 3, instruction: 'Plate it simply, then log as planned if the portion matches.' },
     ],
+    checked_nutrition: {
+      calories_kcal: meal.calories_kcal,
+      protein_g: meal.protein_g,
+      carbs_g: meal.carbs_g,
+      fat_g: meal.fat_g,
+      source: 'food_records',
+      trace: [],
+    },
   };
 }
 
@@ -310,6 +331,9 @@ function alternativeFromMeal(
   name: string,
   factor: number,
 ): ReplacePreviewAlternative {
+  if (meal.prep_time_minutes === null || meal.estimated_cost_tier === '') {
+    throw new Error('Mock meal fixtures need prep time and cost tier for replacement previews.');
+  }
   return {
     meal_type: meal.meal_type,
     name,

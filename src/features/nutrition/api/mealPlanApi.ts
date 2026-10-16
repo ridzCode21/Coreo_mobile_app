@@ -4,6 +4,7 @@ import { ApiError } from '@/shared/api/errors';
 import { apiClient } from '@/shared/api/client';
 import { dietProfileKeys } from '@/features/onboarding';
 import { nutritionKeys } from '@/features/nutrition/api/nutritionApi';
+import { recipeJsonSchema } from '@/features/nutrition/schemas';
 import type {
   AssistantPromptOption,
   AssistantResponse,
@@ -81,7 +82,10 @@ export function useRegenerateMealPlanMutation(date: string) {
 export function useMealRecipeQuery(date: string, mealId: number, enabled: boolean) {
   return useQuery({
     queryKey: mealPlanKeys.recipe(date, mealId),
-    queryFn: () => apiClient.get<RecipeJson>(`/meal-plans/${date}/meals/${mealId}/recipe/`),
+    queryFn: async () =>
+      recipeJsonSchema.parse(
+        await apiClient.get<unknown>(`/meal-plans/${date}/meals/${mealId}/recipe/`),
+      ) satisfies RecipeJson,
     enabled,
     retry: false,
   });

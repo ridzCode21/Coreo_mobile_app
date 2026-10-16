@@ -299,10 +299,10 @@ function RecipeSheet({ recipe, onClose }: { recipe: RecipeJson | null; onClose: 
       <View style={styles.sheetWrap} pointerEvents="box-none">
         <View style={styles.sheet}>
           <View style={styles.grabber} />
-          <Text style={styles.sheetTitle}>{recipe?.title}</Text>
-          {recipe?.steps.map((step, index) => (
-            <Text key={step} style={styles.sheetBody}>
-              {index + 1}. {step}
+          <Text style={styles.sheetTitle}>{recipe?.name}</Text>
+          {recipe?.steps.map((step) => (
+            <Text key={step.step} style={styles.sheetBody}>
+              {step.step}. {step.instruction}
             </Text>
           ))}
           <Pressable onPress={onClose} style={styles.sheetPrimary} accessibilityRole="button">
