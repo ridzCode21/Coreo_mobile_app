@@ -23,6 +23,7 @@ import type {
 } from '@/shared/types/food';
 import type { DailyLog, DailySummary } from '@/shared/types/dailyLog';
 import {
+  labelResultPrefillSchema,
   photoEstimateSchema,
   usualsResponseSchema,
   type ConfirmMealValues,
@@ -194,8 +195,12 @@ export function useAnalyzePhotoMutation() {
 /** `POST /food/label-ocr/` (multipart) — returns a per-serving label estimate only (§8). */
 export function useAnalyzeLabelMutation() {
   return useMutation({
-    mutationFn: (image: PhotoUploadFile) =>
-      apiClient.post<LabelEstimate>('/food/label-ocr/', imageFormData(image), { multipart: true }),
+    mutationFn: async (image: PhotoUploadFile): Promise<LabelEstimate> => {
+      const response = await apiClient.post<unknown>('/food/label-ocr/', imageFormData(image), {
+        multipart: true,
+      });
+      return labelResultPrefillSchema.parse(response);
+    },
   });
 }
 

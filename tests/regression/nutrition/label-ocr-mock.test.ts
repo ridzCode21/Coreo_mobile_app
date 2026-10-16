@@ -88,6 +88,10 @@ describe('nutrition mock: POST /food/label-ocr/ (issue #23)', () => {
     expect(typeof body.est_protein_g).toBe('number');
     expect(typeof body.est_carbs_g).toBe('number');
     expect(typeof body.est_fat_g).toBe('number');
+    // Issue #26 needs servings_per_container to drive the 21c/21d servings control — it must be a
+    // positive number (a container always has at least one serving).
+    expect(typeof body.servings_per_container).toBe('number');
+    expect(body.servings_per_container as number).toBeGreaterThan(0);
   });
 
   it('rejects an unauthenticated request with 401', async () => {
@@ -132,7 +136,6 @@ describe('nutrition mock: POST /food/label-ocr/ (issue #23)', () => {
     });
   });
 });
-
 describe('nutrition mock: POST /food/entries/ accepts source "label_ocr" (API_REFERENCE.md:959-960)', () => {
   beforeEach(() => {
     __resetMockDbForTests();

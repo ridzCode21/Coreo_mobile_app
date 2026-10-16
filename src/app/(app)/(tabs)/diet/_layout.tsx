@@ -10,6 +10,8 @@ export default function DietTabLayout() {
       <Stack.Screen name="scan" />
       <Stack.Screen name="photo-result" />
       <Stack.Screen name="receipt" />
+      <Stack.Screen name="label-result" />
+      <Stack.Screen name="label-unreadable" />
     </Stack>
   );
 }

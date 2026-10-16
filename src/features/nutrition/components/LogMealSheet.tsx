@@ -33,6 +33,8 @@ const iconStrokeOnNight = colors.onNight;
 const DIET_CONFIRM_ROUTE = '/diet/confirm';
 const DIET_PHOTO_RESULT_ROUTE = '/diet/photo-result';
 const DIET_PHOTO_UNREADABLE_ROUTE = '/diet/photo-unreadable';
+const DIET_LABEL_RESULT_ROUTE = '/diet/label-result';
+const DIET_LABEL_UNREADABLE_ROUTE = '/diet/label-unreadable';
 const DIET_SCAN_ROUTE = '/diet/scan' as Href;
 
 function CameraIcon({ stroke }: { stroke: string }) {
@@ -82,6 +84,14 @@ function apiMessage(error: unknown, fallback: string): string {
     if (body?.error) return body.error;
   }
   return fallback;
+}
+
+function labelFailureDetails(error: ApiError): { title: string; message: string } {
+  const body = error.details as { error?: string; message?: string } | undefined;
+  return {
+    title: body?.error ?? "I couldn't read that label.",
+    message: body?.message ?? "Too blurry, maybe. Describe it and I've got you.",
+  };
 }
 
 /**
@@ -199,18 +209,23 @@ export function LogMealSheet({ visible, onClose }: LogMealSheetProps) {
 
   const analyzeLabelAndConfirm = (file: PhotoUploadFile) => {
     analyzeLabel.mutate(file, {
-      onSuccess: (estimate) =>
-        goConfirm('label_ocr', {
-          food_name: estimate.name,
-          calories: estimate.est_calories,
-          protein_g: estimate.est_protein_g,
-          carbs_g: estimate.est_carbs_g,
-          fat_g: estimate.est_fat_g,
-        }),
-      onError: (error) =>
+      onSuccess: (estimate) => {
+        close();
+        const routeQuery = new URLSearchParams({ prefill: JSON.stringify(estimate) });
+        router.push(`${DIET_LABEL_RESULT_ROUTE}?${routeQuery.toString()}` as Href);
+      },
+      onError: (error) => {
+        if (error instanceof ApiError && error.status === 422) {
+          close();
+          const details = labelFailureDetails(error);
+          const routeQuery = new URLSearchParams(details);
+          router.push(`${DIET_LABEL_UNREADABLE_ROUTE}?${routeQuery.toString()}` as Href);
+          return;
+        }
         setNotice(
           apiMessage(error, "I couldn't read that label. Describe it and I'll do the math."),
-        ),
+        );
+      },
     });
   };
 

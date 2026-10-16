@@ -14,6 +14,9 @@ type PortionSliderProps = {
   step?: number;
   onChange: (value: number) => void;
   onLiveChange?: (value: number) => void;
+  accessibilityLabel?: string;
+  minCaption?: string;
+  maxCaption?: string;
 };
 
 export function PortionSlider({
@@ -23,6 +26,9 @@ export function PortionSlider({
   step = 0.05,
   onChange,
   onLiveChange,
+  accessibilityLabel = 'Portion multiplier',
+  minCaption,
+  maxCaption,
 }: PortionSliderProps) {
   const { fillStyle, liveValue, onTrackLayout, pan, thumbStyle } = useDragOnlySlider({
     value,
@@ -40,7 +46,7 @@ export function PortionSlider({
         <View
           accessible
           accessibilityRole="adjustable"
-          accessibilityLabel="Portion multiplier"
+          accessibilityLabel={accessibilityLabel}
           accessibilityValue={{ min, max, now: liveValue }}
           style={styles.track}
           onLayout={onTrackLayout}
@@ -58,8 +64,8 @@ export function PortionSlider({
         </View>
       </GestureDetector>
       <View style={styles.captions}>
-        <Text style={styles.caption}>{formatMultiplier(min)}×</Text>
-        <Text style={styles.caption}>{formatMultiplier(max)}×</Text>
+        <Text style={styles.caption}>{minCaption ?? `${formatMultiplier(min)}×`}</Text>
+        <Text style={styles.caption}>{maxCaption ?? `${formatMultiplier(max)}×`}</Text>
       </View>
     </View>
   );
