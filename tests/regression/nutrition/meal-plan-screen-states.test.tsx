@@ -91,6 +91,7 @@ function planWithStatus(status: MealPlanStatus): MealPlanDetail {
   return {
     id: 1,
     status,
+    failure_reason: '',
     date_start: '2026-10-16',
     date_end: '2026-10-16',
     total_calories: 2000,
@@ -247,6 +248,70 @@ describe("MealPlanScreen · 28d couldn't build (issue #31)", () => {
   });
 
   it('shows the quota banner when a retry hits the daily limit', () => {
+    mockCreateError = apiError(429, {
+      error: 'quota_exceeded',
+      action: 'plan_generate',
+      message: 'You have reached your daily plan generation limit.',
+      limit: 2,
+      tier: 'free',
+      quota_resets_at: new Date(Date.now() + 3600_000).toISOString(),
+    });
+    render(<MealPlanScreen />);
+    expect(screen.getByText(/today.*limit is spent/i)).toBeTruthy();
+  });
+
+  it("never shows 33b's plan-check-failed copy when the plan never got built", () => {
+    render(<MealPlanScreen />);
+    expect(screen.queryByText("This one didn't quite balance.")).toBeNull();
+    expect(screen.queryByText('Rebuild the plan')).toBeNull();
+    expect(screen.queryByText('Or adjust it myself')).toBeNull();
+  });
+});
+
+describe("MealPlanScreen · 33b plan check didn't pass (issue #37)", () => {
+  beforeEach(() => {
+    mockPlanData = { ...planWithStatus('failed'), failure_reason: 'plan_check_failed' };
+  });
+
+  it('shows the exact design copy and no backend jargon', () => {
+    render(<MealPlanScreen />);
+    expect(screen.getByText("This one didn't quite balance.")).toBeTruthy();
+    expect(
+      screen.getByText('A couple of things clashed with your goals. Nothing logged, nothing lost.'),
+    ).toBeTruthy();
+    expect(screen.getByText('Rebuild the plan')).toBeTruthy();
+    expect(screen.getByText('Or adjust it myself')).toBeTruthy();
+    expect(screen.queryByText(/self.check/i)).toBeNull();
+    expect(screen.queryByText(/plan_check_failed/i)).toBeNull();
+    expect(screen.queryByText(/validation_result/i)).toBeNull();
+    expect(screen.queryByText(/backend/i)).toBeNull();
+  });
+
+  it('never shows 28d\'s "couldn\'t build" copy instead', () => {
+    render(<MealPlanScreen />);
+    expect(screen.queryByText("Couldn't build today's plate.")).toBeNull();
+    expect(
+      screen.queryByText("Nothing logged, nothing lost. Let's just try that again."),
+    ).toBeNull();
+    expect(screen.queryByText('Try again')).toBeNull();
+    expect(screen.queryByText('Or log meals yourself for now')).toBeNull();
+  });
+
+  it('"Rebuild the plan" calls create, never regenerate with a made-up reason', () => {
+    render(<MealPlanScreen />);
+    fireEvent.press(screen.getByText('Rebuild the plan'));
+    expect(mockCreateMutate).toHaveBeenCalledTimes(1);
+    expect(mockCreateMutate).toHaveBeenCalledWith();
+    expect(mockRegenerateMutate).not.toHaveBeenCalled();
+  });
+
+  it('"Or adjust it myself" navigates to Diet home', () => {
+    render(<MealPlanScreen />);
+    fireEvent.press(screen.getByText('Or adjust it myself'));
+    expect(mockPush).toHaveBeenCalledWith('/diet');
+  });
+
+  it('shows the quota banner when a rebuild hits the daily limit', () => {
     mockCreateError = apiError(429, {
       error: 'quota_exceeded',
       action: 'plan_generate',

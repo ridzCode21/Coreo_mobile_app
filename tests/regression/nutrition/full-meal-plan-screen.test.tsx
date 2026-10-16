@@ -41,6 +41,7 @@ const BASE_MEAL: PlannedMeal = {
 const mockPlan: MealPlanDetail = {
   id: 1,
   status: 'ready',
+  failure_reason: '',
   date_start: '2026-10-16',
   date_end: '2026-10-16',
   total_calories: 1890,
@@ -159,5 +160,81 @@ describe('FullMealPlanScreen design 29a', () => {
     render(<FullMealPlanScreen />);
     fireEvent.press(screen.getByLabelText('Lunch Rice bowl'));
     expect(mockPush).toHaveBeenCalledWith('/diet/meal/2');
+  });
+});
+
+describe('FullMealPlanScreen · 33a "Adjusted for you" chip (issue #37)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockMacroOk = true;
+  });
+
+  it('shows "Adjusted for you" instead of the normal chip for a repaired meal', () => {
+    const originalMeals = mockPlan.meals;
+    mockPlan.meals = [
+      BASE_MEAL,
+      {
+        ...BASE_MEAL,
+        id: 2,
+        meal_type: 'lunch',
+        name: 'Tofu stir-fry, brown rice',
+        status: 'planned',
+        replacement_of_id: 99,
+      },
+      { ...BASE_MEAL, id: 4, meal_type: 'dinner', name: 'Fish and roti', status: 'planned' },
+    ];
+
+    try {
+      render(<FullMealPlanScreen />);
+      expect(
+        within(screen.getByLabelText('Lunch Tofu stir-fry, brown rice')).getByText(
+          'Adjusted for you',
+        ),
+      ).toBeTruthy();
+      expect(
+        within(screen.getByLabelText('Lunch Tofu stir-fry, brown rice')).queryByText('Planned'),
+      ).toBeNull();
+    } finally {
+      mockPlan.meals = originalMeals;
+    }
+  });
+
+  it('does not mark an unrelated meal on the same plan as adjusted', () => {
+    const originalMeals = mockPlan.meals;
+    mockPlan.meals = [
+      BASE_MEAL,
+      {
+        ...BASE_MEAL,
+        id: 2,
+        meal_type: 'lunch',
+        name: 'Tofu stir-fry, brown rice',
+        status: 'planned',
+        replacement_of_id: 99,
+      },
+      { ...BASE_MEAL, id: 4, meal_type: 'dinner', name: 'Fish and roti', status: 'planned' },
+    ];
+
+    try {
+      render(<FullMealPlanScreen />);
+      expect(
+        within(screen.getByLabelText('Dinner Fish and roti')).getByText('Planned'),
+      ).toBeTruthy();
+      expect(
+        within(screen.getByLabelText('Dinner Fish and roti')).queryByText('Adjusted for you'),
+      ).toBeNull();
+    } finally {
+      mockPlan.meals = originalMeals;
+    }
+  });
+
+  it('never invents the 33a banner, headline, Day chip or footer hint copy', () => {
+    render(<FullMealPlanScreen />);
+    expect(
+      screen.queryByText(/didn't fit your .* note, so I swapped it for something that does/i),
+    ).toBeNull();
+    expect(screen.queryByText(/here's the shape of it/i)).toBeNull();
+    expect(screen.queryByText('Day 6')).toBeNull();
+    expect(screen.queryByText('Diet')).toBeNull();
+    expect(screen.queryByText(/Tap Lunch to see what changed, or why/i)).toBeNull();
   });
 });

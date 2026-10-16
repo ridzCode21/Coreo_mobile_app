@@ -47,8 +47,9 @@ describe('full plan row state', () => {
     expect(fullPlanRowState(meal('planned', 5), 4)).toBe('planned');
   });
 
-  it('provides the four exact design labels', () => {
+  it('provides the exact design labels', () => {
     expect(FULL_PLAN_ROW_LABEL).toEqual({
+      adjusted: 'Adjusted for you',
       logged: 'Logged',
       next: 'Next',
       skipped: 'Skipped',
