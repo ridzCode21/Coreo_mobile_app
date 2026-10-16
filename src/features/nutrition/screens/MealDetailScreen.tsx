@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 import { GlassCard } from '@/shared/components/GlassCard';
 import { Screen } from '@/shared/components/Screen';
@@ -9,6 +10,7 @@ import { SkyBackground } from '@/shared/components/SkyBackground';
 import {
   colors,
   componentSizes,
+  glass,
   radii,
   spacing,
   textStyle,
@@ -16,7 +18,6 @@ import {
 } from '@/shared/theme/tokens';
 import {
   useAdjustMealQuantityMutation,
-  useAteSomethingElseMutation,
   useLogPlannedMealMutation,
   useMealFeedbackMutation,
   useMealPlanQuery,
@@ -27,13 +28,13 @@ import {
 } from '@/features/nutrition/api/mealPlanApi';
 import { todayISO } from '@/features/nutrition/api/nutritionApi';
 import { FeedbackSheet } from '@/features/nutrition/components/FeedbackSheet';
-import { OutsideSheet } from '@/features/nutrition/components/OutsideSheet';
 import { PortionSheet } from '@/features/nutrition/components/PortionSheet';
 import { QuotaBanner } from '@/features/nutrition/components/QuotaBanner';
 import { ReplaceCompareScreen } from '@/features/nutrition/components/ReplaceCompareScreen';
 import { ReplaceConfirmSheet } from '@/features/nutrition/components/ReplaceConfirmSheet';
 import { ReplacePromptSheet } from '@/features/nutrition/components/ReplacePromptSheet';
-import { buildAteSomethingElsePayload } from '@/features/nutrition/lib/ateSomethingElsePayload';
+import { costTierLabel, recipeRefusedFrom } from '@/features/nutrition/lib/mealDetail';
+import { MEAL_LABEL } from '@/features/nutrition/lib/mealClock';
 import { resolvePortionBase } from '@/features/nutrition/lib/portionEstimate';
 import { quotaErrorFrom } from '@/features/nutrition/lib/quotaError';
 import {
@@ -44,26 +45,12 @@ import {
 import { replacedFromParamSchema, type ReplacedFromParam } from '@/features/nutrition/schemas';
 import type { FeedbackType, PlannedMeal } from '@/shared/types/mealPlan';
 
-type Sheet = 'portion' | 'replace' | 'feedback' | 'outside' | null;
+type Sheet = 'portion' | 'replace' | 'feedback' | null;
 type ReplaceStep = 'prompt' | 'compare' | 'confirm';
-
-const MEAL_LABEL: Record<PlannedMeal['meal_type'], string> = {
-  breakfast: 'Breakfast',
-  lunch: 'Lunch',
-  snack: 'Snack',
-  dinner: 'Dinner',
-};
-
-function mealStatusCopy(status: PlannedMeal['status']): string {
-  if (status === 'logged_as_planned') return 'Logged as planned';
-  if (status === 'logged_modified') return 'Logged with edits';
-  if (status === 'eaten_outside') return 'Logged outside';
-  return status.replaceAll('_', ' ');
-}
 
 function detailFallback(meal: PlannedMeal | undefined): string {
   if (!meal) return 'Meal';
-  return `${MEAL_LABEL[meal.meal_type]} · ${meal.calories_kcal} kcal`;
+  return MEAL_LABEL[meal.meal_type];
 }
 
 export default function MealDetailScreen() {
@@ -78,14 +65,19 @@ export default function MealDetailScreen() {
   );
   const portionBase = useMemo(() => (meal ? resolvePortionBase(meal) : null), [meal]);
 
-  const recipeQuery = useMealRecipeQuery(date, mealId, Number.isFinite(mealId) && Boolean(meal));
+  const [requestedRecipeMealId, setRequestedRecipeMealId] = useState<number | null>(null);
+  const recipeRequested = requestedRecipeMealId === mealId;
+  const recipeQuery = useMealRecipeQuery(
+    date,
+    mealId,
+    Number.isFinite(mealId) && Boolean(meal) && recipeRequested,
+  );
   const logMeal = useLogPlannedMealMutation(date);
   const skipMeal = useSkipPlannedMealMutation(date);
   const adjustMeal = useAdjustMealQuantityMutation(date);
   const feedback = useMealFeedbackMutation(date);
   const replacePreview = useReplacePreviewMutation(date);
   const replaceConfirm = useReplaceConfirmMutation(date);
-  const ateSomethingElse = useAteSomethingElseMutation(date);
 
   const [sheet, setSheet] = useState<Sheet>(null);
   const [portion, setPortion] = useState(1);
@@ -97,8 +89,6 @@ export default function MealDetailScreen() {
   const [showOriginal, setShowOriginal] = useState(false);
   const [feedbackType, setFeedbackType] = useState<FeedbackType>('like');
   const [feedbackNote, setFeedbackNote] = useState('');
-  const [outsideDescription, setOutsideDescription] = useState('');
-  const [outsideCalories, setOutsideCalories] = useState(500);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const busy =
@@ -107,10 +97,10 @@ export default function MealDetailScreen() {
     adjustMeal.isPending ||
     feedback.isPending ||
     replacePreview.isPending ||
-    replaceConfirm.isPending ||
-    ateSomethingElse.isPending;
+    replaceConfirm.isPending;
 
   const recipeQuota = quotaErrorFrom(recipeQuery.error);
+  const recipeRefused = recipeRefusedFrom(recipeQuery.error);
   const replaceQuota = quotaErrorFrom(replacePreview.error);
   const replacedFrom = useMemo<ReplacedFromParam | null>(() => {
     if (!params.replacedFrom) return null;
@@ -229,65 +219,78 @@ export default function MealDetailScreen() {
     );
   };
 
-  const logOutside = () => {
-    if (!meal || !outsideDescription.trim()) return;
-    ateSomethingElse.mutate(
-      buildAteSomethingElsePayload(meal, outsideDescription, outsideCalories),
-      { onSuccess: () => showSaved('Logged. I adjusted what is left today.') },
-    );
-  };
-
   return (
     <View style={styles.root}>
       <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} accessibilityRole="button" style={styles.back}>
+          <Pressable
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+            style={styles.back}
+          >
             <Text style={styles.backText}>‹</Text>
           </Pressable>
           <Text style={styles.eyebrow}>{detailFallback(meal)}</Text>
-          <View style={styles.back} />
+          <View style={styles.backPlaceholder} />
         </View>
 
         {planQuery.isLoading ? (
           <View style={styles.loading}>
             <ActivityIndicator color={colors.ink45} />
           </View>
+        ) : planQuery.isError ? (
+          <GlassCard variant="light" radius={radii.mealDetailCard} style={styles.infoCard}>
+            <Text style={styles.emptyTitle}>Couldn&apos;t load this meal</Text>
+            <Text style={styles.mutedText}>Go back and try opening it again.</Text>
+          </GlassCard>
         ) : meal ? (
           <>
-            <GlassCard variant="night" radius={radii.xl} style={styles.hero}>
-              <View style={styles.heroHeading}>
-                <Text style={styles.heroLabel}>{MEAL_LABEL[meal.meal_type]}</Text>
-                {meal.replacement_of_id !== null ? (
+            {meal.replacement_of_id === null ? (
+              <>
+                <Text style={styles.title}>{meal.name}</Text>
+                <View style={styles.chipRow}>
+                  {meal.prep_time_minutes !== null ? (
+                    <InfoChip label={`${meal.prep_time_minutes} min`} />
+                  ) : null}
+                  <InfoChip label={costTierLabel(meal.estimated_cost_tier)} />
+                  {meal.serving_size ? <InfoChip label={meal.serving_size} /> : null}
+                </View>
+                <GlassCard
+                  variant="dietHero"
+                  radius={radii.md}
+                  style={styles.heroStrip}
+                  contentPaddingVertical={spacing.planMealRowPaddingY}
+                  contentPaddingHorizontal={spacing.lg}
+                >
+                  <View style={styles.heroStripRow}>
+                    <View style={styles.calorieGroup}>
+                      <Text style={styles.calorieValue}>{Math.round(meal.calories_kcal)}</Text>
+                      <Text style={styles.calorieUnit}>kcal</Text>
+                    </View>
+                    <Text style={styles.macroLine}>
+                      P {Math.round(meal.protein_g)}g · C {Math.round(meal.carbs_g)}g · F{' '}
+                      {Math.round(meal.fat_g)}g
+                    </Text>
+                  </View>
+                </GlassCard>
+              </>
+            ) : (
+              <GlassCard variant="night" radius={radii.xl} style={styles.hero}>
+                <View style={styles.heroHeading}>
+                  <Text style={styles.heroLabel}>{MEAL_LABEL[meal.meal_type]}</Text>
                   <View style={styles.replacedBadge}>
                     <Text style={styles.replacedBadgeText}>Replaced</Text>
                   </View>
-                ) : null}
-              </View>
-              {meal.replacement_of_id !== null ? (
-                <>
-                  <Text style={styles.receiptTitle}>{meal.name}</Text>
-                  <Text style={styles.receiptMacros}>
-                    {Math.round(meal.calories_kcal)} kcal · P {Math.round(meal.protein_g)}g · C{' '}
-                    {Math.round(meal.carbs_g)}g · F {Math.round(meal.fat_g)}g
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Text style={styles.title}>{meal.name}</Text>
-                  <Text style={styles.heroBody}>{meal.rationale}</Text>
-                  <View style={styles.heroMetrics}>
-                    <Metric label="kcal" value={String(meal.calories_kcal)} dark />
-                    <Metric label="protein" value={`${Math.round(meal.protein_g)}g`} dark />
-                    <Metric label="carbs" value={`${Math.round(meal.carbs_g)}g`} dark />
-                    <Metric label="fat" value={`${Math.round(meal.fat_g)}g`} dark />
-                  </View>
-                  <Text style={styles.statusText}>
-                    {mealStatusCopy(meal.status)} · {meal.serving_size}
-                  </Text>
-                </>
-              )}
-            </GlassCard>
+                </View>
+                <Text style={styles.receiptTitle}>{meal.name}</Text>
+                <Text style={styles.receiptMacros}>
+                  {Math.round(meal.calories_kcal)} kcal · P {Math.round(meal.protein_g)}g · C{' '}
+                  {Math.round(meal.carbs_g)}g · F {Math.round(meal.fat_g)}g
+                </Text>
+              </GlassCard>
+            )}
 
             {meal.replacement_of_id !== null && replacedFrom ? (
               <>
@@ -321,32 +324,90 @@ export default function MealDetailScreen() {
               </GlassCard>
             ) : null}
 
-            <View style={styles.actionGrid}>
-              <Pressable
-                onPress={logAsPlanned}
-                disabled={busy || meal.status !== 'planned'}
-                accessibilityRole="button"
-                accessibilityLabel="Log meal as planned"
-                style={styles.primaryWrap}
-              >
-                <LinearGradient
-                  colors={[colors.coreBlue, colors.coreBlueDeep]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+            <Text style={styles.sectionLabel}>Ingredients</Text>
+            <GlassCard
+              variant="light"
+              radius={radii.mealDetailCard}
+              style={styles.ingredientsCard}
+              contentPaddingVertical={spacing.xs}
+              contentPaddingHorizontal={spacing.lg}
+            >
+              {meal.ingredients_json.map((item, index) => (
+                <View
+                  key={`${item.name}-${item.quantity}`}
                   style={[
-                    styles.primaryAction,
-                    (busy || meal.status !== 'planned') && styles.disabled,
+                    styles.ingredientRow,
+                    index === meal.ingredients_json.length - 1 && styles.ingredientRowLast,
                   ]}
                 >
-                  {logMeal.isPending ? (
-                    <ActivityIndicator color={colors.white} />
-                  ) : (
-                    <Text style={styles.primaryText}>Log as planned</Text>
-                  )}
-                </LinearGradient>
-              </Pressable>
+                  <Text style={styles.ingredientName}>{item.name}</Text>
+                  <Text style={styles.ingredientQty}>{item.quantity}</Text>
+                </View>
+              ))}
+            </GlassCard>
+
+            {!recipeRequested ? (
+              <View style={styles.recipeTeaser}>
+                <Text style={styles.recipeTeaserText}>Recipe ready in a few short steps.</Text>
+                <Pressable
+                  onPress={() => setRequestedRecipeMealId(meal.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel="View recipe"
+                  style={styles.recipeLink}
+                >
+                  <Text style={styles.recipeLinkText}>View recipe</Text>
+                </Pressable>
+              </View>
+            ) : recipeQuery.isLoading ? (
+              <ActivityIndicator color={colors.ink45} style={styles.recipeSpinner} />
+            ) : recipeRefused ? (
+              <GlassCard
+                variant="light"
+                radius={radii.mealDetailCard}
+                style={styles.recipeCard}
+                contentPaddingVertical={spacing.md}
+                contentPaddingHorizontal={spacing.lg}
+              >
+                <Text style={styles.refusedTitle}>{recipeRefused.title}</Text>
+                <Text style={styles.refusedMessage}>{recipeRefused.message}</Text>
+              </GlassCard>
+            ) : recipeQuota ? (
+              <QuotaBanner error={recipeQuota} />
+            ) : recipeQuery.data ? (
+              <GlassCard
+                variant="light"
+                radius={radii.mealDetailCard}
+                style={styles.recipeCard}
+                contentPaddingVertical={spacing.md}
+                contentPaddingHorizontal={spacing.lg}
+              >
+                <Text style={styles.recipeNote}>{recipeQuery.data.nutrition_note}</Text>
+                {recipeQuery.data.steps.map((step) => (
+                  <View key={step.step} style={styles.stepRow}>
+                    <Text style={styles.stepNumber}>{step.step}</Text>
+                    <Text style={styles.stepText}>{step.instruction}</Text>
+                  </View>
+                ))}
+              </GlassCard>
+            ) : (
+              <Text style={styles.mutedText}>Recipe could not be loaded. Try again later.</Text>
+            )}
+
+            <View style={styles.actionGrid}>
               <ActionButton
-                label="Portion"
+                label="Log"
+                onPress={logAsPlanned}
+                disabled={busy || meal.status !== 'planned'}
+                primary
+                loading={logMeal.isPending}
+              />
+              <ActionButton
+                label="Skip"
+                onPress={skip}
+                disabled={busy || meal.status !== 'planned'}
+              />
+              <ActionButton
+                label="Adjust"
                 onPress={() => {
                   setPortion(meal.portion_multiplier);
                   setSheet('portion');
@@ -354,49 +415,8 @@ export default function MealDetailScreen() {
                 disabled={busy}
               />
               <ActionButton label="Replace" onPress={openReplace} disabled={busy} />
-              <ActionButton
-                label="Skip"
-                onPress={skip}
-                disabled={busy || meal.status !== 'planned'}
-              />
-              <ActionButton
-                label="Ate else"
-                onPress={() => setSheet('outside')}
-                disabled={busy || meal.status !== 'planned'}
-              />
               <ActionButton label="Feedback" onPress={() => setSheet('feedback')} disabled={busy} />
             </View>
-
-            <GlassCard variant="light" radius={radii.lg} style={styles.infoCard}>
-              <Text style={styles.sectionLabel}>Ingredients</Text>
-              {meal.ingredients_json.map((item) => (
-                <View key={`${item.name}-${item.quantity}`} style={styles.ingredientRow}>
-                  <Text style={styles.ingredientName}>{item.name}</Text>
-                  <Text style={styles.ingredientQty}>{item.quantity}</Text>
-                </View>
-              ))}
-            </GlassCard>
-
-            <GlassCard variant="light" radius={radii.lg} style={styles.infoCard}>
-              <Text style={styles.sectionLabel}>Recipe</Text>
-              {recipeQuery.isLoading ? (
-                <ActivityIndicator color={colors.ink45} style={styles.recipeSpinner} />
-              ) : recipeQuota ? (
-                <QuotaBanner error={recipeQuota} />
-              ) : recipeQuery.data ? (
-                <>
-                  <Text style={styles.recipeNote}>{recipeQuery.data.note}</Text>
-                  {recipeQuery.data.steps.map((step, index) => (
-                    <View key={`${step}-${index}`} style={styles.stepRow}>
-                      <Text style={styles.stepNumber}>{index + 1}</Text>
-                      <Text style={styles.stepText}>{step}</Text>
-                    </View>
-                  ))}
-                </>
-              ) : (
-                <Text style={styles.mutedText}>Recipe will appear here once it is ready.</Text>
-              )}
-            </GlassCard>
           </>
         ) : (
           <GlassCard variant="light" radius={radii.lg} style={styles.infoCard}>
@@ -471,40 +491,33 @@ export default function MealDetailScreen() {
         onClose={closeSheet}
         onSubmit={submitFeedback}
       />
-      {meal ? (
-        <OutsideSheet
-          visible={sheet === 'outside'}
-          mealType={meal.meal_type}
-          description={outsideDescription}
-          calories={outsideCalories}
-          busy={ateSomethingElse.isPending}
-          onDescription={setOutsideDescription}
-          onCalories={setOutsideCalories}
-          onClose={closeSheet}
-          onSubmit={logOutside}
-        />
-      ) : null}
     </View>
   );
 }
 
-function Metric({ label, value, dark = false }: { label: string; value: string; dark?: boolean }) {
+function InfoChip({ label }: { label: string | null }) {
+  if (!label) return null;
   return (
-    <View style={styles.metric}>
-      <Text style={dark ? styles.metricValueDark : styles.metricValue}>{value}</Text>
-      <Text style={dark ? styles.metricLabelDark : styles.metricLabel}>{label}</Text>
+    <View style={styles.infoChip}>
+      <Text style={styles.infoChipText}>{label}</Text>
     </View>
   );
 }
+
+type ActionLabel = 'Log' | 'Skip' | 'Adjust' | 'Replace' | 'Feedback';
 
 function ActionButton({
   label,
   onPress,
   disabled = false,
+  primary = false,
+  loading = false,
 }: {
-  label: string;
+  label: ActionLabel;
   onPress: () => void;
   disabled?: boolean;
+  primary?: boolean;
+  loading?: boolean;
 }) {
   return (
     <Pressable
@@ -512,10 +525,83 @@ function ActionButton({
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={[styles.secondaryAction, disabled && styles.disabled]}
+      style={[styles.actionWrap, disabled && styles.disabled]}
     >
-      <Text style={styles.secondaryText}>{label}</Text>
+      {primary ? (
+        <View style={[styles.actionTile, styles.primaryAction]}>
+          {loading ? (
+            <ActivityIndicator color={colors.ink} />
+          ) : (
+            <>
+              <ActionIcon label={label} />
+              <Text style={[styles.actionText, styles.primaryText]}>{label}</Text>
+            </>
+          )}
+        </View>
+      ) : (
+        <LinearGradient
+          colors={glass.planRowPlanned.gradient}
+          start={glass.planRowPlanned.start}
+          end={glass.planRowPlanned.end}
+          style={styles.actionTile}
+        >
+          <ActionIcon label={label} />
+          <Text style={styles.actionText}>{label}</Text>
+        </LinearGradient>
+      )}
     </Pressable>
+  );
+}
+
+function ActionIcon({ label }: { label: ActionLabel }) {
+  if (label === 'Adjust') {
+    return (
+      <Svg
+        width={componentSizes.mealDetailActionIcon}
+        height={componentSizes.mealDetailActionIcon}
+        viewBox="0 0 24 24"
+      >
+        <Circle
+          cx="12"
+          cy="12"
+          r="3"
+          fill="none"
+          stroke={colors.ink}
+          strokeWidth={componentSizes.mealDetailActionStrokeWidth}
+        />
+        <Path
+          d="M12 1v4M12 19v4M1 12h4M19 12h4"
+          stroke={colors.ink}
+          strokeWidth={componentSizes.mealDetailActionStrokeWidth}
+        />
+      </Svg>
+    );
+  }
+  const path = {
+    Log: 'M20 6L9 17l-5-5',
+    Skip: 'M18 4v16M6 4l12 8-12 8V4z',
+    Replace: 'M23 4v6h-6M1 20v-6h6M3.5 9a9 9 0 0114.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0020.5 15',
+    Feedback: 'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z',
+  }[label];
+  return (
+    <Svg
+      width={componentSizes.mealDetailActionIcon}
+      height={componentSizes.mealDetailActionIcon}
+      viewBox="0 0 24 24"
+    >
+      <Path
+        d={path}
+        fill="none"
+        stroke={colors.ink}
+        strokeWidth={
+          label === 'Log'
+            ? componentSizes.mealDetailPrimaryStrokeWidth
+            : componentSizes.mealDetailActionStrokeWidth
+        }
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
   );
 }
 
@@ -526,22 +612,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.ml,
   },
   back: {
     alignItems: 'center',
     backgroundColor: withAlpha(colors.white, 0.42),
     borderColor: withAlpha(colors.white, 0.7),
-    borderRadius: 22,
-    borderWidth: 1,
-    height: 44,
+    borderRadius: radii.pill,
+    borderWidth: componentSizes.hairline,
+    height: componentSizes.dietHeaderControl,
     justifyContent: 'center',
-    width: 44,
+    width: componentSizes.dietHeaderControl,
+  },
+  backPlaceholder: {
+    height: componentSizes.dietHeaderControl,
+    width: componentSizes.dietHeaderControl,
   },
   backText: {
     ...textStyle('cardValue'),
     color: colors.ink,
-    marginTop: -2,
   },
   eyebrow: {
     ...textStyle('label'),
@@ -552,7 +641,7 @@ const styles = StyleSheet.create({
   },
   loading: {
     alignItems: 'center',
-    minHeight: 240,
+    minHeight: componentSizes.planFailedMessageMaxWidth,
     justifyContent: 'center',
   },
   hero: {
@@ -569,47 +658,50 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   title: {
-    ...textStyle('questionTitle'),
-    color: colors.onNight,
-    marginBottom: spacing.md,
+    ...textStyle('mealDetailTitle'),
+    color: colors.ink,
+    marginBottom: spacing.sliderCaptionGap,
   },
-  heroBody: {
-    ...textStyle('body'),
-    color: withAlpha(colors.fog, 0.78),
-  },
-  heroMetrics: {
+  chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: spacing.sliderCaptionGap,
+  },
+  infoChip: {
+    alignItems: 'center',
+    backgroundColor: withAlpha(colors.white, 0.5),
+    borderColor: withAlpha(colors.white, 0.65),
+    borderRadius: radii.mealDetailChip,
+    borderWidth: componentSizes.hairline,
+    justifyContent: 'center',
+    minHeight: componentSizes.mealDetailChipHeight,
+    paddingHorizontal: spacing.md,
+  },
+  infoChipText: {
+    ...textStyle('mealDetailChip'),
+    color: colors.ink62,
+  },
+  heroStrip: {
+    marginBottom: spacing.ml,
+    marginTop: spacing.md,
+  },
+  heroStripRow: {
+    alignItems: 'baseline',
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: spacing.xl,
   },
-  metric: {
-    minWidth: 62,
-  },
-  metricValue: {
-    ...textStyle('cardValue'),
-    color: colors.ink,
-  },
-  metricLabel: {
-    ...textStyle('caption'),
-    color: colors.ink45,
-    marginTop: spacing.xs,
-  },
-  metricValueDark: {
-    ...textStyle('cardValue'),
+  calorieGroup: { alignItems: 'baseline', flexDirection: 'row', gap: spacing.sliderCaptionGap },
+  calorieValue: {
+    ...textStyle('mealDetailCalories'),
     color: colors.onNight,
   },
-  metricLabelDark: {
-    ...textStyle('caption'),
-    color: withAlpha(colors.fog, 0.65),
-    marginTop: spacing.xs,
+  calorieUnit: {
+    ...textStyle('mealDetailMacro'),
+    color: withAlpha(colors.fog, 0.55),
   },
-  statusText: {
-    ...textStyle('caption'),
-    color: withAlpha(colors.fog, 0.72),
-    marginTop: spacing.lg,
-    textTransform: 'capitalize',
+  macroLine: {
+    ...textStyle('mealDetailMacro'),
+    color: withAlpha(colors.fog, 0.6),
   },
   replacedBadge: {
     backgroundColor: withAlpha(colors.white, 0.18),
@@ -669,38 +761,41 @@ const styles = StyleSheet.create({
   actionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.md,
-    marginBottom: spacing.lg,
+    gap: spacing.sm,
+    marginTop: 'auto',
+    paddingTop: spacing.md,
   },
-  primaryWrap: {
-    minWidth: '100%',
+  actionWrap: {
+    flexBasis: '30%',
+  },
+  actionTile: {
+    alignItems: 'center',
+    borderColor: glass.planRowPlanned.border,
+    borderRadius: radii.control,
+    borderWidth: componentSizes.hairline,
+    gap: spacing.sliderCaptionGap,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.md,
+    width: '100%',
   },
   primaryAction: {
-    alignItems: 'center',
-    borderRadius: radii.pill,
-    minHeight: 58,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
+    backgroundColor: colors.white,
+    borderColor: colors.white,
+    elevation: componentSizes.dietElevation,
+    shadowColor: colors.mealDetailActionShadow,
+    shadowOffset: { width: 0, height: spacing.ms },
+    shadowOpacity: 1,
+    shadowRadius: componentSizes.planActionShadowRadius,
+  },
+  actionText: {
+    ...textStyle('mealDetailAction'),
+    color: colors.ink75,
   },
   primaryText: {
-    ...textStyle('bodyLg'),
-    color: colors.white,
-  },
-  secondaryAction: {
-    alignItems: 'center',
-    backgroundColor: withAlpha(colors.white, 0.42),
-    borderColor: withAlpha(colors.white, 0.68),
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    flexGrow: 1,
-    minHeight: 48,
-    justifyContent: 'center',
-    minWidth: '30%',
-    paddingHorizontal: spacing.lg,
-  },
-  secondaryText: {
-    ...textStyle('body'),
+    ...textStyle('mealDetailAction'),
     color: colors.ink,
+    fontFamily: textStyle('label').fontFamily,
   },
   disabled: {
     opacity: 0.46,
@@ -709,31 +804,59 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   sectionLabel: {
-    ...textStyle('label'),
+    ...textStyle('mealDetailSectionLabel'),
     color: colors.ink45,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sliderCaptionGap,
   },
+  ingredientsCard: { marginBottom: 0 },
   ingredientRow: {
     alignItems: 'center',
     borderBottomColor: withAlpha(colors.white, 0.46),
-    borderBottomWidth: 1,
+    borderBottomWidth: componentSizes.hairline,
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: spacing.sm,
   },
+  ingredientRowLast: { borderBottomWidth: 0 },
   ingredientName: {
-    ...textStyle('body'),
+    ...textStyle('mealDetailIngredient'),
     color: colors.ink,
     flex: 1,
     paddingRight: spacing.md,
   },
   ingredientQty: {
-    ...textStyle('caption'),
-    color: colors.ink62,
+    ...textStyle('mealDetailIngredient'),
+    color: colors.ink50,
     textAlign: 'right',
   },
   recipeSpinner: {
-    marginVertical: spacing.xl,
+    marginVertical: spacing.ml,
+  },
+  recipeTeaser: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: spacing.md,
+  },
+  recipeTeaserText: { ...textStyle('linkSm'), color: colors.ink55 },
+  recipeLink: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: componentSizes.minimumTapTarget,
+    paddingLeft: spacing.md,
+  },
+  recipeLinkText: {
+    ...textStyle('linkSm'),
+    color: colors.ink,
+    fontFamily: textStyle('label').fontFamily,
+    textDecorationLine: 'underline',
+  },
+  recipeCard: { marginTop: spacing.md },
+  refusedTitle: { ...textStyle('mealDetailRefusedTitle'), color: colors.ink },
+  refusedMessage: {
+    ...textStyle('caption'),
+    color: colors.ink62,
+    marginTop: spacing.xs,
   },
   recipeNote: {
     ...textStyle('body'),
@@ -748,7 +871,7 @@ const styles = StyleSheet.create({
   stepNumber: {
     ...textStyle('caption'),
     color: colors.ink45,
-    width: 22,
+    width: componentSizes.mealDetailStepNumberWidth,
   },
   stepText: {
     ...textStyle('body'),

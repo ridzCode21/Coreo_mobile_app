@@ -98,7 +98,7 @@ describe('nutrition: MealDetailScreen portion sheet wiring (issue #33)', () => {
   it("opens the portion sheet starting from the meal's own portion_multiplier, not 1", () => {
     render(<MealDetailScreen />);
 
-    fireEvent.press(screen.getByRole('button', { name: 'Portion' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Adjust' }));
 
     expect(screen.getByTestId('portion-sheet-multiplier').props.children).toBe(1.6);
   });
@@ -107,7 +107,7 @@ describe('nutrition: MealDetailScreen portion sheet wiring (issue #33)', () => {
     mockAdjustMutate.mockImplementation((_values, handlers) => handlers.onSuccess());
     render(<MealDetailScreen />);
 
-    fireEvent.press(screen.getByRole('button', { name: 'Portion' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Adjust' }));
     fireEvent.press(screen.getByRole('button', { name: 'Save portion' }));
 
     expect(mockAdjustMutate).toHaveBeenCalledWith(

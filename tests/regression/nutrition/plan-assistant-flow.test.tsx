@@ -25,11 +25,21 @@ describe('PlanAssistantFlow', () => {
       (_promptId: number, options: { onSuccess: (response: unknown) => void }) => {
         options.onSuccess({
           recipe: {
-            title: 'Fast paneer bowl',
-            steps: ['Warm the paneer'],
+            name: 'Fast paneer bowl',
+            servings: '1 serving',
+            steps: [{ step: 1, instruction: 'Warm the paneer' }],
             ingredients: [],
             prep_time_minutes: 10,
-            note: '',
+            cook_time_minutes: 5,
+            nutrition_note: '',
+            checked_nutrition: {
+              calories_kcal: 420,
+              protein_g: 28,
+              carbs_g: 36,
+              fat_g: 18,
+              source: 'food_records',
+              trace: [],
+            },
           },
         });
       },

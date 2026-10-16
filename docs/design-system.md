@@ -274,9 +274,16 @@ Your-usuals 15b reuses those controls and adds `usualHighlightShadowRadius` (44p
 Today-plan screens 28a–28d use the `plan*` tokens for their 64px empty-state icon, 46px failure
 icon, 22px build indicators, 58/56/52px actions, 17/13/10px row and regenerate icons, 3px compact
 macro tracks, 32px quick chips, 18–36px action glows/shadows, 1.3–3px icon strokes, and a 260px
-failure-copy measure. The relocated detail screen uses 82px full-plan rows and a 54px regenerate
-action. Their `spacing.plan*` and `radii.plan*` tokens keep the four state layouts aligned without
-component-local design values.
+failure-copy measure. Their `spacing.plan*` and `radii.plan*` tokens keep the state layouts aligned
+without component-local design values. Screen 29a uses the `glass.planRowLogged`, `planRowNext`,
+`planRowSkipped`, and `planRowPlanned` recipes for its four meal-row states. Screen 29b uses
+`radii.mealDetailChip` (13px), `radii.mealDetailCard` (16px), the 26px
+`componentSizes.mealDetailChipHeight`, the 15px `componentSizes.mealDetailActionIcon`, the
+1.8/2.2px `componentSizes.mealDetail*StrokeWidth` pair, the 22px
+`componentSizes.mealDetailStepNumberWidth`, `colors.mealDetailActionShadow`, and the
+`typography.fullPlanMealName*` and `fullPlanStateLabel` for its design-exact row hierarchy. The
+`typography.mealDetail*` title/chip/calorie/macro/ingredient/section/refusal/action styles preserve
+screen 29b's compact detail layout.
 Photo review 15a uses `mealReviewBackControl` (38px), `mealReviewBackIcon` (15px),
 `mealReviewStepper` (30px), `mealReviewCheckCircle` (42px), and `mealReviewCheckIcon` (16px).
 Label result/recovery screens 21c and 25d reuse those review controls and add a 104×140px

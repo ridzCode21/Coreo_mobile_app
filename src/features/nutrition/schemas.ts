@@ -8,6 +8,24 @@ import { z } from 'zod';
 
 export const mealTypeSchema = z.enum(['breakfast', 'lunch', 'dinner', 'snack']);
 
+export const recipeJsonSchema = z.object({
+  name: z.string(),
+  servings: z.string(),
+  prep_time_minutes: z.number().int(),
+  cook_time_minutes: z.number().int(),
+  ingredients: z.array(z.object({ item: z.string(), quantity: z.string() })),
+  steps: z.array(z.object({ step: z.number().int().positive(), instruction: z.string() })),
+  nutrition_note: z.string(),
+  checked_nutrition: z.object({
+    calories_kcal: z.number(),
+    protein_g: z.number(),
+    carbs_g: z.number(),
+    fat_g: z.number(),
+    source: z.literal('food_records'),
+    trace: z.array(z.object({}).passthrough()),
+  }),
+});
+
 export const photoUnreadableRouteParamsSchema = z.object({
   title: z.string().trim().min(1).optional().catch(undefined),
   message: z.string().trim().min(1).optional().catch(undefined),

@@ -67,8 +67,8 @@ export type PlannedMeal = {
   base_carbs_g: number | null;
   base_fat_g: number | null;
   ingredients_json: { name: string; quantity: string }[];
-  prep_time_minutes: number;
-  estimated_cost_tier: BudgetTier;
+  prep_time_minutes: number | null;
+  estimated_cost_tier: BudgetTier | '';
   confidence_note: string;
 };
 
@@ -129,11 +129,21 @@ export type AssistantIntent =
   | 'get_recipe';
 
 export type RecipeJson = {
-  title: string;
-  steps: string[];
-  ingredients: { name: string; quantity: string }[];
+  name: string;
+  servings: string;
   prep_time_minutes: number;
-  note: string;
+  cook_time_minutes: number;
+  ingredients: { item: string; quantity: string }[];
+  steps: { step: number; instruction: string }[];
+  nutrition_note: string;
+  checked_nutrition: {
+    calories_kcal: number;
+    protein_g: number;
+    carbs_g: number;
+    fat_g: number;
+    source: 'food_records';
+    trace: object[];
+  };
 };
 
 export type MealPlanCreateResponse = {
