@@ -96,6 +96,7 @@ jest.mock('@/features/nutrition/components/RebuildingPlanCard', () => {
 const PLAN: MealPlanDetail = {
   id: 1,
   status: 'ready',
+  failure_reason: '',
   date_start: '2026-10-14',
   date_end: '2026-10-14',
   total_calories: 2000,

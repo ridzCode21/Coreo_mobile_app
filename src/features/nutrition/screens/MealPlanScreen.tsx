@@ -13,6 +13,7 @@ import {
 import { todayISO, useFoodEntriesQuery } from '@/features/nutrition/api/nutritionApi';
 import { PlanBuildingState } from '@/features/nutrition/components/PlanBuildingState';
 import { PlanAssistantFlow } from '@/features/nutrition/components/PlanAssistantFlow';
+import { PlanCheckFailedState } from '@/features/nutrition/components/PlanCheckFailedState';
 import { PlanFailedState } from '@/features/nutrition/components/PlanFailedState';
 import { PlanNoPlanState } from '@/features/nutrition/components/PlanNoPlanState';
 import { PlanReadyState } from '@/features/nutrition/components/PlanReadyState';
@@ -60,6 +61,7 @@ export default function MealPlanScreen() {
   const noPlan = planQuery.isError && isNotFound(planQuery.error);
   const plan = planQuery.data?.status === 'ready' ? planQuery.data : null;
   const failedPlan = planQuery.data?.status === 'failed';
+  const planCheckFailed = failedPlan && planQuery.data?.failure_reason === 'plan_check_failed';
   const buildingStatus =
     planQuery.data && isBuildingStatus(planQuery.data.status) ? planQuery.data.status : null;
   const createQuotaError = quotaErrorFrom(createPlan.error);
@@ -122,6 +124,16 @@ export default function MealPlanScreen() {
         <RebuildingPlanCard status={buildingStatus} reason={activeReason} />
       ) : (
         <PlanBuildingState status={buildingStatus} />
+      );
+    }
+    if (planCheckFailed) {
+      return (
+        <PlanCheckFailedState
+          pending={createPlan.isPending}
+          quotaError={createQuotaError}
+          onRebuild={() => createPlan.mutate()}
+          onAdjust={() => router.push('/diet')}
+        />
       );
     }
     if (failedPlan) {

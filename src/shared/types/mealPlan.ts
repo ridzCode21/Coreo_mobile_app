@@ -82,6 +82,7 @@ export type ValidationResult = {
 export type MealPlanDetail = {
   id: number;
   status: MealPlanStatus;
+  failure_reason: string;
   date_start: string;
   date_end: string;
   total_calories: number | null;

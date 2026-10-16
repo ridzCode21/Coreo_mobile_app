@@ -89,6 +89,7 @@ function meal(overrides: Partial<PlannedMeal>): PlannedMeal {
 const mockPlan: MealPlanDetail = {
   id: 1,
   status: 'ready',
+  failure_reason: '',
   date_start: '2026-10-16',
   date_end: '2026-10-16',
   total_calories: 1640,

@@ -39,6 +39,7 @@ type RowPalette = (typeof glass)[
   'planRowLogged' | 'planRowNext' | 'planRowSkipped' | 'planRowPlanned'];
 
 const ROW_PALETTE: Record<FullPlanRowState, RowPalette> = {
+  adjusted: glass.planRowPlanned,
   logged: glass.planRowLogged,
   next: glass.planRowNext,
   skipped: glass.planRowSkipped,
@@ -164,6 +165,7 @@ function MealRow({ meal, state, onPress }: MealRowProps) {
   const logged = state === 'logged';
   const isNext = state === 'next';
   const skipped = state === 'skipped';
+  const adjusted = state === 'adjusted';
   return (
     <Pressable
       onPress={onPress}
@@ -198,9 +200,16 @@ function MealRow({ meal, state, onPress }: MealRowProps) {
             logged && styles.loggedPill,
             isNext && styles.nextPill,
             skipped && styles.skippedPill,
+            adjusted && styles.adjustedPill,
           ]}
         >
-          <Text style={[styles.stateTextLabel, logged && styles.stateTextLogged]}>
+          <Text
+            style={[
+              styles.stateTextLabel,
+              logged && styles.stateTextLogged,
+              adjusted && styles.stateTextAdjusted,
+            ]}
+          >
             {FULL_PLAN_ROW_LABEL[state]}
           </Text>
         </View>
@@ -288,8 +297,13 @@ const styles = StyleSheet.create({
   },
   nextPill: { backgroundColor: colors.white },
   skippedPill: { backgroundColor: 'transparent', borderColor: 'transparent' },
+  adjustedPill: {
+    backgroundColor: withAlpha(colors.ink, 0.08),
+    borderColor: 'transparent',
+  },
   stateTextLabel: { ...textStyle('fullPlanStateLabel'), color: colors.ink62 },
   stateTextLogged: { color: colors.onNight },
+  stateTextAdjusted: { color: colors.ink55 },
   totalCard: { marginTop: 'auto' },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between' },
   metric: { alignItems: 'center' },

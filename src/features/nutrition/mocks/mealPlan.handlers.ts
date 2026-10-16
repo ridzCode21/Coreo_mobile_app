@@ -232,6 +232,7 @@ function createPlan(
   return {
     id: mockDb.nextMealPlanId++,
     status: 'pending',
+    failure_reason: '',
     date_start: date,
     date_end: date,
     total_calories: Math.round(meals.reduce((sum, meal) => sum + meal.calories_kcal, 0)),
