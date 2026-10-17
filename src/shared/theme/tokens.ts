@@ -38,6 +38,7 @@ export const colors = {
 
   white: '#FFFFFF',
   onNight: '#F0F4F8',
+  rightNowText: '#F2F6FA',
   onNight60: 'rgba(240,244,248,0.6)',
   usualOnNightMuted: 'rgba(239,244,249,0.55)',
   fitnessOnNight50: 'rgba(239,244,249,0.5)',
@@ -67,6 +68,11 @@ export function withAlpha(hex: string, alpha: number): string {
 export const skyGradient = {
   colors: [colors.day, colors.air, '#6F9CCE'],
   locations: [0, 0.48, 1],
+} as const;
+
+export const duskGradient = {
+  colors: [colors.sky, colors.dusk, colors.horizon],
+  locations: [0, 0.52, 1],
 } as const;
 
 export const sheetSkyGradient = {
@@ -365,6 +371,16 @@ export const radii = {
 } as const;
 
 export const componentSizes = {
+  wellnessStepDot: 6,
+  wellnessPrimaryActionHeight: 58,
+  wellnessPrimaryIconCircle: 42,
+  wellnessSecondaryActionHeight: 52,
+  wellnessSecondaryIconCircle: 38,
+  wellnessActionIcon: 16,
+  rightNowBreathCircle: 230,
+  rightNowBreathMiddleInset: 18,
+  rightNowBreathInnerInset: 44,
+  rightNowBreathCoreInset: 70,
   weekReviewBarsHeight: 64,
   minimumTapTarget: 44,
   dockHeight: 72,
@@ -512,6 +528,21 @@ type TypographySpec = {
  * docs/design-system.md §2 and §10 "Don't").
  */
 export const typography = {
+  wellnessHeadline: { fontSize: 25, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.4 },
+  wellnessCardLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    letterSpacing: 2.4,
+    textTransform: 'uppercase',
+  },
+  wellnessStep: { fontSize: 12.5, fontWeight: '300', letterSpacing: 0 },
+  wellnessStepReason: { fontSize: 10, fontWeight: '300', letterSpacing: 0 },
+  wellnessCardFooter: { fontSize: 10.5, fontWeight: '300', letterSpacing: 0 },
+  rightNowHeadline: { fontSize: 22, fontWeight: '200', letterSpacing: -0.3, lineHeight: 1.5 },
+  rightNowCue: { fontSize: 14, fontWeight: '400', letterSpacing: 0 },
+  rightNowPattern: { fontSize: 12, fontWeight: '300', letterSpacing: 0 },
+  rightNowLine: { fontSize: 10.5, fontWeight: '300', letterSpacing: 0 },
+  rightNowButton: { fontSize: 12.5, fontWeight: '500', letterSpacing: 0 },
   display: { fontSize: 78, fontWeight: '200', letterSpacing: -2.5 },
   heroMarketing: { fontSize: 52, fontWeight: '200', letterSpacing: -1.5 },
   wordmark: { fontSize: 38, fontWeight: '300', letterSpacing: 6 },

@@ -39,13 +39,23 @@ jest.mock('@/features/fitness/api/trainingWeekApi', () => ({
   }),
 }));
 
-// Issue #41: Wellness now gates on its own five-question interview before showing the (still
-// unbuilt, issue-#21) coming-soon placeholder. Stub the query as already-complete so this
-// legacy route-level test keeps protecting its no-wave/no-internal-copy guarantee without
-// duplicating the detailed gate tests (`wellness/wellness-tab-gating.test.tsx`).
-jest.mock('@/features/wellness/api/wellnessProfileApi', () => ({
-  useWellnessProfileQuery: () => ({
-    data: { wellness_interview_complete: true },
+// Issue #42: Wellness gates on the wind-down response and renders the real 17b screen. Stub a
+// complete response so this legacy route-level test keeps protecting its no-wave/no-internal-copy
+// guarantee without duplicating the detailed Wellness screen tests.
+jest.mock('@/features/wellness/api/windDownApi', () => ({
+  useWindDownQuery: () => ({
+    data: {
+      wind_down: {
+        clock: '9:12 PM',
+        headline: 'Tonight stays small. We land it gently.',
+        title: "Tonight's wind-down",
+        lights_out: '10:45',
+        steps: [],
+        line: 'One routine, built from your interview. No library to scroll.',
+        reason: 'Mood dips are what weighs.',
+        pushed: false,
+      },
+    },
     isLoading: false,
     isError: false,
   }),

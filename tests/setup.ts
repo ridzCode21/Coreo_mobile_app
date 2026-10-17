@@ -5,6 +5,28 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
 
+// React Native 0.86 exposes these development/settings modules through lazy public getters.
+// Tests that inspect the public module can evaluate those getters, so provide the native pieces
+// that do not exist in Jest before React Native is loaded.
+jest.mock('react-native/src/private/devsupport/devmenu/specs/NativeDevMenu', () => ({
+  __esModule: true,
+  default: {
+    show: jest.fn(),
+    reload: jest.fn(),
+    setProfilingEnabled: jest.fn(),
+    setHotLoadingEnabled: jest.fn(),
+  },
+}));
+
+jest.mock('react-native/src/private/specs_DEPRECATED/modules/NativeSettingsManager', () => ({
+  __esModule: true,
+  default: {
+    getConstants: () => ({ settings: {} }),
+    setValues: jest.fn(),
+    deleteValues: jest.fn(),
+  },
+}));
+
 // The upstream `react-native-reanimated/mock` re-imports the real `./index`, which requires
 // `react-native-worklets`' native module and crashes under Jest. This small stub covers exactly the
 // API the app uses today (WaveChart, AnimatedSplash, SliderRow): extend it when the app starts

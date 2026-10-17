@@ -2,9 +2,9 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { useTrainingWeekQuery } from '@/features/fitness/api/trainingWeekApi';
-import { FitnessHeader } from '@/features/fitness/components/FitnessHeader';
 import { TrainingWeekRow } from '@/features/fitness/components/TrainingWeekRow';
 import { GlassCard } from '@/shared/components/GlassCard';
+import { PillarHeader } from '@/shared/components/PillarHeader';
 import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
 import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
@@ -33,7 +33,7 @@ export default function FitnessWeekScreen() {
     <View style={styles.root}>
       <SkyBackground variant="sheet" style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
-        <FitnessHeader eyebrow="This week's loop" onBack={() => router.back()} />
+        <PillarHeader eyebrow="This week's loop" onBack={() => router.back()} />
         <View style={styles.headline}>
           <Text style={styles.headlineLead}>Your week, </Text>
           <Text style={styles.headlineAccent}>built from what you told me.</Text>

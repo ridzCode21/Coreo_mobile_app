@@ -58,6 +58,7 @@ these rules, it's probably the wrong component, not an exception to add.
 | `white`                     | `#FFFFFF`               | Interactive glass, highlights, active states                                            |
 | `onNight`                   | `#F0F4F8`               | Text/icon color on dark glass or night atmosphere                                       |
 | `onNight60`                 | `rgba(240,244,248,.6)`  | Secondary text on the label-recovery night action                                       |
+| `rightNowText`              | `#F2F6FA`               | Primary headline on the dusk-gradient Right now screen                                  |
 | `fitnessOnNight50`          | `rgba(239,244,249,.5)`  | Fitness-session metadata on the dark training card                                      |
 | `fitnessOnNight75`          | `rgba(239,244,249,.75)` | Fitness-session exercise names on the dark training card                                |
 | `fog`                       | `#EFF4F8`               | Faded secondary text on dark glass                                                      |
@@ -69,6 +70,9 @@ these rules, it's probably the wrong component, not an exception to add.
 **Sky gradients:** `skyGradient` is `168deg`, `#D3E6F8` at 0%, `#9EC3E8` at 48%, and
 `#6F9CCE` at 100%. `sheetSkyGradient` is `168deg`, `#A3C4E5` at 0%, `#7299C6` at 52%, and
 `#54779F` at 100%.
+
+`duskGradient` is the Right now screen's `165deg` ramp: `#7FA0C6` at 0%, `#5D80A9` at 52%,
+and `#466687` at 100%.
 
 For a one-off opacity of a named base color, use `withAlpha(colors.<token>, alpha)` from
 `src/shared/theme/tokens.ts`. Keep recurring material recipes in the `glass` token object instead
@@ -165,6 +169,11 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `fine`                   | 9.5px     | 300              | normal                    | Fine-print supporting captions                                        |
 | `legal`                  | 10.5px    | 300              | normal                    | Privacy notes, fine print, account-password hint                      |
 
+Screen-specific tokens preserve the supplied compositions without raw values in components:
+`wellnessHeadline`, `wellnessCardLabel`, `wellnessStep`, `wellnessStepReason`,
+`wellnessCardFooter`, `rightNowHeadline`, `rightNowCue`, `rightNowPattern`, `rightNowLine`, and
+`rightNowButton`.
+
 Non-type text tracking overrides also live in the token module; `tracking.wide` is `1px` for
 scanner codes and manual barcode entry.
 
@@ -224,6 +233,10 @@ plus these as additional padding, not instead of them.
 | `mealReview.*`           | 2 / 13 (remembered-label gap and row padding)       |
 | `labelResult.*`          | 13 (label-result row padding)                       |
 | `plan.*`                 | 2–22 (screens 28a–28d rhythm and card padding)      |
+
+Fixed-size composition tokens for screens 17b/17c live under `componentSizes.wellness*` and
+`componentSizes.rightNow*`; they cover the action heights/icons, timeline dot, and concentric
+breath cue. They are fixed artwork/control geometry, not screen-width assumptions.
 
 **Radius scale:**
 
