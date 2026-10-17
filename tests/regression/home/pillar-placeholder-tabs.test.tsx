@@ -3,10 +3,17 @@ import { render, screen } from '@testing-library/react-native';
 import { WaveChart } from '@/shared/components/WaveChart';
 import FitnessTab from '@/app/(app)/(tabs)/fitness';
 import WellnessTab from '@/app/(app)/(tabs)/wellness';
+import { usePillarSelectionStore } from '@/features/auth/store/pillarSelectionStore';
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
 }));
+
+// Issue #51: both tabs now gate on the picked pillar before rendering real content. Seed both as
+// selected so this legacy route-level test keeps reaching 16b/17b, not the new invitation screen.
+beforeEach(() => {
+  usePillarSelectionStore.setState({ activePillars: ['fitness', 'wellness'], hasHydrated: true });
+});
 
 jest.mock('@/shared/components/WaveChart', () => ({
   WaveChart: jest.fn(() => null),

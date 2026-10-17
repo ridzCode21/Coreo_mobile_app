@@ -9,12 +9,19 @@
  * server-side (plan.md Decision 1), so this file mocks `useWindDownQuery` instead. Detailed 17b
  * content assertions live in `wellness-home-screen.test.tsx`; this file only protects the gate
  * itself (does it redirect, does it crash, does it flash the wrong thing).
+ *
+ * Issue #51 adds a gate *in front of* this one: `useWindDownQuery` must not even fire for a user
+ * who didn't pick Wellness at signup (`usePillarSelectionStore`, plan.md Decision 3/7) — they see
+ * `PillarNotSelectedScreen` instead. `beforeEach` seeds `wellness` as selected and hydrated so
+ * every pre-#51 case below keeps exercising the interview gate unchanged; the new `describe` block
+ * covers the pillar gate itself.
  */
 
 import { render, screen } from '@testing-library/react-native';
 
 import WellnessTab from '@/app/(app)/(tabs)/wellness';
 import * as windDownApi from '@/features/wellness/api/windDownApi';
+import { usePillarSelectionStore } from '@/features/auth/store/pillarSelectionStore';
 
 const mockReplace = jest.fn();
 const mockBack = jest.fn();
@@ -48,6 +55,7 @@ const FULL_WIND_DOWN = {
 describe('wellness tab: gates on the interview via wind-down (#42)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    usePillarSelectionStore.setState({ activePillars: ['wellness'], hasHydrated: true });
   });
 
   it('shows a loading state while wind-down is loading, not a flash of the wrong screen', () => {
@@ -83,5 +91,42 @@ describe('wellness tab: gates on the interview via wind-down (#42)', () => {
     expect(mockReplace).not.toHaveBeenCalled();
     expect(screen.queryByText('Wellness logging is next.')).toBeNull();
     expect(screen.getByText("Tonight's wind-down")).toBeTruthy();
+  });
+});
+
+describe('wellness tab: gates on the picked pillar first (#51)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('shows the not-selected invitation, never queries wind-down, when Wellness was not picked', () => {
+    usePillarSelectionStore.setState({ activePillars: ['fitness'], hasHydrated: true });
+    mockQuery({ isLoading: false, isError: false, data: FULL_WIND_DOWN });
+
+    render(<WellnessTab />);
+
+    expect(screen.getByText("Wellness isn't part of your plan yet.")).toBeTruthy();
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(windDownApi.useWindDownQuery).toHaveBeenCalledWith(false);
+  });
+
+  it('shows a loading state, not the invitation, while pillar selection has not hydrated yet', () => {
+    usePillarSelectionStore.setState({ activePillars: [], hasHydrated: false });
+    mockQuery({ isLoading: false, isError: false, data: FULL_WIND_DOWN });
+
+    render(<WellnessTab />);
+
+    expect(screen.queryByText("Wellness isn't part of your plan yet.")).toBeNull();
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('queries wind-down and proceeds as normal once Wellness is a selected, hydrated pillar', () => {
+    usePillarSelectionStore.setState({ activePillars: ['wellness'], hasHydrated: true });
+    mockQuery({ isLoading: false, isError: false, data: { wind_down: null } });
+
+    render(<WellnessTab />);
+
+    expect(windDownApi.useWindDownQuery).toHaveBeenCalledWith(true);
+    expect(mockReplace).toHaveBeenCalledWith('/wellness-interview');
   });
 });

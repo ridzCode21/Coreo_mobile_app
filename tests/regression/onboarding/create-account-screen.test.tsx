@@ -6,6 +6,7 @@ import {
   ONBOARDING_DEFAULTS,
   useOnboardingStore,
 } from '@/features/onboarding/store/onboardingStore';
+import { usePillarSelectionStore } from '@/features/auth/store/pillarSelectionStore';
 import { ApiError } from '@/shared/api/errors';
 import { colors, componentSizes, radii } from '@/shared/theme/tokens';
 
@@ -78,6 +79,7 @@ describe('onboarding: Create account screen (8e, issue #14)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     seedDraft();
+    usePillarSelectionStore.setState({ activePillars: [], hasHydrated: true });
   });
 
   it('shows the design copy and fields in order: title, Email, Password, hint, Confirm password, button, link', () => {
@@ -176,6 +178,16 @@ describe('onboarding: Create account screen (8e, issue #14)', () => {
     render(<CreateAccountScreen />);
     await submitForm();
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/(app)'));
+  });
+
+  it('captures the picked pillars into the pillar-selection store on successful registration (#51)', async () => {
+    mockRegisterMutate.mockImplementation((_values, handlers) =>
+      handlers.onSuccess({ data: { tokens: { access: 'a', refresh: 'r' } } }),
+    );
+    render(<CreateAccountScreen />);
+    await submitForm();
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/(app)'));
+    expect(usePillarSelectionStore.getState().activePillars).toEqual(['diet', 'fitness']);
   });
 
   it('shows a plain server error without a retry affordance', async () => {

@@ -7,6 +7,7 @@ import {
   authErrorMessage,
   registerFieldErrors,
   useLoginMutation,
+  usePillarSelectionStore,
   useRegisterMutation,
   useSessionStore,
   type RegisterRequestValues,
@@ -59,6 +60,7 @@ export default function SaveScreen() {
   const draft = useOnboardingStore((state) => state.draft);
   const resetOnboarding = useOnboardingStore((state) => state.reset);
   const signIn = useSessionStore((state) => state.signIn);
+  const setActivePillars = usePillarSelectionStore((state) => state.setActivePillars);
   const registerMutation = useRegisterMutation();
   const loginMutation = useLoginMutation();
   const [isConnecting, setIsConnecting] = useState(false);
@@ -66,6 +68,7 @@ export default function SaveScreen() {
 
   const finishSignIn = async (tokens: { access: string; refresh: string }) => {
     await signIn(tokens);
+    setActivePillars(draft.pillars);
     resetOnboarding();
     router.replace('/(app)');
   };

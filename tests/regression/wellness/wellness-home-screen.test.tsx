@@ -9,6 +9,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 
 import WellnessHomeScreen from '@/features/wellness/screens/WellnessHomeScreen';
 import * as windDownApi from '@/features/wellness/api/windDownApi';
+import { usePillarSelectionStore } from '@/features/auth/store/pillarSelectionStore';
 
 const mockReplace = jest.fn();
 const mockBack = jest.fn();
@@ -40,7 +41,10 @@ const FULL_WIND_DOWN = {
 };
 
 describe('WellnessHomeScreen: gating (#42)', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    usePillarSelectionStore.setState({ activePillars: ['wellness'], hasHydrated: true });
+  });
 
   it('shows a loading state while wind-down is loading, no flash of the wrong screen', () => {
     mockWindDown({ isLoading: true, isError: false, data: undefined });
@@ -72,6 +76,7 @@ describe('WellnessHomeScreen: gating (#42)', () => {
 describe('WellnessHomeScreen: 17b content (#42)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    usePillarSelectionStore.setState({ activePillars: ['wellness'], hasHydrated: true });
     mockWindDown({ isLoading: false, isError: false, data: FULL_WIND_DOWN });
   });
 
