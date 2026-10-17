@@ -63,6 +63,8 @@ type MockDb = {
   foodEntries: FoodEntry[];
   /** Recomputed daily aggregates, keyed `${userId}:${date}`. §10. */
   dailyLogs: Record<string, DailyLog>;
+  /** Mock-only seam for today's latest workout-session avg_hr, keyed `${userId}:${date}`. */
+  heartRateReadings: Record<string, number>;
   /** Stored Sunday reviews keyed by user id, matching WeeklyDietReview rows in the backend. */
   weeklyDietReviews: Record<string, WeeklyDietReview[]>;
   /** Seeded food database backing search + barcode lookup (see nutrition `mocks/fixtures.ts`). §8. */
@@ -125,6 +127,7 @@ function createEmptyDb(): MockDb {
     completedSets: [],
     foodEntries: [],
     dailyLogs: {},
+    heartRateReadings: {},
     weeklyDietReviews: {},
     foodItems: [],
     foodItemOwnerByItemId: {},
@@ -157,6 +160,7 @@ export function __resetMockDbForTests(): void {
   mockDb.completedSets = [];
   mockDb.foodEntries = [];
   mockDb.dailyLogs = {};
+  mockDb.heartRateReadings = {};
   mockDb.weeklyDietReviews = {};
   mockDb.foodItems = [];
   mockDb.foodItemOwnerByItemId = {};

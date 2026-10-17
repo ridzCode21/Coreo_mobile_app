@@ -11,6 +11,8 @@ import '@/features/home/mocks/sources.handlers';
 import '@/features/fitness/mocks/fitnessProfile.handlers';
 import '@/features/fitness/mocks/trainingWeek.handlers';
 import '@/features/wellness/mocks/wellnessProfile.handlers';
+import '@/features/wellness/mocks/windDown.handlers';
+import '@/features/wellness/mocks/rightNow.handlers';
 import '@/features/onboarding/mocks/dietProfile.handlers';
 import '@/features/nutrition/mocks/handlers';
 import '@/features/nutrition/mocks/mealPlan.handlers';

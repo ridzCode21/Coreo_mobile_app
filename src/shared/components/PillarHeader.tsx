@@ -18,7 +18,7 @@ type Props = {
   trailing?: ReactNode;
 };
 
-export function FitnessHeader({ eyebrow, onBack, trailing }: Props) {
+export function PillarHeader({ eyebrow, onBack, trailing }: Props) {
   return (
     <View style={styles.header}>
       <Pressable

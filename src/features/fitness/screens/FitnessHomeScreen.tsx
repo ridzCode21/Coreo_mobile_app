@@ -5,9 +5,9 @@ import Svg, { Path, Rect } from 'react-native-svg';
 
 import { useFitnessProfileQuery } from '@/features/fitness/api/fitnessProfileApi';
 import { useTrainingWeekQuery } from '@/features/fitness/api/trainingWeekApi';
-import { FitnessHeader } from '@/features/fitness/components/FitnessHeader';
 import { TrainingSessionCard } from '@/features/fitness/components/TrainingSessionCard';
 import { GlassCard } from '@/shared/components/GlassCard';
+import { PillarHeader } from '@/shared/components/PillarHeader';
 import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
 import {
@@ -60,7 +60,7 @@ export default function FitnessHomeScreen() {
     <View style={styles.root}>
       <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
-        <FitnessHeader
+        <PillarHeader
           eyebrow="Fitness"
           onBack={() => router.back()}
           trailing={
