@@ -5,6 +5,7 @@ import {
   ONBOARDING_DEFAULTS,
   useOnboardingStore,
 } from '@/features/onboarding/store/onboardingStore';
+import { usePillarSelectionStore } from '@/features/auth/store/pillarSelectionStore';
 
 const mockReplace = jest.fn();
 const mockRegisterMutate = jest.fn();
@@ -47,6 +48,7 @@ describe('onboarding: Save your core social registration', () => {
       },
       lastCompletedStep: null,
     });
+    usePillarSelectionStore.setState({ activePillars: [], hasHydrated: true });
   });
 
   it('carries the stored interview into the Google registration call', () => {
@@ -80,5 +82,21 @@ describe('onboarding: Save your core social registration', () => {
 
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/(app)'));
     expect(mockUpdateDietProfileMutate).not.toHaveBeenCalled();
+  });
+
+  it('captures the picked pillars into the pillar-selection store on successful registration (#51)', async () => {
+    mockRegisterMutate.mockImplementation((_values, handlers) =>
+      handlers.onSuccess({ data: { tokens: { access: 'a', refresh: 'r' } } }),
+    );
+    render(<SaveScreen />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Continue with Google' }));
+
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/(app)'));
+    expect(usePillarSelectionStore.getState().activePillars).toEqual([
+      'diet',
+      'fitness',
+      'wellness',
+    ]);
   });
 });

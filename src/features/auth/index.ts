@@ -1,4 +1,5 @@
 export { useSessionStore, type SessionTokens } from '@/features/auth/store/sessionStore';
+export { usePillarSelectionStore } from '@/features/auth/store/pillarSelectionStore';
 export { useProfileQuery } from '@/features/auth/api/profileApi';
 export {
   useLoginMutation,

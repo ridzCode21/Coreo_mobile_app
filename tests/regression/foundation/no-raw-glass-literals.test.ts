@@ -29,7 +29,7 @@ const FILES_MUST_BE_LITERAL_FREE = [
   'src/shared/components/PetalCluster.tsx',
   'src/shared/components/VoiceInputBar.tsx',
   'src/features/home/screens/CoreoHomeScreen.tsx',
-  'src/features/home/screens/PillarComingSoonScreen.tsx',
+  'src/features/home/screens/PillarNotSelectedScreen.tsx',
   'src/features/nutrition/screens/DietHomeScreen.tsx',
   'src/features/nutrition/screens/MealDetailScreen.tsx',
   'src/features/nutrition/screens/MealPlanScreen.tsx',
@@ -58,7 +58,7 @@ describe('foundation: no hand-rolled hex/rgba colour literals outside token file
 describe('foundation: nine screens use the shared SkyBackground (issue #53)', () => {
   const SKY_SCREENS = [
     'src/features/home/screens/CoreoHomeScreen.tsx',
-    'src/features/home/screens/PillarComingSoonScreen.tsx',
+    'src/features/home/screens/PillarNotSelectedScreen.tsx',
     'src/features/nutrition/screens/DietHomeScreen.tsx',
     'src/features/nutrition/screens/MealDetailScreen.tsx',
     'src/features/nutrition/screens/MealPlanScreen.tsx',

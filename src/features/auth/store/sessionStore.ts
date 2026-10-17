@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { secureAuthTokenStore } from '@/shared/api/authTokenStore';
 import { queryClient } from '@/shared/api/queryClient';
 import { profileKeys } from '@/features/auth/api/profileApi';
+import { usePillarSelectionStore } from '@/features/auth/store/pillarSelectionStore';
 
 type SessionStatus = 'checking' | 'signedOut' | 'signedIn';
 
@@ -46,6 +47,7 @@ export const useSessionStore = create<SessionState>((set) => ({
   signOut: async () => {
     await secureAuthTokenStore.clearTokens();
     queryClient.removeQueries({ queryKey: profileKeys.all });
+    usePillarSelectionStore.getState().clear();
     set({ status: 'signedOut' });
   },
 }));

@@ -3,6 +3,8 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import Svg, { Path, Rect } from 'react-native-svg';
 
+import { usePillarSelectionStore } from '@/features/auth';
+import { PillarNotSelectedScreen } from '@/features/home';
 import { useWindDownQuery } from '@/features/wellness/api/windDownApi';
 import { GlassCard } from '@/shared/components/GlassCard';
 import { PillarHeader } from '@/shared/components/PillarHeader';
@@ -22,19 +24,26 @@ const INTERVIEW_ROUTE = '/wellness-interview' as Href;
 
 export default function WellnessHomeScreen() {
   const router = useRouter();
-  const query = useWindDownQuery();
+  const activePillars = usePillarSelectionStore((state) => state.activePillars);
+  const hasHydrated = usePillarSelectionStore((state) => state.hasHydrated);
+  const hasWellness = activePillars.includes('wellness');
+  const queriesEnabled = hasHydrated && hasWellness;
+  const query = useWindDownQuery(queriesEnabled);
   const windDown = query.data?.wind_down;
 
   useEffect(() => {
-    if (query.data && windDown === null) router.replace(INTERVIEW_ROUTE);
-  }, [query.data, router, windDown]);
+    if (queriesEnabled && query.data && windDown === null) {
+      router.replace(INTERVIEW_ROUTE);
+    }
+  }, [queriesEnabled, query.data, router, windDown]);
+
+  if (!hasHydrated) {
+    return <LoadingState />;
+  }
+  if (!hasWellness) return <PillarNotSelectedScreen pillar="Wellness" />;
 
   if (query.isLoading || (!query.data && !query.isError)) {
-    return (
-      <Screen scroll={false} contentContainerStyle={styles.stateScreen}>
-        <ActivityIndicator color={colors.ink45} accessibilityLabel="Loading tonight's wind-down" />
-      </Screen>
-    );
+    return <LoadingState />;
   }
   if (query.isError) {
     return (
@@ -158,6 +167,14 @@ export default function WellnessHomeScreen() {
         </View>
       </Screen>
     </View>
+  );
+}
+
+function LoadingState() {
+  return (
+    <Screen scroll={false} contentContainerStyle={styles.stateScreen}>
+      <ActivityIndicator color={colors.ink45} accessibilityLabel="Loading tonight's wind-down" />
+    </Screen>
   );
 }
 

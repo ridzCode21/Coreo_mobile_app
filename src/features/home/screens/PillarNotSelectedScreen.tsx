@@ -8,28 +8,24 @@ import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tok
 
 const COREO_ROUTE = '/core' as Href;
 
-type PillarComingSoonScreenProps = {
+type PillarNotSelectedScreenProps = {
   pillar: 'Fitness' | 'Wellness';
-  title: string;
-  body: string;
 };
 
-export default function PillarComingSoonScreen({
-  pillar,
-  title,
-  body,
-}: PillarComingSoonScreenProps) {
+export default function PillarNotSelectedScreen({ pillar }: PillarNotSelectedScreenProps) {
   const router = useRouter();
   return (
     <View style={styles.root}>
       <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
         <Text style={styles.eyebrow}>{pillar}</Text>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title}>{`${pillar} isn't part of your plan yet.`}</Text>
 
         <GlassCard variant="light" radius={radii.xl}>
-          <Text style={styles.cardLabel}>Coming soon</Text>
-          <Text style={styles.body}>{body}</Text>
+          <Text style={styles.cardLabel}>Not chosen at signup</Text>
+          <Text style={styles.body}>
+            {`You picked other pillars when you signed up, so I never asked ${pillar} questions. There's nothing to show here yet.`}
+          </Text>
         </GlassCard>
 
         <Pressable

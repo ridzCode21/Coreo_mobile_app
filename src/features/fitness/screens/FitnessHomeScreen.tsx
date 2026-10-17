@@ -3,9 +3,11 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { useRouter, type Href } from 'expo-router';
 import Svg, { Path, Rect } from 'react-native-svg';
 
+import { usePillarSelectionStore } from '@/features/auth';
 import { useFitnessProfileQuery } from '@/features/fitness/api/fitnessProfileApi';
 import { useTrainingWeekQuery } from '@/features/fitness/api/trainingWeekApi';
 import { TrainingSessionCard } from '@/features/fitness/components/TrainingSessionCard';
+import { PillarNotSelectedScreen } from '@/features/home';
 import { GlassCard } from '@/shared/components/GlassCard';
 import { PillarHeader } from '@/shared/components/PillarHeader';
 import { Screen } from '@/shared/components/Screen';
@@ -25,22 +27,29 @@ const WEEK_ROUTE = '/fitness/week' as Href;
 
 export default function FitnessHomeScreen() {
   const router = useRouter();
-  const profileQuery = useFitnessProfileQuery();
+  const activePillars = usePillarSelectionStore((state) => state.activePillars);
+  const hasHydrated = usePillarSelectionStore((state) => state.hasHydrated);
+  const hasFitness = activePillars.includes('fitness');
+  const queriesEnabled = hasHydrated && hasFitness;
+  const profileQuery = useFitnessProfileQuery(queriesEnabled);
   const profileComplete = Boolean(profileQuery.data?.fitness_interview_complete);
-  const trainingWeekQuery = useTrainingWeekQuery(profileComplete);
+  const trainingWeekQuery = useTrainingWeekQuery(queriesEnabled && profileComplete);
   const trainingWeek = trainingWeekQuery.data?.training_week;
 
   useEffect(() => {
-    if (profileQuery.data && !profileQuery.data.fitness_interview_complete) {
+    if (queriesEnabled && profileQuery.data && !profileQuery.data.fitness_interview_complete) {
       router.replace(INTERVIEW_ROUTE);
     }
-  }, [profileQuery.data, router]);
+  }, [profileQuery.data, queriesEnabled, router]);
 
   useEffect(() => {
-    if (profileComplete && trainingWeekQuery.data && trainingWeek === null) {
+    if (queriesEnabled && profileComplete && trainingWeekQuery.data && trainingWeek === null) {
       router.replace(INTERVIEW_ROUTE);
     }
-  }, [profileComplete, router, trainingWeek, trainingWeekQuery.data]);
+  }, [profileComplete, queriesEnabled, router, trainingWeek, trainingWeekQuery.data]);
+
+  if (!hasHydrated) return <LoadingState label="Loading fitness profile" />;
+  if (!hasFitness) return <PillarNotSelectedScreen pillar="Fitness" />;
 
   if (profileQuery.isLoading || (!profileQuery.data && !profileQuery.isError)) {
     return <LoadingState label="Loading fitness profile" />;

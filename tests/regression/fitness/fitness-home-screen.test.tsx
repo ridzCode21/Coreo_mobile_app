@@ -12,6 +12,7 @@ import { StyleSheet, View } from 'react-native';
 import FitnessHomeScreen from '@/features/fitness/screens/FitnessHomeScreen';
 import * as fitnessProfileApi from '@/features/fitness/api/fitnessProfileApi';
 import * as trainingWeekApi from '@/features/fitness/api/trainingWeekApi';
+import { usePillarSelectionStore } from '@/features/auth/store/pillarSelectionStore';
 import { glass } from '@/shared/theme/tokens';
 
 const mockReplace = jest.fn();
@@ -81,7 +82,10 @@ const FULL_WEEK = {
 };
 
 describe('FitnessHomeScreen: gating (#40, unchanged from #39)', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    usePillarSelectionStore.setState({ activePillars: ['fitness'], hasHydrated: true });
+  });
 
   it('shows a loading state while the profile is loading', () => {
     mockProfile({ isLoading: true, isError: false, data: undefined });
@@ -105,6 +109,7 @@ describe('FitnessHomeScreen: gating (#40, unchanged from #39)', () => {
 describe('FitnessHomeScreen: training-week states (#40)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    usePillarSelectionStore.setState({ activePillars: ['fitness'], hasHydrated: true });
     mockProfile({ isLoading: false, isError: false, data: COMPLETE_PROFILE });
   });
 

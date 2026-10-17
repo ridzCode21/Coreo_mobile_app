@@ -5,6 +5,12 @@
  * soon" placeholder, which this issue removes on purpose (plan.md Decision 1) — the detailed
  * content assertions for that screen live in `fitness-home-screen.test.tsx`; this file only
  * protects the gate itself (does it redirect, does it crash, does it flash the wrong thing).
+ *
+ * Issue #51 adds a gate *in front of* this one: the interview/training-week queries must not even
+ * fire for a user who didn't pick Fitness at signup (`usePillarSelectionStore`, plan.md Decision
+ * 3/7) — they see `PillarNotSelectedScreen` instead. `beforeEach` seeds `fitness` as selected and
+ * hydrated so every pre-#51 case below keeps exercising the interview gate unchanged; the new
+ * `describe` block covers the pillar gate itself.
  */
 
 import { render, screen } from '@testing-library/react-native';
@@ -12,6 +18,7 @@ import { render, screen } from '@testing-library/react-native';
 import FitnessTab from '@/app/(app)/(tabs)/fitness';
 import * as fitnessProfileApi from '@/features/fitness/api/fitnessProfileApi';
 import * as trainingWeekApi from '@/features/fitness/api/trainingWeekApi';
+import { usePillarSelectionStore } from '@/features/auth/store/pillarSelectionStore';
 
 const mockReplace = jest.fn();
 const mockPush = jest.fn();
@@ -36,6 +43,7 @@ function mockTrainingWeek(state: { data?: unknown; isLoading: boolean; isError: 
 describe('fitness tab: gates on the interview (#39/#40)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    usePillarSelectionStore.setState({ activePillars: ['fitness'], hasHydrated: true });
     mockTrainingWeek({ isLoading: false, isError: false, data: { training_week: null } });
   });
 
@@ -93,5 +101,44 @@ describe('fitness tab: gates on the interview (#39/#40)', () => {
     expect(mockReplace).not.toHaveBeenCalled();
     expect(screen.queryByText('Workout logging is next.')).toBeNull();
     expect(screen.getByText('Week 1 · Day 1')).toBeTruthy();
+  });
+});
+
+describe('fitness tab: gates on the picked pillar first (#51)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockTrainingWeek({ isLoading: false, isError: false, data: { training_week: null } });
+  });
+
+  it('shows the not-selected invitation, never queries the profile, when Fitness was not picked', () => {
+    usePillarSelectionStore.setState({ activePillars: ['wellness'], hasHydrated: true });
+    mockQuery({ isLoading: false, isError: false, data: { fitness_interview_complete: true } });
+
+    render(<FitnessTab />);
+
+    expect(screen.getByText("Fitness isn't part of your plan yet.")).toBeTruthy();
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(fitnessProfileApi.useFitnessProfileQuery).toHaveBeenCalledWith(false);
+    expect(trainingWeekApi.useTrainingWeekQuery).toHaveBeenCalledWith(false);
+  });
+
+  it('shows a loading state, not the invitation, while pillar selection has not hydrated yet', () => {
+    usePillarSelectionStore.setState({ activePillars: [], hasHydrated: false });
+    mockQuery({ isLoading: false, isError: false, data: { fitness_interview_complete: true } });
+
+    render(<FitnessTab />);
+
+    expect(screen.queryByText("Fitness isn't part of your plan yet.")).toBeNull();
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('queries the profile and proceeds as normal once Fitness is a selected, hydrated pillar', () => {
+    usePillarSelectionStore.setState({ activePillars: ['fitness'], hasHydrated: true });
+    mockQuery({ isLoading: false, isError: false, data: { fitness_interview_complete: false } });
+
+    render(<FitnessTab />);
+
+    expect(fitnessProfileApi.useFitnessProfileQuery).toHaveBeenCalledWith(true);
+    expect(mockReplace).toHaveBeenCalledWith('/fitness-interview');
   });
 });

@@ -11,9 +11,10 @@ export const fitnessProfileKeys = {
   all: ['fitnessProfile'] as const,
 };
 
-export function useFitnessProfileQuery() {
+export function useFitnessProfileQuery(enabled = true) {
   return useQuery({
     queryKey: fitnessProfileKeys.all,
+    enabled,
     queryFn: async () => {
       const response = await apiClient.get<unknown>('/users/me/fitness-profile/');
       return fitnessProfileSchema.parse(response);

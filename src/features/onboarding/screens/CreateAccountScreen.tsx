@@ -9,6 +9,7 @@ import {
   authErrorMessage,
   registerFieldErrors,
   useLoginMutation,
+  usePillarSelectionStore,
   useRegisterMutation,
   useSessionStore,
   type AccountCredentialsFormValues,
@@ -31,6 +32,7 @@ export default function CreateAccountScreen() {
   const draft = useOnboardingStore((state) => state.draft);
   const resetOnboarding = useOnboardingStore((state) => state.reset);
   const signIn = useSessionStore((state) => state.signIn);
+  const setActivePillars = usePillarSelectionStore((state) => state.setActivePillars);
   const registerMutation = useRegisterMutation();
   const loginMutation = useLoginMutation();
   const [banner, setBanner] = useState<string | null>(null);
@@ -46,6 +48,7 @@ export default function CreateAccountScreen() {
 
   const finishSignIn = async (tokens: { access: string; refresh: string }) => {
     await signIn(tokens);
+    setActivePillars(draft.pillars);
     resetOnboarding();
     router.replace('/(app)');
   };
