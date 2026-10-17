@@ -74,6 +74,31 @@ describe('foundation: GlassCard variants (issue #53)', () => {
     expect(StyleSheet.flatten(clip!.props.style).borderColor).toBe(glass.chip.border);
   });
 
+  // Issue #40 — `glass.chipSelected` (tokens.ts) already matched the design's bright/near-opaque
+  // card recipe (`gradient:[white@.94, white@.6], border: white@.9`) but wasn't wired into
+  // `GlassCardVariant`/the blur map, so every screen needing a bright card had to misuse the
+  // translucent `chip` variant instead. This is the round-4 regression from the discarded fitness
+  // attempt (#40 plan.md Decision 7) — pin that `chipSelected` now renders correctly on its own.
+  it('variant="chipSelected" renders the bright .94/.6 recipe, distinct from chip', () => {
+    render(
+      <GlassCard variant="chipSelected">
+        <Text>content</Text>
+      </GlassCard>,
+    );
+    const gradient = screen.UNSAFE_getAllByType(LinearGradient)[0];
+    expect(gradient.props.colors).toEqual(glass.chipSelected.gradient);
+    expect(gradient.props.colors).not.toEqual(glass.chip.gradient);
+    expect(gradient.props.start).toEqual(glass.chipSelected.start);
+    expect(gradient.props.end).toEqual(glass.chipSelected.end);
+
+    const clip = clipViewOf(screen);
+    expect(StyleSheet.flatten(clip!.props.style).borderColor).toBe(glass.chipSelected.border);
+
+    const blur = screen.UNSAFE_getByType(BlurView);
+    expect(blur.props.intensity).toBe(60);
+    expect(blur.props.tint).toBe('light');
+  });
+
   it('variant="sheet" renders the new 160deg .82/.55 recipe at the 36px sheet radius by default', () => {
     render(
       <GlassCard variant="sheet">

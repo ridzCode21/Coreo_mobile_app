@@ -40,6 +40,8 @@ export const colors = {
   onNight: '#F0F4F8',
   onNight60: 'rgba(240,244,248,0.6)',
   usualOnNightMuted: 'rgba(239,244,249,0.55)',
+  fitnessOnNight50: 'rgba(239,244,249,0.5)',
+  fitnessOnNight75: 'rgba(239,244,249,0.75)',
   fog: '#EFF4F8',
   overlayInk: '#122A46',
   labelPreviewBorder: 'rgba(255,255,255,0.6)',
@@ -237,6 +239,21 @@ export const glass = {
   },
 } as const;
 
+export const shadows = {
+  fitnessActionPrimary: {
+    shadowColor: 'rgba(8,24,44,0.35)',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 18,
+  },
+  fitnessActionSecondary: {
+    shadowColor: 'rgba(255,255,255,0.7)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 16,
+  },
+} as const;
+
 export const tracking = {
   wide: 1,
 } as const;
@@ -430,6 +447,8 @@ export const componentSizes = {
   planFailedStrokeWidth: 1.4,
   planHeaderStrokeWidth: 2,
   planDoneStrokeWidth: 3,
+  fitnessWeekCheckIcon: 12,
+  fitnessActionPrimaryIcon: 14,
   planRegenerateStrokeWidth: 1.8,
   planMealIconStrokeWidth: 2.5,
   mealDetailChipHeight: 26,
@@ -603,6 +622,8 @@ export const typography = {
   planMealCalories: { fontSize: 11.5, fontWeight: '400', letterSpacing: 0 },
   fullPlanMealName: { fontSize: 13.5, fontWeight: '400', letterSpacing: 0 },
   fullPlanMealNameNext: { fontSize: 13.5, fontWeight: '500', letterSpacing: 0 },
+  fitnessExerciseRow: { fontSize: 11.5, fontWeight: '300', letterSpacing: 0 },
+  fitnessRowTitleMuted: { fontSize: 13.5, fontWeight: '300', letterSpacing: 0 },
   fullPlanStateLabel: { fontSize: 9.5, fontWeight: '500', letterSpacing: 0.4 },
   planQuickAction: { fontSize: 11, fontWeight: '400', letterSpacing: 0 },
   planKcalHero: { fontSize: 22, fontWeight: '200', letterSpacing: 0 },

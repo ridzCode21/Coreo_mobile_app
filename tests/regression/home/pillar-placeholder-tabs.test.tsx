@@ -12,13 +12,28 @@ jest.mock('@/shared/components/WaveChart', () => ({
   WaveChart: jest.fn(() => null),
 }));
 
-// Issue #39: the Fitness tab now gates on the fitness-profile interview before falling through to
-// this same placeholder (`fitness-tab-gating.test.tsx` covers that gate itself) — stub the query
-// as already-complete so this file keeps testing exactly what it always tested: the placeholder's
-// own copy/no-wave guarantee, not the new gating.
+// Issue #39/#40: Fitness now gates on the interview and then renders the real training week.
+// Stub both queries so this legacy route-level test keeps protecting its no-wave/no-internal-copy
+// guarantee without duplicating the detailed Fitness screen tests.
 jest.mock('@/features/fitness/api/fitnessProfileApi', () => ({
   useFitnessProfileQuery: () => ({
     data: { fitness_interview_complete: true },
+    isLoading: false,
+    isError: false,
+  }),
+}));
+
+jest.mock('@/features/fitness/api/trainingWeekApi', () => ({
+  useTrainingWeekQuery: () => ({
+    data: {
+      training_week: {
+        position: { week: 1, day: 7, label: 'Week 1 · Day 7' },
+        status: 'in_progress',
+        summary: 'Build muscle · dumbbells at home · 3 days',
+        sessions: [],
+        today: null,
+      },
+    },
     isLoading: false,
     isError: false,
   }),

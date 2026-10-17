@@ -47,6 +47,15 @@ type MockDb = {
   dietProfiles: Record<string, DietProfile>;
   /** Keyed by user id — one fitness profile per user, seeded lazily on first GET/PUT. */
   fitnessProfiles: Record<string, FitnessProfile>;
+  /** One training-loop anchor per user, mirroring TrainingBlock.started_on. */
+  trainingBlocks: Record<string, { started_on: string }>;
+  /** Completed sets, unique by user/date/exercise/set in the real backend. */
+  completedSets: {
+    userId: string;
+    sessionDate: string;
+    exerciseKey: string;
+    setNumber: number;
+  }[];
   /** All logged food entries (all users); handlers filter by the authed user + date. §8. */
   foodEntries: FoodEntry[];
   /** Recomputed daily aggregates, keyed `${userId}:${date}`. §10. */
@@ -108,6 +117,8 @@ function createEmptyDb(): MockDb {
     passwordResetTokens: {},
     dietProfiles: {},
     fitnessProfiles: {},
+    trainingBlocks: {},
+    completedSets: [],
     foodEntries: [],
     dailyLogs: {},
     weeklyDietReviews: {},
@@ -137,6 +148,8 @@ export function __resetMockDbForTests(): void {
   mockDb.passwordResetTokens = {};
   mockDb.dietProfiles = {};
   mockDb.fitnessProfiles = {};
+  mockDb.trainingBlocks = {};
+  mockDb.completedSets = [];
   mockDb.foodEntries = [];
   mockDb.dailyLogs = {};
   mockDb.weeklyDietReviews = {};
