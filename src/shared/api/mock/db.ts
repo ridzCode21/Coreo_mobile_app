@@ -16,6 +16,7 @@ import type {
 } from '@/shared/types/mealPlan';
 import type { WeeklyDietReview } from '@/shared/types/weeklyDietReview';
 import type { FitnessProfile } from '@/shared/types/fitnessProfile';
+import type { WellnessProfile } from '@/shared/types/wellnessProfile';
 
 export type MockUser = {
   id: string;
@@ -47,6 +48,8 @@ type MockDb = {
   dietProfiles: Record<string, DietProfile>;
   /** Keyed by user id — one fitness profile per user, seeded lazily on first GET/PUT. */
   fitnessProfiles: Record<string, FitnessProfile>;
+  /** Keyed by user id — one wellness profile per user, seeded lazily on first GET/PUT. */
+  wellnessProfiles: Record<string, WellnessProfile>;
   /** One training-loop anchor per user, mirroring TrainingBlock.started_on. */
   trainingBlocks: Record<string, { started_on: string }>;
   /** Completed sets, unique by user/date/exercise/set in the real backend. */
@@ -117,6 +120,7 @@ function createEmptyDb(): MockDb {
     passwordResetTokens: {},
     dietProfiles: {},
     fitnessProfiles: {},
+    wellnessProfiles: {},
     trainingBlocks: {},
     completedSets: [],
     foodEntries: [],
@@ -148,6 +152,7 @@ export function __resetMockDbForTests(): void {
   mockDb.passwordResetTokens = {};
   mockDb.dietProfiles = {};
   mockDb.fitnessProfiles = {};
+  mockDb.wellnessProfiles = {};
   mockDb.trainingBlocks = {};
   mockDb.completedSets = [];
   mockDb.foodEntries = [];

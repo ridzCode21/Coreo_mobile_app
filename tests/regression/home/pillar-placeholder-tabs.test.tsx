@@ -39,6 +39,18 @@ jest.mock('@/features/fitness/api/trainingWeekApi', () => ({
   }),
 }));
 
+// Issue #41: Wellness now gates on its own five-question interview before showing the (still
+// unbuilt, issue-#21) coming-soon placeholder. Stub the query as already-complete so this
+// legacy route-level test keeps protecting its no-wave/no-internal-copy guarantee without
+// duplicating the detailed gate tests (`wellness/wellness-tab-gating.test.tsx`).
+jest.mock('@/features/wellness/api/wellnessProfileApi', () => ({
+  useWellnessProfileQuery: () => ({
+    data: { wellness_interview_complete: true },
+    isLoading: false,
+    isError: false,
+  }),
+}));
+
 describe('home: Fitness and Wellness tab routes (issue #21 — no made-up wave)', () => {
   it('Fitness tab never renders a wave chart and drops the internal "Phase 6" wording from its body copy', () => {
     render(<FitnessTab />);
