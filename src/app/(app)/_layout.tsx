@@ -11,6 +11,7 @@ export default function AppLayout() {
       <Stack.Screen name="fitness-interview" />
       <Stack.Screen name="wellness-interview" />
       <Stack.Screen name="right-now" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="chat-presence" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }

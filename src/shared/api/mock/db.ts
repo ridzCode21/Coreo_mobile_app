@@ -17,6 +17,23 @@ import type {
 import type { WeeklyDietReview } from '@/shared/types/weeklyDietReview';
 import type { FitnessProfile } from '@/shared/types/fitnessProfile';
 import type { WellnessProfile } from '@/shared/types/wellnessProfile';
+import type { ChatReceipt } from '@/shared/types/chat';
+
+export type MockChatTurn = {
+  id: string;
+  userId: string;
+  message: string;
+  status: 'proposed' | 'applied' | 'undone';
+  receipts: ChatReceipt[];
+  effects: {
+    fitness?: { session_key: 'legs' | 'push' | 'pull'; from_date: string; to_date: string };
+    dinner?: { plan_id: number; meal_id: number };
+    wind_down?: { local_date: string; start: '9:30' };
+  };
+  before: { dinner?: { meal_id: number; name: string; rationale: string } } | null;
+  createdAt: number;
+  appliedAt: number | null;
+};
 
 export type MockUser = {
   id: string;
@@ -104,6 +121,8 @@ type MockDb = {
       expiresAt: number;
     }
   >;
+  /** Cross-pillar proposals keyed by UUID, mirroring users.ChatTurn. */
+  chatTurns: Record<string, MockChatTurn>;
   /** Monotonic id source for created food entries. */
   nextFoodEntryId: number;
   /** Monotonic id source for user-created food items. */
@@ -139,6 +158,7 @@ function createEmptyDb(): MockDb {
     quotaCounters: {},
     generatedRecipeMealIds: new Set<number>(),
     assistantProposals: {},
+    chatTurns: {},
     nextFoodEntryId: 1,
     nextFoodItemId: 11,
     nextMealPlanId: 1,
@@ -172,6 +192,7 @@ export function __resetMockDbForTests(): void {
   mockDb.quotaCounters = {};
   mockDb.generatedRecipeMealIds = new Set<number>();
   mockDb.assistantProposals = {};
+  mockDb.chatTurns = {};
   mockDb.nextFoodEntryId = 1;
   mockDb.nextFoodItemId = 11;
   mockDb.nextMealPlanId = 1;

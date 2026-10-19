@@ -1,4 +1,5 @@
-import { Platform, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { useRouter, type Href } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Rect } from 'react-native-svg';
 
@@ -13,58 +14,66 @@ import {
 } from '@/shared/theme/tokens';
 
 export function AskAnythingBar() {
+  const router = useRouter();
   return (
-    <GlassCard variant="night" radius={radii.pill} padded={false} style={styles.bar}>
-      <View style={styles.row}>
-        <Text style={styles.placeholder}>Ask me anything</Text>
-        <LinearGradient
-          colors={[withAlpha(colors.white, 0.3), withAlpha(colors.white, 0.1)]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.micCircle}
-        >
-          <Svg
-            width={componentSizes.homeAskBarIcon}
-            height={componentSizes.homeAskBarIcon}
-            viewBox="0 0 24 24"
-            fill="none"
+    <Pressable
+      onPress={() => router.push('/chat-presence' as Href)}
+      accessibilityRole="button"
+      accessibilityLabel="Ask me anything"
+      style={styles.bar}
+    >
+      <GlassCard variant="night" radius={radii.pill} padded={false}>
+        <View style={styles.row}>
+          <Text style={styles.placeholder}>Ask me anything</Text>
+          <LinearGradient
+            colors={[withAlpha(colors.white, 0.3), withAlpha(colors.white, 0.1)]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.micCircle}
           >
-            <Rect
-              x={9}
-              y={3}
-              width={6}
-              height={11}
-              rx={3}
-              stroke={colors.onNight}
-              strokeWidth={componentSizes.homeAskBarMicStrokeWidth}
-            />
-            <Path
-              d="M5 11a7 7 0 0 0 14 0M12 18v3"
-              stroke={colors.onNight}
-              strokeWidth={componentSizes.homeAskBarMicStrokeWidth}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
-        </LinearGradient>
-        <View style={styles.sendCircle}>
-          <Svg
-            width={componentSizes.homeAskBarIcon}
-            height={componentSizes.homeAskBarIcon}
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <Path
-              d="M12 19V5M6 11l6-6 6 6"
-              stroke={colors.ink}
-              strokeWidth={componentSizes.homeAskBarSendStrokeWidth}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
+            <Svg
+              width={componentSizes.homeAskBarIcon}
+              height={componentSizes.homeAskBarIcon}
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <Rect
+                x={9}
+                y={3}
+                width={6}
+                height={11}
+                rx={3}
+                stroke={colors.onNight}
+                strokeWidth={componentSizes.homeAskBarMicStrokeWidth}
+              />
+              <Path
+                d="M5 11a7 7 0 0 0 14 0M12 18v3"
+                stroke={colors.onNight}
+                strokeWidth={componentSizes.homeAskBarMicStrokeWidth}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </LinearGradient>
+          <View style={styles.sendCircle}>
+            <Svg
+              width={componentSizes.homeAskBarIcon}
+              height={componentSizes.homeAskBarIcon}
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <Path
+                d="M12 19V5M6 11l6-6 6 6"
+                stroke={colors.ink}
+                strokeWidth={componentSizes.homeAskBarSendStrokeWidth}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </View>
         </View>
-      </View>
-    </GlassCard>
+      </GlassCard>
+    </Pressable>
   );
 }
 

@@ -16,3 +16,4 @@ import '@/features/wellness/mocks/rightNow.handlers';
 import '@/features/onboarding/mocks/dietProfile.handlers';
 import '@/features/nutrition/mocks/handlers';
 import '@/features/nutrition/mocks/mealPlan.handlers';
+import '@/features/chat/mocks/chat.handlers';
