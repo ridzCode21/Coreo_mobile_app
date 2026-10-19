@@ -194,6 +194,13 @@ export const glass = {
     start: { x: 0, y: 0 },
     end: { x: 1, y: 1 },
   },
+  profileAvatar: {
+    gradient: ['rgba(34,66,102,0.7)', 'rgba(12,28,48,0.8)'],
+    border: withAlpha(colors.white, 0.3),
+    shadowColor: colors.nightShadow,
+    start: { x: 0.21, y: 0 },
+    end: { x: 0.79, y: 1 },
+  },
   afterSnapSurface: {
     gradient: [withAlpha(colors.white, 0.62), withAlpha(colors.white, 0.24)],
     border: withAlpha(colors.white, 0.6),
@@ -371,6 +378,13 @@ export const radii = {
 } as const;
 
 export const componentSizes = {
+  profileAvatar: 64,
+  profileAvatarShadowRadius: 30,
+  profilePillarChevron: 14,
+  profileRowMinHeight: 58,
+  profileManageMinHeight: 30,
+  profileKnowledgeMinHeight: 56,
+  profileKnowledgeArrow: 40,
   wellnessStepDot: 6,
   wellnessPrimaryActionHeight: 58,
   wellnessPrimaryIconCircle: 42,
@@ -535,6 +549,7 @@ type TypographySpec = {
  * docs/design-system.md §2 and §10 "Don't").
  */
 export const typography = {
+  profileAvatar: { fontSize: 24, fontWeight: '200', letterSpacing: 0 },
   wellnessHeadline: { fontSize: 25, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.4 },
   wellnessCardLabel: {
     fontSize: 10,
