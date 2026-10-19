@@ -174,6 +174,12 @@ Screen-specific tokens preserve the supplied compositions without raw values in 
 `wellnessCardFooter`, `rightNowHeadline`, `rightNowCue`, `rightNowPattern`, `rightNowLine`, and
 `rightNowButton`.
 
+Profile 19a uses `typography.profileAvatar` (24px/200) and `componentSizes.profileAvatar`
+(64px), `profileAvatarShadowRadius` (30px), `profilePillarChevron` (14px),
+`componentSizes.dietHeaderControl` (38px), `profileRowMinHeight` (58px),
+`profileManageMinHeight` (30px), `profileKnowledgeMinHeight` (56px), and
+`profileKnowledgeArrow` (40px).
+
 Non-type text tracking overrides also live in the token module; `tracking.wide` is `1px` for
 scanner codes and manual barcode entry.
 
@@ -350,6 +356,7 @@ The single most important pattern in the system. Shared recipes are exact rather
 | `chip`                    | 135deg, white `.50` → `.14`                            | white `.55` | overlay ink `.14`              |
 | `chipSelected`            | 135deg, white `.94` → `.60`                            | white `.90` | overlay ink `.20`              |
 | `afterSnapNav`            | 135deg, white `.60` → `.25`                            | white `.65` | overlay ink `.12`              |
+| `profileAvatar`           | 150deg, `rgb(34,66,102)` `.70` → `rgb(12,28,48)` `.80` | white `.30` | `rgb(8,24,44)` `.30`           |
 | `afterSnapSurface`        | 135deg, white `.62` → `.24`                            | white `.60` | overlay ink `.12`              |
 | `usualHighlight`          | 150deg, `rgb(34,66,102)` `.60` → `rgb(12,28,48)` `.70` | white `.22` | `rgb(8,24,44)` `.32`           |
 | `usualCard`               | 135deg, white `.62` → `.24`                            | white `.60` | overlay ink `.12`              |

@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { apiClient } from '@/shared/api/client';
 import { CALIBRATION_WAVES } from '@/shared/types/user';
 
-const profileResponseSchema = z.object({
+export const profileResponseSchema = z.object({
   success: z.literal(true),
   data: z.object({
     user: z.object({
@@ -12,6 +12,7 @@ const profileResponseSchema = z.object({
       calibration_day: z.number().int().nullable(),
       calibration_complete: z.boolean(),
       wave: z.enum(CALIBRATION_WAVES).nullable(),
+      created_at: z.string().datetime({ offset: true }),
     }),
   }),
 });
