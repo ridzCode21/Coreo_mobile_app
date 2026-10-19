@@ -238,6 +238,13 @@ Fixed-size composition tokens for screens 17b/17c live under `componentSizes.wel
 `componentSizes.rightNow*`; they cover the action heights/icons, timeline dot, and concentric
 breath cue. They are fixed artwork/control geometry, not screen-width assumptions.
 
+Screen 18c uses `componentSizes.chatListeningCircle` (210px),
+`chatListeningMiddleInset` / `chatListeningInnerInset` / `chatListeningCoreInset` (26 / 52 / 76px),
+`chatMicButtonSize` (64px), `chatSideButtonSize` (46px), and `chatReceiptHeight` (30px) for its
+concentric listening orb, dock, and receipt-chip geometry.
+Its heard-message line uses `typography.chatHeard` (12px/300, 1.7 line-height); the reply,
+receipt, and hint reuse `bodyLg`, `weightChip`, and `cardHint` respectively.
+
 **Radius scale:**
 
 | Token                    | px                      | Use                                                                   |
