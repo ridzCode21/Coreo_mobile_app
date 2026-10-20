@@ -180,6 +180,15 @@ Profile 19a uses `typography.profileAvatar` (24px/200) and `componentSizes.profi
 `profileManageMinHeight` (30px), `profileKnowledgeMinHeight` (56px), and
 `profileKnowledgeArrow` (40px).
 
+Source quiet 25b uses `typography.sourceQuietBody` (12.5px/300, line-height 1.7),
+`sourceQuietAction` (12.5px/500), `sourceQuietDismiss` (11.5px/400),
+`sourceQuietNavLabel` (10px/500, +2.6px uppercase), `sourceQuietFooterTitle` (12px/400),
+`sourceQuietFooterSubtitle` (10px/300), and `sourceQuietManagePill` (10px/400). Its reconnect
+control uses `radii.sourceQuietAction` (21px); the main and footer cards reuse
+`radii.dietNextMeal` (24px) and `radii.md` (20px), respectively.
+The main card uses `glass.sourceQuietCard`: white `.66` → `.26` gradient, `.6` white border,
+`.14` overlay-ink shadow, and `.7` white top highlight; it uses a light intensity-60 blur.
+
 Non-type text tracking overrides also live in the token module; `tracking.wide` is `1px` for
 scanner codes and manual barcode entry.
 
