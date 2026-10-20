@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useSourcesQuery } from '@/features/home';
-import { ProfileBackButton } from '@/features/profile/components/ProfileBackButton';
+import { BackButton } from '@/shared/components/BackButton';
 import { sourceLabels } from '@/features/profile/lib/profileCopy';
 import {
   buildConnectedSummary,
@@ -105,7 +105,7 @@ export default function SourceQuietScreen() {
       <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <ProfileBackButton onPress={() => router.back()} />
+          <BackButton onPress={() => router.back()} />
           <Text style={styles.eyebrow}>Sources</Text>
           <View style={styles.headerSpacer} />
         </View>

@@ -10,6 +10,8 @@ export type GlassCardVariant =
   | 'night'
   | 'dietHero'
   | 'labelRecovery'
+  | 'patternsCalibratingCard'
+  | 'patternsInsightCard'
   | 'chip'
   | 'chipSelected'
   | 'sheet'
@@ -54,6 +56,8 @@ export function GlassCard({
     night: { intensity: 90, tint: 'dark' },
     dietHero: { intensity: 90, tint: 'dark' },
     labelRecovery: { intensity: 90, tint: 'dark' },
+    patternsCalibratingCard: { intensity: 90, tint: 'dark' },
+    patternsInsightCard: { intensity: 90, tint: 'dark' },
     chip: { intensity: 60, tint: 'light' },
     chipSelected: { intensity: 60, tint: 'light' },
     sheet: { intensity: 90, tint: 'light' },

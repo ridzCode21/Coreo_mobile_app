@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 
 import { useSourcesQuery, DEVICE_SOURCES } from '@/features/home';
 import { sourceLabels } from '@/features/profile/lib/profileCopy';
-import { ProfileBackButton } from '@/features/profile/components/ProfileBackButton';
+import { BackButton } from '@/shared/components/BackButton';
 import { GlassCard } from '@/shared/components/GlassCard';
 import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
@@ -45,7 +45,7 @@ export default function ManageSourcesScreen() {
       <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <ProfileBackButton onPress={() => router.back()} />
+          <BackButton onPress={() => router.back()} />
           <Text style={styles.title}>Manage sources</Text>
           <View style={styles.headerSpacer} />
         </View>

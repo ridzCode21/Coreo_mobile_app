@@ -1,14 +1,14 @@
-import { Pressable, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Pressable, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { colors, componentSizes, glass, radii, spacing } from '@/shared/theme/tokens';
 
-type ProfileBackButtonProps = {
+type BackButtonProps = {
   onPress: () => void;
 };
 
-export function ProfileBackButton({ onPress }: ProfileBackButtonProps) {
+export function BackButton({ onPress }: BackButtonProps) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={onPress}>
       <LinearGradient

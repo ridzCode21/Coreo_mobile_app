@@ -168,11 +168,18 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `petalSubLabel`          | 8px       | 500              | +0.4px                    | Calibrating-home setup state beneath a pillar petal label             |
 | `fine`                   | 9.5px     | 300              | normal                    | Fine-print supporting captions                                        |
 | `legal`                  | 10.5px    | 300              | normal                    | Privacy notes, fine print, account-password hint                      |
+| `patternsInsightBody`    | 18px      | 300              | normal, line-height 1.65  | API-provided insight text in Patterns 37b                             |
 
 Screen-specific tokens preserve the supplied compositions without raw values in components:
 `wellnessHeadline`, `wellnessCardLabel`, `wellnessStep`, `wellnessStepReason`,
 `wellnessCardFooter`, `rightNowHeadline`, `rightNowCue`, `rightNowPattern`, `rightNowLine`, and
 `rightNowButton`.
+
+Patterns 37a uses `glass.patternsCalibratingCard`: `rgba(60,72,86,.5)` to
+`rgba(30,40,50,.58)`, white `.16` border/top highlight, and `rgba(8,24,44,.24)` shadow.
+Patterns 37b uses `glass.patternsInsightCard`: `rgba(34,66,102,.85)` to
+`rgba(12,28,48,.9)` with no visible border or highlight. Its `patternsInsightBody` is 18px/300
+at line-height 1.65; `componentSizes.patternsBodyMaxWidth` is 270px for 37a's centered body.
 
 Profile 19a uses `typography.profileAvatar` (24px/200) and `componentSizes.profileAvatar`
 (64px), `profileAvatarShadowRadius` (30px), `profilePillarChevron` (14px),
