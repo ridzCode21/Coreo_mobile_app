@@ -8,7 +8,7 @@ import { useFitnessProfileQuery } from '@/features/fitness';
 import { useSourcesQuery } from '@/features/home';
 import { useDietProfileQuery } from '@/features/onboarding';
 import { AccountActionsSection } from '@/features/profile/components/AccountActionsSection';
-import { ProfileBackButton } from '@/features/profile/components/ProfileBackButton';
+import { BackButton } from '@/shared/components/BackButton';
 import {
   checkInStyleLabel,
   connectedSourcesSummary,
@@ -85,7 +85,7 @@ export default function ProfileScreen() {
       <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.content}>
         <View style={styles.top}>
-          <ProfileBackButton onPress={() => router.back()} />
+          <BackButton onPress={() => router.back()} />
           <Text style={styles.eyebrow}>You</Text>
           <View style={styles.headerSpacer} />
         </View>
