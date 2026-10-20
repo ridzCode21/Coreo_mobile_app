@@ -1,5 +1,6 @@
 export { default as ProfileScreen } from '@/features/profile/screens/ProfileScreen';
 export { default as ManageSourcesScreen } from '@/features/profile/screens/ManageSourcesScreen';
+export { default as SourceQuietScreen } from '@/features/profile/screens/SourceQuietScreen';
 export {
   useExportDataMutation,
   useDeleteAccountDataMutation,
