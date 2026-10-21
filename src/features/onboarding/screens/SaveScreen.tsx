@@ -58,7 +58,6 @@ function buildSummaryLine(draft: OnboardingDraft): string {
 export default function SaveScreen() {
   const router = useRouter();
   const draft = useOnboardingStore((state) => state.draft);
-  const resetOnboarding = useOnboardingStore((state) => state.reset);
   const signIn = useSessionStore((state) => state.signIn);
   const setActivePillars = usePillarSelectionStore((state) => state.setActivePillars);
   const registerMutation = useRegisterMutation();
@@ -69,8 +68,7 @@ export default function SaveScreen() {
   const finishSignIn = async (tokens: { access: string; refresh: string }) => {
     await signIn(tokens);
     setActivePillars(draft.pillars);
-    resetOnboarding();
-    router.replace('/(app)');
+    router.replace('/(public)/onboarding/arrival');
   };
 
   const commit = (values: RegisterRequestValues) => {
