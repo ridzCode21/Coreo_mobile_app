@@ -72,7 +72,7 @@ describe('onboarding: Save your core social registration', () => {
     expect(mockUpdateDietProfileMutate).not.toHaveBeenCalled();
   });
 
-  it('signs in and returns to the app when Google registration succeeds', async () => {
+  it('signs in and goes to the Arrival screen when Google registration succeeds (#16)', async () => {
     mockRegisterMutate.mockImplementation((_values, handlers) =>
       handlers.onSuccess({ data: { tokens: { access: 'a', refresh: 'r' } } }),
     );
@@ -80,7 +80,7 @@ describe('onboarding: Save your core social registration', () => {
 
     fireEvent.press(screen.getByRole('button', { name: 'Continue with Google' }));
 
-    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/(app)'));
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/(public)/onboarding/arrival'));
     expect(mockUpdateDietProfileMutate).not.toHaveBeenCalled();
   });
 
@@ -92,11 +92,24 @@ describe('onboarding: Save your core social registration', () => {
 
     fireEvent.press(screen.getByRole('button', { name: 'Continue with Google' }));
 
-    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/(app)'));
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/(public)/onboarding/arrival'));
     expect(usePillarSelectionStore.getState().activePillars).toEqual([
       'diet',
       'fitness',
       'wellness',
     ]);
+  });
+
+  it('keeps the draft (name, pillars) intact on arrival instead of resetting it early (#16)', async () => {
+    mockRegisterMutate.mockImplementation((_values, handlers) =>
+      handlers.onSuccess({ data: { tokens: { access: 'a', refresh: 'r' } } }),
+    );
+    render(<SaveScreen />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Continue with Google' }));
+
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/(public)/onboarding/arrival'));
+    expect(useOnboardingStore.getState().draft.name).toBe('Maya Chen');
+    expect(useOnboardingStore.getState().draft.pillars).toEqual(['diet', 'fitness', 'wellness']);
   });
 });

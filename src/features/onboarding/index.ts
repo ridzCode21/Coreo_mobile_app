@@ -13,6 +13,7 @@ export { default as GoalScreen } from '@/features/onboarding/screens/GoalScreen'
 export { default as AboutYouScreen } from '@/features/onboarding/screens/AboutYouScreen';
 export { default as PillarsScreen } from '@/features/onboarding/screens/PillarsScreen';
 export { default as SaveScreen } from '@/features/onboarding/screens/SaveScreen';
+export { default as ArrivalScreen } from '@/features/onboarding/screens/ArrivalScreen';
 export { default as CreateAccountScreen } from '@/features/onboarding/screens/CreateAccountScreen';
 export { firstUnansweredFlowStep, flowStepRoute } from '@/features/onboarding/lib/steps';
 export { useOnboardingStore } from '@/features/onboarding/store/onboardingStore';
