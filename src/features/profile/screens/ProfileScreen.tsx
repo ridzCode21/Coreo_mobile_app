@@ -176,6 +176,7 @@ export default function ProfileScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="What Coreo knows about me"
+          onPress={() => router.push('/profile/notebook')}
           style={styles.knowledgeGlow}
         >
           <LinearGradient

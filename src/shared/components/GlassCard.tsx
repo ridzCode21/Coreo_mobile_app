@@ -32,6 +32,8 @@ type GlassCardProps = PropsWithChildren<{
   padded?: boolean;
   contentPaddingVertical?: number;
   contentPaddingHorizontal?: number;
+  contentPaddingLeft?: number;
+  contentPaddingRight?: number;
 }>;
 
 /**
@@ -48,6 +50,8 @@ export function GlassCard({
   padded = true,
   contentPaddingVertical,
   contentPaddingHorizontal,
+  contentPaddingLeft,
+  contentPaddingRight,
 }: GlassCardProps) {
   const palette = glass[variant];
   const resolvedRadius = radius ?? (variant === 'sheet' ? radii.xxl : radii.lg);
@@ -119,6 +123,8 @@ export function GlassCard({
                   contentPaddingHorizontal !== undefined && {
                     paddingHorizontal: contentPaddingHorizontal,
                   },
+                  contentPaddingLeft !== undefined && { paddingLeft: contentPaddingLeft },
+                  contentPaddingRight !== undefined && { paddingRight: contentPaddingRight },
                 ]
               : undefined
           }

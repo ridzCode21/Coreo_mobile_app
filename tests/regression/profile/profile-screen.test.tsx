@@ -183,6 +183,12 @@ describe('profile: ProfileScreen (issue #44, design-spec.md 19a)', () => {
     expect(screen.getByText('What Coreo knows about me')).toBeTruthy();
   });
 
+  it('opens the notebook from the What Coreo knows about me control', () => {
+    render(<ProfileScreen />);
+    fireEvent.press(screen.getByRole('button', { name: 'What Coreo knows about me' }));
+    expect(mockPush).toHaveBeenCalledWith('/profile/notebook');
+  });
+
   it("uses the design's gradient and stroked-SVG treatment for profile controls", () => {
     render(<ProfileScreen />);
 
