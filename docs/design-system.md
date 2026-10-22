@@ -187,6 +187,8 @@ Profile 19a uses `typography.profileAvatar` (24px/200) and `componentSizes.profi
 `componentSizes.dietHeaderControl` (38px), `profileRowMinHeight` (58px),
 `profileManageMinHeight` (30px), `profileKnowledgeMinHeight` (56px), and
 `profileKnowledgeArrow` (40px).
+Notebook 19b uses `typography.notebookBadge` (10px/500, sentence case),
+`componentSizes.notebookBadgeHeight` (26px) and `notebookPromptIcon` (40px).
 
 Source quiet 25b uses `typography.sourceQuietBody` (12.5px/300, line-height 1.7),
 `sourceQuietAction` (12.5px/500), `sourceQuietDismiss` (11.5px/400),
@@ -227,35 +229,39 @@ plus these as additional padding, not instead of them.
 
 **Spacing scale** (use these, not arbitrary values):
 
-| Token                    | px                                                  |
-| ------------------------ | --------------------------------------------------- |
-| `space.xs`               | 4                                                   |
-| `space.dockItemGap`      | 3 (glass-dock icon to label)                        |
-| `space.sliderCaptionGap` | 6                                                   |
-| `space.headerLogoGap`    | 7 (home wave mark to wordmark)                      |
-| `space.sm`               | 8                                                   |
-| `space.ms`               | 10                                                  |
-| `space.md`               | 12                                                  |
-| `space.ml`               | 14                                                  |
-| `space.lg`               | 16                                                  |
-| `sheet.titleGap`         | 18                                                  |
-| `space.xl`               | 20                                                  |
-| `space.xxl`              | 24                                                  |
-| `space.xxxl`             | 32                                                  |
-| `space.stepHeaderGap`    | 56 (progress dots to onboarding wave + title group) |
-| `portion.readoutGap`     | 22                                                  |
-| `screen.padX`            | 26 (22 on compact layouts)                          |
-| `screen.padTop`          | 64                                                  |
-| `screen.padBottom`       | 30–40                                               |
-| `sheet.subtitleGap`      | 2                                                   |
-| `replace.detailGap`      | 3                                                   |
-| `auth.fieldsGap`         | 22 (auth title to labeled fields)                   |
-| `field.padY`             | 15 (labeled glass-field vertical padding)           |
-| `field.padX`             | 18 (labeled glass-field horizontal padding)         |
-| `diet.*`                 | 3–24 (screen-14a card gaps and internal padding)    |
-| `mealReview.*`           | 2 / 13 (remembered-label gap and row padding)       |
-| `labelResult.*`          | 13 (label-result row padding)                       |
-| `plan.*`                 | 2–22 (screens 28a–28d rhythm and card padding)      |
+| Token                          | px                                                  |
+| ------------------------------ | --------------------------------------------------- |
+| `space.xs`                     | 4                                                   |
+| `space.dockItemGap`            | 3 (glass-dock icon to label)                        |
+| `space.sliderCaptionGap`       | 6                                                   |
+| `space.headerLogoGap`          | 7 (home wave mark to wordmark)                      |
+| `space.sm`                     | 8                                                   |
+| `space.ms`                     | 10                                                  |
+| `space.md`                     | 12                                                  |
+| `space.ml`                     | 14                                                  |
+| `space.lg`                     | 16                                                  |
+| `space.notebookFooterPadY`     | 12 (notebook footer card vertical padding)          |
+| `space.notebookFooterPadX`     | 18 (notebook footer card horizontal padding)        |
+| `space.notebookPromptPadLeft`  | 22 (notebook prompt bar left padding)               |
+| `space.notebookPromptPadRight` | 9 (notebook prompt bar right padding)               |
+| `sheet.titleGap`               | 18                                                  |
+| `space.xl`                     | 20                                                  |
+| `space.xxl`                    | 24                                                  |
+| `space.xxxl`                   | 32                                                  |
+| `space.stepHeaderGap`          | 56 (progress dots to onboarding wave + title group) |
+| `portion.readoutGap`           | 22                                                  |
+| `screen.padX`                  | 26 (22 on compact layouts)                          |
+| `screen.padTop`                | 64                                                  |
+| `screen.padBottom`             | 30–40                                               |
+| `sheet.subtitleGap`            | 2                                                   |
+| `replace.detailGap`            | 3                                                   |
+| `auth.fieldsGap`               | 22 (auth title to labeled fields)                   |
+| `field.padY`                   | 15 (labeled glass-field vertical padding)           |
+| `field.padX`                   | 18 (labeled glass-field horizontal padding)         |
+| `diet.*`                       | 3–24 (screen-14a card gaps and internal padding)    |
+| `mealReview.*`                 | 2 / 13 (remembered-label gap and row padding)       |
+| `labelResult.*`                | 13 (label-result row padding)                       |
+| `plan.*`                       | 2–22 (screens 28a–28d rhythm and card padding)      |
 
 Fixed-size composition tokens for screens 17b/17c live under `componentSizes.wellness*` and
 `componentSizes.rightNow*`; they cover the action heights/icons, timeline dot, and concentric

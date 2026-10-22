@@ -54,6 +54,15 @@ export type MockUser = {
   updated_at: string;
 };
 
+export type MockMemoryFact = {
+  id: string;
+  userId: string;
+  text: string;
+  source_label: string;
+  stored_at: string;
+  badge: string | null;
+};
+
 type MockDb = {
   users: MockUser[];
   passwordResetTokens: Record<
@@ -123,6 +132,8 @@ type MockDb = {
   >;
   /** Cross-pillar proposals keyed by UUID, mirroring users.ChatTurn. */
   chatTurns: Record<string, MockChatTurn>;
+  /** All notebook facts; handlers scope them to the authenticated caller. */
+  memoryFacts: MockMemoryFact[];
   /** Monotonic id source for created food entries. */
   nextFoodEntryId: number;
   /** Monotonic id source for user-created food items. */
@@ -159,6 +170,7 @@ function createEmptyDb(): MockDb {
     generatedRecipeMealIds: new Set<number>(),
     assistantProposals: {},
     chatTurns: {},
+    memoryFacts: [],
     nextFoodEntryId: 1,
     nextFoodItemId: 11,
     nextMealPlanId: 1,
@@ -193,6 +205,7 @@ export function __resetMockDbForTests(): void {
   mockDb.generatedRecipeMealIds = new Set<number>();
   mockDb.assistantProposals = {};
   mockDb.chatTurns = {};
+  mockDb.memoryFacts = [];
   mockDb.nextFoodEntryId = 1;
   mockDb.nextFoodItemId = 11;
   mockDb.nextMealPlanId = 1;
