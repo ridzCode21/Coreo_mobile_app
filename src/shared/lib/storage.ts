@@ -34,4 +34,6 @@ export const STORAGE_KEYS = {
   visitedProfileSections: 'coreo.app.visitedProfileSections',
   homeCache: 'coreo.offline.homeCache',
   mealQueue: 'coreo.offline.mealQueue',
+  pendingCheckInAnswers: 'coreo.offline.pendingCheckInAnswers',
+  checkInPromptDeclined: 'coreo.app.checkInPromptDeclined',
 } as const;

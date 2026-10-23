@@ -15,6 +15,7 @@ import {
 
 import { queryClient } from '@/shared/api/queryClient';
 import { useSessionStore } from '@/features/auth';
+import '@/features/notifications';
 import { useAppFlagsStore } from '@/shared/stores/appFlagsStore';
 import { useConnectivityStore } from '@/shared/stores/connectivityStore';
 

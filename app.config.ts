@@ -62,6 +62,9 @@ const config: ExpoConfig = {
       },
     ],
     'expo-secure-store',
+    // Check-in nudge (issue #47). `defaultChannel` matches the channel the app creates before
+    // asking for permission (features/notifications/lib/expoPush.ts), so server pushes land in it.
+    ['expo-notifications', { defaultChannel: 'default' }],
     ['@react-native-google-signin/google-signin', { iosUrlScheme: googleIosUrlScheme }],
   ],
   experiments: {

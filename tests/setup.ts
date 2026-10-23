@@ -103,6 +103,34 @@ jest.mock('expo-secure-store', () => {
   };
 });
 
+// `expo-notifications` is a native module with no JS implementation under Jest. The defaults model
+// a phone that has not been asked yet and has no pending tap; tests override single functions
+// (for example `getPermissionsAsync`) to model allowed, refused, or a tap from the lock screen.
+jest.mock('expo-notifications', () => ({
+  __esModule: true,
+  AndroidImportance: { DEFAULT: 3 },
+  DEFAULT_ACTION_IDENTIFIER: 'expo.modules.notifications.actions.DEFAULT',
+  setNotificationHandler: jest.fn(),
+  setNotificationCategoryAsync: jest.fn(async () => ({})),
+  setNotificationChannelAsync: jest.fn(async () => null),
+  getPermissionsAsync: jest.fn(async () => ({
+    granted: false,
+    canAskAgain: true,
+    status: 'undetermined',
+    expires: 'never',
+  })),
+  requestPermissionsAsync: jest.fn(async () => ({
+    granted: true,
+    canAskAgain: true,
+    status: 'granted',
+    expires: 'never',
+  })),
+  getExpoPushTokenAsync: jest.fn(async () => ({ type: 'expo', data: 'ExponentPushToken[test]' })),
+  addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
+  getLastNotificationResponseAsync: jest.fn(async () => null),
+  clearLastNotificationResponseAsync: jest.fn(async () => undefined),
+}));
+
 // The Google Sign-In native module has no JS implementation under Jest. Tests that need specific
 // behaviour override `GoogleSignin.signIn` etc.; the defaults below resolve to a signed-in user.
 jest.mock('@react-native-google-signin/google-signin', () => ({
