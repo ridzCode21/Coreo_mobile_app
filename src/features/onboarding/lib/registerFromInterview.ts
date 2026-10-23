@@ -1,22 +1,7 @@
 import type { RegisterRequestValues } from '@/features/auth';
 import type { OnboardingDraft } from '@/features/onboarding/store/onboardingStore';
 import type { InterviewGoal } from '@/shared/types/user';
-
-export function splitName(name: string): { firstName: string; lastName: string } {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return { firstName: 'Friend', lastName: '' };
-  if (parts.length === 1) return { firstName: parts[0], lastName: '' };
-  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
-}
-
-function slugify(value: string): string {
-  const slug = value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-  return slug || 'friend';
-}
+export { splitName } from '@/shared/lib/name';
 
 export function interviewFieldsFromDraft(
   draft: OnboardingDraft,
@@ -35,22 +20,6 @@ export function interviewFieldsFromDraft(
     heightCm: draft.heightCm,
     weightKg: draft.weightKg,
     ...(draft.gender ? { gender: draft.gender } : {}),
-  };
-}
-
-export function buildMockSocialIdentity(
-  provider: 'google',
-  draft: OnboardingDraft,
-): RegisterRequestValues {
-  const { firstName, lastName } = splitName(draft.name);
-  const unique = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-  return {
-    firstName,
-    lastName,
-    email: `${slugify(draft.name)}.${provider}.${unique}@mock.coreo.app`,
-    password: `Mock-${unique}-Aa1`,
-    passwordConfirm: `Mock-${unique}-Aa1`,
-    ...interviewFieldsFromDraft(draft),
   };
 }
 

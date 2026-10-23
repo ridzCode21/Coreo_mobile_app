@@ -3,6 +3,7 @@ export { usePillarSelectionStore } from '@/features/auth/store/pillarSelectionSt
 export { useProfileQuery } from '@/features/auth/api/profileApi';
 export {
   useLoginMutation,
+  useGoogleSignInMutation,
   useRegisterMutation,
   authErrorMessage,
   registerFieldErrors,
@@ -11,6 +12,7 @@ export {
   useConfirmPasswordResetMutation,
   useRequestPasswordResetMutation,
   type RegisterRequestValues,
+  type GoogleSignInRequestValues,
 } from '@/features/auth/api/authApi';
 export {
   accountCredentialsSchema,
@@ -25,6 +27,12 @@ export {
   type RequestPasswordResetFormValues,
 } from '@/features/auth/schemas';
 export { PASSWORD_HINT } from '@/features/auth/constants';
+export {
+  getGoogleIdentityToken,
+  GoogleSignInUnavailableError,
+  GoogleSignInCancelledError,
+  GoogleSignInNetworkError,
+} from '@/features/auth/lib/googleIdentity';
 export { default as LoginScreen } from '@/features/auth/screens/LoginScreen';
 export { default as ResetPasswordScreen } from '@/features/auth/screens/ResetPasswordScreen';
 export { default as NewPasswordScreen } from '@/features/auth/screens/NewPasswordScreen';

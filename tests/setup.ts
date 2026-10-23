@@ -88,3 +88,28 @@ jest.mock('expo-secure-store', () => {
     }),
   };
 });
+
+// The Google Sign-In native module has no JS implementation under Jest. Tests that need specific
+// behaviour override `GoogleSignin.signIn` etc.; the defaults below resolve to a signed-in user.
+jest.mock('@react-native-google-signin/google-signin', () => ({
+  GoogleSignin: {
+    configure: jest.fn(),
+    hasPlayServices: jest.fn(async () => true),
+    signIn: jest.fn(async () => ({
+      type: 'success',
+      data: {
+        idToken: 'mock-google-id-token',
+        user: { id: 'g-1', email: 'maya@example.com', givenName: 'Maya', familyName: 'Chen' },
+      },
+    })),
+    signOut: jest.fn(async () => null),
+  },
+  statusCodes: {
+    SIGN_IN_CANCELLED: 'SIGN_IN_CANCELLED',
+    IN_PROGRESS: 'IN_PROGRESS',
+    PLAY_SERVICES_NOT_AVAILABLE: 'PLAY_SERVICES_NOT_AVAILABLE',
+    SIGN_IN_REQUIRED: 'SIGN_IN_REQUIRED',
+  },
+  isErrorWithCode: (error: unknown) =>
+    typeof error === 'object' && error !== null && 'code' in error,
+}));
