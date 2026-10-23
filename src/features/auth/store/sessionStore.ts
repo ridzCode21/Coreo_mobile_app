@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 import { secureAuthTokenStore } from '@/shared/api/authTokenStore';
 import { queryClient } from '@/shared/api/queryClient';
-import { runSessionCleanup } from '@/shared/lib/sessionCleanup';
+import { runBeforeSessionEnd, runSessionCleanup } from '@/shared/lib/sessionCleanup';
 import { profileKeys } from '@/features/auth/api/profileApi';
 import { usePillarSelectionStore } from '@/features/auth/store/pillarSelectionStore';
 
@@ -46,6 +46,8 @@ export const useSessionStore = create<SessionState>((set) => ({
   },
 
   signOut: async () => {
+    // Steps that need the session (like deleting this phone's push registration) go first.
+    await runBeforeSessionEnd();
     await secureAuthTokenStore.clearTokens();
     queryClient.removeQueries({ queryKey: profileKeys.all });
     usePillarSelectionStore.getState().clear();

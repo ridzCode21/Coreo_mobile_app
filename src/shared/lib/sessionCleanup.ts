@@ -7,8 +7,32 @@ import { storage, STORAGE_KEYS } from '@/shared/lib/storage';
  * Lives in `shared` so auth does not have to import the features that own the data.
  */
 const resetters = new Set<() => void | Promise<void>>();
+/** Steps that still need the signed-in session (e.g. a server call), so they run before tokens go. */
+const beforeEndSteps = new Set<() => void | Promise<void>>();
 
-const OFFLINE_DATA_KEYS = [STORAGE_KEYS.homeCache, STORAGE_KEYS.mealQueue] as const;
+const OFFLINE_DATA_KEYS = [
+  STORAGE_KEYS.homeCache,
+  STORAGE_KEYS.mealQueue,
+  STORAGE_KEYS.pendingCheckInAnswers,
+] as const;
+
+/**
+ * Registers a step that must run while the person is still signed in, before the tokens are
+ * cleared (issue #47: delete this phone's push registration). A failing step never blocks logout.
+ */
+export function onBeforeSessionEnd(step: () => void | Promise<void>): void {
+  beforeEndSteps.add(step);
+}
+
+export async function runBeforeSessionEnd(): Promise<void> {
+  await Promise.all(
+    [...beforeEndSteps].map((step) =>
+      Promise.resolve()
+        .then(step)
+        .catch(() => undefined),
+    ),
+  );
+}
 
 export function onSessionEnd(reset: () => void | Promise<void>): void {
   resetters.add(reset);

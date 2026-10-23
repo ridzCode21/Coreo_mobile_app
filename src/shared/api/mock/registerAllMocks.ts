@@ -20,3 +20,4 @@ import '@/features/chat/mocks/chat.handlers';
 import '@/features/profile/mocks/account.handlers';
 import '@/features/profile/mocks/memoryFacts.handlers';
 import '@/features/patterns/mocks/insights.handlers';
+import '@/features/notifications/mocks/checkInNotices.handlers';

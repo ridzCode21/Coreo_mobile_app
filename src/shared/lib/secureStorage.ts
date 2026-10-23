@@ -61,4 +61,5 @@ export const secureStorage = {
 export const SECURE_STORAGE_KEYS = {
   authToken: 'coreo.auth.token',
   refreshToken: 'coreo.auth.refreshToken',
+  deviceTokenId: 'coreo.notifications.deviceTokenId',
 } as const;

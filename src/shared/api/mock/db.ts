@@ -65,6 +65,33 @@ export type MockMemoryFact = {
   badge: string | null;
 };
 
+export type MockDeviceToken = {
+  id: string;
+  userId: string;
+  token: string;
+  platform: 'ios' | 'android' | 'web';
+  created_at: string;
+  updated_at: string;
+};
+
+/** One server send attempt to one device (`CheckInNotice` in the real backend). */
+export type MockCheckInNotice = {
+  id: string;
+  userId: string;
+  kind: 'evening_check_in' | 'late_night_guard';
+  title: string;
+  body: string;
+  time: string;
+  actions: { key: string; label: string }[];
+  due_at: string;
+  device_token_id: string;
+  status: 'sent' | 'failed';
+  error: string;
+  sent_at: string | null;
+  answer: 'good' | 'rough' | null;
+  answered_at: string | null;
+};
+
 type MockDb = {
   users: MockUser[];
   passwordResetTokens: Record<
@@ -136,6 +163,8 @@ type MockDb = {
   chatTurns: Record<string, MockChatTurn>;
   /** All notebook facts; handlers scope them to the authenticated caller. */
   memoryFacts: MockMemoryFact[];
+  deviceTokens: MockDeviceToken[];
+  checkInNotices: MockCheckInNotice[];
   /** Monotonic id source for created food entries. */
   nextFoodEntryId: number;
   /** Monotonic id source for user-created food items. */
@@ -173,6 +202,8 @@ function createEmptyDb(): MockDb {
     assistantProposals: {},
     chatTurns: {},
     memoryFacts: [],
+    deviceTokens: [],
+    checkInNotices: [],
     nextFoodEntryId: 1,
     nextFoodItemId: 11,
     nextMealPlanId: 1,
@@ -208,6 +239,8 @@ export function __resetMockDbForTests(): void {
   mockDb.assistantProposals = {};
   mockDb.chatTurns = {};
   mockDb.memoryFacts = [];
+  mockDb.deviceTokens = [];
+  mockDb.checkInNotices = [];
   mockDb.nextFoodEntryId = 1;
   mockDb.nextFoodItemId = 11;
   mockDb.nextMealPlanId = 1;
