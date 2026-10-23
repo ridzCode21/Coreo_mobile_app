@@ -23,6 +23,9 @@ export const queryClient = new QueryClient({
     },
     mutations: {
       retry: false,
+      // Mutations always run, even offline: they decide for themselves whether to queue the change
+      // (e.g. meal logging) instead of TanStack silently pausing them until the network returns.
+      networkMode: 'always',
     },
   },
 });

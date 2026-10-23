@@ -5,6 +5,20 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
 
+// `expo-network` is a native module with no JS implementation under Jest. Default to a reachable
+// connection; tests that need "offline" use `useConnectivityStore.getState().setSimulatedOffline`
+// (the same switch the mock API uses) or set the store's network snapshot directly.
+jest.mock('expo-network', () => ({
+  __esModule: true,
+  NetworkStateType: { NONE: 'NONE', UNKNOWN: 'UNKNOWN', WIFI: 'WIFI', CELLULAR: 'CELLULAR' },
+  getNetworkStateAsync: jest.fn(async () => ({
+    type: 'WIFI',
+    isConnected: true,
+    isInternetReachable: true,
+  })),
+  addNetworkStateListener: jest.fn(() => ({ remove: jest.fn() })),
+}));
+
 // React Native 0.86 exposes these development/settings modules through lazy public getters.
 // Tests that inspect the public module can evaluate those getters, so provide the native pieces
 // that do not exist in Jest before React Native is loaded.

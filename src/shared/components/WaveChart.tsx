@@ -38,6 +38,10 @@ type WaveChartProps = {
   animated?: boolean;
   /** Render the entire wave as the calibration-state dashed stroke, with no fill or dot. */
   dashedOnly?: boolean;
+  /** Offline Home (design 25c): draw only up to `progress`. Instead of the dashed "projected"
+   * remainder, a faint flat dotted line continues from the boundary, so nothing is invented past
+   * the last known moment. */
+  pastOnly?: boolean;
   style?: ViewStyle;
 };
 
@@ -79,6 +83,7 @@ export function WaveChart({
   glowDot = true,
   animated = true,
   dashedOnly = false,
+  pastOnly = false,
   style,
 }: WaveChartProps) {
   const [width, setWidth] = useState(0);
@@ -146,15 +151,28 @@ export function WaveChart({
         ) : (
           <>
             <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
-              <Path
-                d={fullPath}
-                stroke={color}
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                fill="none"
-                strokeDasharray="5,7"
-                opacity={0.45}
-              />
+              {pastOnly ? (
+                <Path
+                  testID="wave-past-only-flat-line"
+                  d={`M${(clampedProgress * width).toFixed(2)} ${waveYAtRatio(clampedProgress, height, amplitudeRatio).toFixed(2)} L${width.toFixed(2)} ${waveYAtRatio(clampedProgress, height, amplitudeRatio).toFixed(2)}`}
+                  stroke={color}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  fill="none"
+                  strokeDasharray="2,8"
+                  opacity={0.16}
+                />
+              ) : (
+                <Path
+                  d={fullPath}
+                  stroke={color}
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  fill="none"
+                  strokeDasharray="5,7"
+                  opacity={0.45}
+                />
+              )}
             </Svg>
             <Animated.View style={[styles.solidClip, { height }, clipStyle]}>
               <Svg width={width} height={height}>

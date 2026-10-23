@@ -12,18 +12,31 @@ import {
   withAlpha,
 } from '@/shared/theme/tokens';
 import { dayProgress } from '@/features/home/lib/dayProgress';
+import type { OfflineHomeView } from '@/features/home/lib/offlineHome';
 
 type TodayScoreCardProps = {
   now: Date;
   score?: number;
+  /** Offline Home (design 25c): the "As of" badge, a wave that stops at the saved time, and the
+   * saved-time axis. Omit when connected. */
+  offline?: Extract<OfflineHomeView, { offline: true }>;
 };
 
-export function TodayScoreCard({ now, score }: TodayScoreCardProps) {
+const ONLINE_AXIS = ['Morning', 'Now', 'Evening'] as const;
+
+export function TodayScoreCard({ now, score, offline }: TodayScoreCardProps) {
+  const axis = offline ? offline.axisLabels : ONLINE_AXIS;
+  const progress = offline ? offline.waveProgress : dayProgress(now);
   return (
     <GlassCard variant="night" radius={radii.xl} padded={false} style={styles.card}>
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.label}>Today</Text>
+          {offline?.asOfLabel ? (
+            <View style={styles.asOfBadge}>
+              <Text style={styles.asOfText}>{offline.asOfLabel}</Text>
+            </View>
+          ) : null}
           {score === undefined ? null : (
             <View testID="home-today-score">
               <DotMatrixNumeral
@@ -35,20 +48,27 @@ export function TodayScoreCard({ now, score }: TodayScoreCardProps) {
             </View>
           )}
         </View>
-        <View testID="home-today-wave" style={styles.wave}>
-          <WaveChart
-            progress={dayProgress(now)}
-            height={componentSizes.homeTodayWaveHeight}
-            color={colors.white}
-            areaFill
-            glowDot
-          />
-        </View>
-        <View style={styles.axis}>
-          <Text style={styles.axisLabel}>Morning</Text>
-          <Text style={styles.axisLabel}>Now</Text>
-          <Text style={styles.axisLabel}>Evening</Text>
-        </View>
+        {progress === null ? null : (
+          <View testID="home-today-wave" style={styles.wave}>
+            <WaveChart
+              progress={progress}
+              height={componentSizes.homeTodayWaveHeight}
+              color={colors.white}
+              areaFill
+              glowDot
+              pastOnly={offline !== undefined}
+            />
+          </View>
+        )}
+        {axis ? (
+          <View style={styles.axis}>
+            {axis.map((label, index) => (
+              <Text key={index} style={styles.axisLabel}>
+                {label}
+              </Text>
+            ))}
+          </View>
+        ) : null}
       </View>
     </GlassCard>
   );
@@ -71,6 +91,18 @@ const styles = StyleSheet.create({
   label: {
     ...textStyle('label'),
     color: withAlpha(colors.fog, 0.5),
+  },
+  asOfBadge: {
+    height: componentSizes.asOfBadgeHeight,
+    paddingHorizontal: spacing.asOfBadgePadX,
+    borderRadius: radii.asOfBadge,
+    backgroundColor: withAlpha(colors.white, 0.14),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  asOfText: {
+    ...textStyle('asOfBadge'),
+    color: withAlpha(colors.fog, 0.6),
   },
   wave: {
     marginTop: spacing.sheetSubtitleGap,

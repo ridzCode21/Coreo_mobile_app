@@ -16,6 +16,7 @@ import {
 import { queryClient } from '@/shared/api/queryClient';
 import { useSessionStore } from '@/features/auth';
 import { useAppFlagsStore } from '@/shared/stores/appFlagsStore';
+import { useConnectivityStore } from '@/shared/stores/connectivityStore';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,6 +37,14 @@ export default function RootLayout() {
     bootstrap();
     hydrateFlags();
   }, [bootstrap, hydrateFlags]);
+
+  // Watch the connection for the whole app (offline Home and the queued meal log, issue #49).
+  useEffect(() => {
+    const stopping = useConnectivityStore.getState().start();
+    return () => {
+      void stopping.then((stop) => stop());
+    };
+  }, []);
 
   // Fonts + session + flags all resolved → the OS splash hands off to our in-app animated splash
   // (src/app/(public)/splash.tsx), which is the true first screen the user sees.

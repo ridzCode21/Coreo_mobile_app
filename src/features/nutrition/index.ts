@@ -24,3 +24,4 @@ export {
 } from '@/features/nutrition/api/nutritionApi';
 export { mealPlanKeys, useMealPlanQuery } from '@/features/nutrition/api/mealPlanApi';
 export { targetsFromProfile } from '@/features/nutrition/lib/macros';
+export { useMealQueueSync, useRejectedMeals } from '@/features/nutrition/api/mealQueueSync';

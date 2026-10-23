@@ -13,48 +13,59 @@ import {
   withAlpha,
 } from '@/shared/theme/tokens';
 
-export function AskAnythingBar() {
+type AskAnythingBarProps = {
+  /** Offline (design 25c): the bar invites logging instead of chatting, which needs a connection.
+   * The mic is left out and tapping opens Diet, where a meal can still be logged and queued. */
+  offline?: boolean;
+};
+
+const OFFLINE_PROMPT = "Log anything — I'll sync the moment we're back.";
+
+export function AskAnythingBar({ offline = false }: AskAnythingBarProps) {
   const router = useRouter();
+  const prompt = offline ? OFFLINE_PROMPT : 'Ask me anything';
   return (
     <Pressable
-      onPress={() => router.push('/chat-presence' as Href)}
+      onPress={() => router.push((offline ? '/diet' : '/chat-presence') as Href)}
       accessibilityRole="button"
-      accessibilityLabel="Ask me anything"
+      accessibilityLabel={prompt}
       style={styles.bar}
     >
       <GlassCard variant="night" radius={radii.pill} padded={false}>
         <View style={styles.row}>
-          <Text style={styles.placeholder}>Ask me anything</Text>
-          <LinearGradient
-            colors={[withAlpha(colors.white, 0.3), withAlpha(colors.white, 0.1)]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.micCircle}
-          >
-            <Svg
-              width={componentSizes.homeAskBarIcon}
-              height={componentSizes.homeAskBarIcon}
-              viewBox="0 0 24 24"
-              fill="none"
+          <Text style={offline ? styles.offlinePlaceholder : styles.placeholder}>{prompt}</Text>
+          {offline ? null : (
+            <LinearGradient
+              colors={[withAlpha(colors.white, 0.3), withAlpha(colors.white, 0.1)]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.micCircle}
             >
-              <Rect
-                x={9}
-                y={3}
-                width={6}
-                height={11}
-                rx={3}
-                stroke={colors.onNight}
-                strokeWidth={componentSizes.homeAskBarMicStrokeWidth}
-              />
-              <Path
-                d="M5 11a7 7 0 0 0 14 0M12 18v3"
-                stroke={colors.onNight}
-                strokeWidth={componentSizes.homeAskBarMicStrokeWidth}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-          </LinearGradient>
+              <Svg
+                width={componentSizes.homeAskBarIcon}
+                height={componentSizes.homeAskBarIcon}
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <Rect
+                  x={9}
+                  y={3}
+                  width={6}
+                  height={11}
+                  rx={3}
+                  stroke={colors.onNight}
+                  strokeWidth={componentSizes.homeAskBarMicStrokeWidth}
+                />
+                <Path
+                  d="M5 11a7 7 0 0 0 14 0M12 18v3"
+                  stroke={colors.onNight}
+                  strokeWidth={componentSizes.homeAskBarMicStrokeWidth}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+            </LinearGradient>
+          )}
           <View style={styles.sendCircle}>
             <Svg
               width={componentSizes.homeAskBarIcon}
@@ -99,6 +110,11 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     ...textStyle('body'),
+    color: withAlpha(colors.fog, 0.55),
+    flex: 1,
+  },
+  offlinePlaceholder: {
+    ...textStyle('small'),
     color: withAlpha(colors.fog, 0.55),
     flex: 1,
   },

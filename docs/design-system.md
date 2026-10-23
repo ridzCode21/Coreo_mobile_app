@@ -212,6 +212,13 @@ The composed Home hero uses `componentSizes.homeTodayWaveHeight` (`84px`) and
 ask bar uses `homeAskBarHeight` (`60px`), `homeAskBarIconCircle` (`44px`),
 `homeAskBarIcon` (`16px`), and the matching mic/send stroke-width tokens. The nudge ripple uses
 `homeNudgeIcon` (`18px`) and `homeNudgeIconStrokeWidth` (`1.5px`).
+The offline Home (design 25c) adds a banner (`spacing.offlineBannerPadY` `9px`,
+`offlineBannerPadX` `14px`, `radii.legal`, icon `componentSizes.offlineBannerIcon` `13px` at
+`offlineBannerIconStrokeWidth` `1.8px`, text `typography.linkSm`) and the "As of" badge on the Today
+card (`componentSizes.asOfBadgeHeight` `20px`, `spacing.asOfBadgePadX` `9px`, `radii.asOfBadge`
+`10px`, `typography.asOfBadge` 8.5px/500 uppercase). The offline wave uses `WaveChart`'s
+`pastOnly` mode: solid up to the saved time, then only a faint flat dotted line, never an invented
+future.
 
 Rules:
 
