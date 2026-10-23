@@ -4,9 +4,17 @@ import type { ExpoConfig } from 'expo/config';
 // only references to process.env, populated locally via .env and in CI/EAS via EAS secrets.
 const defaultLiveApiUrl = 'https://vesselled-maxton-ringlike.ngrok-free.dev/api/v1';
 
+// Google sign-in (issue #13). The owner fills the real values in .env / EAS secrets; see .env.example.
+// The iOS URL scheme is the REVERSED iOS client ID. The plugin refuses to build without the
+// 'com.googleusercontent.apps.' prefix, so the fallback is a clearly fake value with that prefix.
+const googleIosUrlScheme =
+  process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME ??
+  'com.googleusercontent.apps.PLACEHOLDER-REPLACE-WITH-IOS-CLIENT-ID';
+
 const config: ExpoConfig = {
   name: 'Coreo',
   slug: 'coreo',
+  owner: 'vipincoreos-team',
   version: '1.0.0',
   // Orientation is decided per-screen, not locked app-wide — see docs/design-system.md §11.3.
   orientation: 'default',
@@ -54,6 +62,7 @@ const config: ExpoConfig = {
       },
     ],
     'expo-secure-store',
+    ['@react-native-google-signin/google-signin', { iosUrlScheme: googleIosUrlScheme }],
   ],
   experiments: {
     typedRoutes: true,
@@ -64,6 +73,12 @@ const config: ExpoConfig = {
     // 'mock' (default) routes every request through the in-app mock router instead of the
     // network — see docs/implementation-plan.md §2. Set to 'live' for the ngrok backend above.
     apiMode: process.env.EXPO_PUBLIC_API_MODE ?? 'mock',
+    // Client IDs are public identifiers (not secrets). The web ID must equal the backend's
+    // GOOGLE_CLIENT_ID: the backend checks the identity token's audience against it.
+    googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    // Links this app to its EAS project (builds, credentials, updates). Not a secret.
+    eas: { projectId: 'dcb9efd0-ff95-47e2-aff3-c15233310f72' },
   },
 };
 

@@ -11,6 +11,7 @@ import {
   issuePasswordResetToken,
   spendPasswordResetToken,
 } from '@/features/auth/mocks/passwordResetTokens';
+import { decodeMockGoogleIdentityToken } from '@/features/auth/lib/googleMockToken';
 
 function randomId(): string {
   return `usr_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
@@ -233,6 +234,149 @@ registerMock('POST', '/users/register/', (request) => {
     status: 201,
     delayMs: 500,
     body: styleAOk({ user: { ...serializeMockUser(user), onboarding_complete: true }, tokens }),
+  };
+});
+
+/** Mock `POST /users/google/`, mirroring provider_accounts.continue_with_provider. */
+registerMock('POST', '/users/google/', (request) => {
+  const body = (request.body ?? {}) as Record<string, unknown>;
+  const identityToken = asString(body.identity_token);
+
+  // The real service returns serializer validation for a missing field before token verification.
+  if (!identityToken.trim()) {
+    return {
+      status: 400,
+      body: styleAError('VALIDATION_ERROR', 'Invalid registration data', {
+        identity_token: ['This field is required.'],
+      }),
+    };
+  }
+
+  const identity = decodeMockGoogleIdentityToken(identityToken);
+  if (!identity) {
+    return {
+      status: 401,
+      body: styleAError('INVALID_PROVIDER_TOKEN', 'Invalid provider token'),
+    };
+  }
+
+  const existingProviderUser = mockDb.users.find(
+    (user) => user.auth_provider === 'google' && user.provider_subject === identity.subject,
+  );
+  if (existingProviderUser) {
+    return {
+      status: 200,
+      delayMs: 350,
+      body: styleAOk(
+        {
+          user: serializeMockUser(existingProviderUser),
+          tokens: issueTokenPair(existingProviderUser),
+        },
+        'Login successful',
+      ),
+    };
+  }
+
+  if (mockDb.users.some((user) => user.email.toLowerCase() === identity.email.toLowerCase())) {
+    return {
+      status: 400,
+      body: styleAError('VALIDATION_ERROR', 'Invalid registration data', {
+        email: ['User with this email already exists.'],
+      }),
+    };
+  }
+
+  const firstName = identity.givenName || asString(body.first_name).trim();
+  const lastName = identity.familyName || asString(body.last_name).trim();
+  const activePillars = body.active_pillars;
+  const pillarList = Array.isArray(activePillars) ? activePillars : null;
+  const details: Record<string, string[]> = {};
+
+  if (!firstName) details.first_name = ['This field may not be blank.'];
+  if (!isAllowedValue(INTERVIEW_GOALS, body.goal)) details.goal = ['Select a valid choice.'];
+  if (!pillarList) {
+    details.active_pillars = ['Pillars must be a list.'];
+  } else if (pillarList.length === 0) {
+    details.active_pillars = ['Pick at least one pillar.'];
+  } else if (pillarList.some((pillar) => !isAllowedValue(ACTIVE_PILLARS, pillar))) {
+    details.active_pillars = ['Pillars must be diet, fitness, or wellness.'];
+  } else if (pillarList.length !== new Set(pillarList).size) {
+    details.active_pillars = ['Pillars cannot be repeated.'];
+  }
+
+  if (
+    body.age !== undefined &&
+    body.age !== null &&
+    (!Number.isInteger(body.age) || (body.age as number) < 1 || (body.age as number) > 120)
+  ) {
+    details.age = ['Ensure this value is between 1 and 120.'];
+  }
+  if (
+    body.height_cm !== undefined &&
+    body.height_cm !== null &&
+    (typeof body.height_cm !== 'number' || !Number.isFinite(body.height_cm))
+  ) {
+    details.height_cm = ['A valid number is required.'];
+  }
+  if (
+    body.weight_kg !== undefined &&
+    body.weight_kg !== null &&
+    (typeof body.weight_kg !== 'number' || !Number.isFinite(body.weight_kg) || body.weight_kg < 0)
+  ) {
+    details.weight_kg = ['Ensure this value is greater than or equal to 0.'];
+  }
+  if (body.gender !== undefined && body.gender !== '' && !isAllowedValue(GENDERS, body.gender)) {
+    details.gender = ['Select a valid choice.'];
+  }
+
+  if (pillarList?.includes('diet')) {
+    for (const field of ['age', 'height_cm', 'weight_kg', 'gender'] as const) {
+      if (body[field] === undefined || body[field] === null || body[field] === '') {
+        details[field] = ['This field is required when diet is selected.'];
+      }
+    }
+  }
+
+  if (Object.keys(details).length > 0) {
+    return {
+      status: 400,
+      body: styleAError('VALIDATION_ERROR', 'Invalid registration data', details),
+    };
+  }
+
+  const now = new Date().toISOString();
+  const age = typeof body.age === 'number' ? body.age : null;
+  const user: MockUser = {
+    id: randomId(),
+    email: identity.email,
+    password: '',
+    first_name: firstName,
+    last_name: lastName,
+    phone: typeof body.phone === 'string' ? body.phone : null,
+    date_of_birth: age === null ? null : `${new Date().getFullYear() - age}-01-01`,
+    gender: isAllowedValue(GENDERS, body.gender) ? body.gender : null,
+    timezone: typeof body.timezone === 'string' ? body.timezone : 'UTC',
+    is_premium: false,
+    email_verified: true,
+    phone_verified: false,
+    auth_provider: 'google',
+    provider_subject: identity.subject,
+    calibration_started_on: localDateISO(new Date()),
+    created_at: now,
+    updated_at: now,
+  };
+  mockDb.users.push(user);
+
+  return {
+    status: 201,
+    delayMs: 500,
+    body: styleAOk(
+      {
+        user: { ...serializeMockUser(user), onboarding_complete: true },
+        tokens: issueTokenPair(user),
+      },
+      'Registration successful',
+    ),
   };
 });
 

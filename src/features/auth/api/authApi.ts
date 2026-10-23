@@ -94,6 +94,19 @@ export type RegisterRequestValues = RegisterFormValues & {
   gender?: Gender;
 };
 
+/** Interview answers sent with a Google ID token to `POST /users/google/`. */
+export type GoogleSignInRequestValues = {
+  identityToken: string;
+  firstName: string;
+  lastName: string;
+  goal: InterviewGoal;
+  activePillars: ActivePillar[];
+  age?: number;
+  heightCm?: number;
+  weightKg?: number;
+  gender?: Gender;
+};
+
 /**
  * `POST /users/register/` (API_REFERENCE.md §3, Style A envelope) — backs the onboarding "Save
  * your core" flow, for the CreateAccountScreen email path and the mocked Google button (which
@@ -111,6 +124,32 @@ export function useRegisterMutation() {
           password_confirm: values.passwordConfirm,
           first_name: values.firstName,
           ...(values.lastName ? { last_name: values.lastName } : {}),
+          goal: values.goal,
+          active_pillars: values.activePillars,
+          ...(values.activePillars.includes('diet')
+            ? {
+                age: values.age,
+                height_cm: values.heightCm,
+                weight_kg: values.weightKg,
+                gender: values.gender,
+              }
+            : {}),
+        },
+        { auth: false },
+      ),
+  });
+}
+
+/** `POST /users/google/` — a public provider endpoint with the same token envelope as register. */
+export function useGoogleSignInMutation() {
+  return useMutation({
+    mutationFn: (values: GoogleSignInRequestValues) =>
+      apiClient.post<RegisterEnvelope>(
+        '/users/google/',
+        {
+          identity_token: values.identityToken,
+          first_name: values.firstName,
+          last_name: values.lastName,
           goal: values.goal,
           active_pillars: values.activePillars,
           ...(values.activePillars.includes('diet')

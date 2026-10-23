@@ -6,11 +6,13 @@ import Svg, { Path } from 'react-native-svg';
 import {
   authErrorMessage,
   registerFieldErrors,
-  useLoginMutation,
+  useGoogleSignInMutation,
   usePillarSelectionStore,
-  useRegisterMutation,
   useSessionStore,
-  type RegisterRequestValues,
+  getGoogleIdentityToken,
+  GoogleSignInUnavailableError,
+  GoogleSignInCancelledError,
+  GoogleSignInNetworkError,
 } from '@/features/auth';
 import {
   OnboardingStepScaffold,
@@ -18,7 +20,7 @@ import {
 } from '@/features/onboarding/components/OnboardingStepScaffold';
 import { INTERVIEW_GOAL_LABEL } from '@/features/onboarding/lib/interviewGoalLabels';
 import {
-  buildMockSocialIdentity,
+  interviewFieldsFromDraft,
   isExistingEmailError,
 } from '@/features/onboarding/lib/registerFromInterview';
 import {
@@ -60,8 +62,7 @@ export default function SaveScreen() {
   const draft = useOnboardingStore((state) => state.draft);
   const signIn = useSessionStore((state) => state.signIn);
   const setActivePillars = usePillarSelectionStore((state) => state.setActivePillars);
-  const registerMutation = useRegisterMutation();
-  const loginMutation = useLoginMutation();
+  const googleMutation = useGoogleSignInMutation();
   const [isConnecting, setIsConnecting] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
 
@@ -71,41 +72,52 @@ export default function SaveScreen() {
     router.replace('/(public)/onboarding/arrival');
   };
 
-  const commit = (values: RegisterRequestValues) => {
-    setBanner(null);
-    registerMutation.mutate(values, {
-      onSuccess: (envelope) => finishSignIn(envelope.data.tokens),
-      onError: (error) => {
-        setIsConnecting(false);
-        const fieldErrors = registerFieldErrors(error);
-        if (isExistingEmailError(fieldErrors)) {
-          loginMutation.mutate(
-            { email: values.email, password: values.password },
-            {
-              onSuccess: (envelope) => finishSignIn(envelope.data.tokens),
-              onError: () => {
-                setBanner(
-                  'That Google email already has an account. Use email instead to sign in.',
-                );
-              },
-            },
-          );
-          return;
-        }
-        setBanner(
-          authErrorMessage(error, "Something went wrong saving your core. Let's try again."),
-        );
-      },
-    });
-  };
-
-  const handleGoogle = () => {
+  const handleGoogle = async () => {
     if (isConnecting) return;
+    setBanner(null);
     setIsConnecting(true);
-    commit(buildMockSocialIdentity('google', draft));
+
+    try {
+      const identity = await getGoogleIdentityToken(draft.name);
+      googleMutation.mutate(
+        {
+          identityToken: identity.identityToken,
+          firstName: identity.firstName,
+          lastName: identity.lastName,
+          ...interviewFieldsFromDraft(draft),
+        },
+        {
+          onSuccess: (envelope) => finishSignIn(envelope.data.tokens),
+          onError: (error) => {
+            setIsConnecting(false);
+            const fieldErrors = registerFieldErrors(error);
+            if (isExistingEmailError(fieldErrors)) {
+              setBanner('That Google email already has an account. Use email instead to sign in.');
+              return;
+            }
+            setBanner(
+              authErrorMessage(error, "Something went wrong saving your core. Let's try again."),
+            );
+          },
+        },
+      );
+    } catch (error) {
+      setIsConnecting(false);
+      // Closing the Google sheet is a choice, not a failure: stay quiet.
+      if (error instanceof GoogleSignInCancelledError) return;
+      if (error instanceof GoogleSignInNetworkError) {
+        setBanner("Couldn't reach Google. Check your connection and try again, or use email.");
+        return;
+      }
+      if (error instanceof GoogleSignInUnavailableError) {
+        setBanner("Google sign-in isn't available right now. Use email instead.");
+        return;
+      }
+      setBanner(authErrorMessage(error, "Something went wrong saving your core. Let's try again."));
+    }
   };
 
-  const isBusy = isConnecting || registerMutation.isPending || loginMutation.isPending;
+  const isBusy = isConnecting || googleMutation.isPending;
 
   return (
     <OnboardingStepScaffold

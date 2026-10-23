@@ -1,15 +1,13 @@
-import {
-  buildMockSocialIdentity,
-  registerFormField,
-  splitName,
-} from '@/features/onboarding/lib/registerFromInterview';
-import { ONBOARDING_DEFAULTS } from '@/features/onboarding/store/onboardingStore';
+import { registerFormField, splitName } from '@/features/onboarding/lib/registerFromInterview';
 
 /**
- * Issue #14 — 8e adds a real `passwordConfirm` field distinct from `password`. These two helpers
- * sit on either side of that change: `registerFormField` decides which rendered form field a
- * server error attaches to, and `buildMockSocialIdentity` (SaveScreen's mocked Google path, which
- * has no confirm-password UI at all) must still produce a type-complete `RegisterRequestValues`.
+ * Issue #14 — 8e adds a real `passwordConfirm` field distinct from `password`. `registerFormField`
+ * decides which rendered form field a server error attaches to.
+ *
+ * `buildMockSocialIdentity` (SaveScreen's old mocked-Google-via-`/users/register/` path) and its
+ * coverage here were removed by issue #13: the Google button now calls the real
+ * `POST /users/google/` instead (see `tests/regression/onboarding/save-screen-registration.test.tsx`
+ * and `tests/regression/auth/google-sign-in-mock.test.ts`).
  */
 describe('onboarding: registerFromInterview helpers (issue #14)', () => {
   describe('registerFormField', () => {
@@ -25,18 +23,6 @@ describe('onboarding: registerFromInterview helpers (issue #14)', () => {
     it('no longer maps first_name/last_name (8e has no name inputs to attach an error to)', () => {
       expect(registerFormField('first_name')).toBeNull();
       expect(registerFormField('last_name')).toBeNull();
-    });
-  });
-
-  describe('buildMockSocialIdentity', () => {
-    it('includes a passwordConfirm equal to the generated password', () => {
-      const identity = buildMockSocialIdentity('google', {
-        ...ONBOARDING_DEFAULTS,
-        name: 'Maya Chen',
-        goal: 'lose_weight',
-        pillars: ['fitness'],
-      });
-      expect(identity.passwordConfirm).toBe(identity.password);
     });
   });
 

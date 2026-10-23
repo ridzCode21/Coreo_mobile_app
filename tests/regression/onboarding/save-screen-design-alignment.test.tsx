@@ -19,6 +19,7 @@ jest.mock('@/features/auth/api/authApi', () => {
     ...actual,
     useRegisterMutation: () => ({ mutate: jest.fn(), isPending: false }),
     useLoginMutation: () => ({ mutate: jest.fn(), isPending: false }),
+    useGoogleSignInMutation: () => ({ mutate: jest.fn(), isPending: false }),
   };
 });
 
