@@ -9,6 +9,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
 import { apiClient } from '@/shared/api/client';
+import { ApiError } from '@/shared/api/errors';
+import { useConnectivityStore } from '@/shared/stores/connectivityStore';
 import type {
   AiGuess,
   DailyTotals,
@@ -33,6 +35,8 @@ import {
   type ConfirmMealValues,
   type UsualsResponse,
 } from '@/features/nutrition/schemas';
+import { newMealId, type QueuedEntry } from '@/features/nutrition/lib/mealQueue';
+import { useMealQueueStore } from '@/features/nutrition/store/mealQueueStore';
 
 /** Today as `YYYY-MM-DD` in the device's locale-independent ISO date. */
 export function todayISO(): string {
@@ -245,7 +249,7 @@ export type CreateFoodEntryInput = ConfirmMealValues & {
   ai_guess?: AiGuess;
 };
 
-function postFoodEntry(date: string, values: CreateFoodEntryInput) {
+export function postFoodEntry(date: string, values: CreateFoodEntryInput) {
   return apiClient.post<CreatedFoodEntry>('/food/entries/', {
     date,
     meal_type: values.meal_type,
@@ -260,11 +264,71 @@ function postFoodEntry(date: string, values: CreateFoodEntryInput) {
   });
 }
 
-/** `POST /food/entries/` — commit a confirmed entry. Invalidates the day's entries + summary. */
+/** What a save resolves with when there was no connection: the meal is waiting in the offline
+ * queue (issue #49) and will be sent when the connection returns. */
+export type QueuedLogResult = { queued: true };
+
+function toQueuedEntry(entry: CreateFoodEntryInput): QueuedEntry {
+  return {
+    meal_type: entry.meal_type,
+    food_name: entry.food_name,
+    ...(entry.portion_g !== undefined ? { portion_g: entry.portion_g } : {}),
+    calories: entry.calories,
+    protein_g: entry.protein_g,
+    carbs_g: entry.carbs_g,
+    fat_g: entry.fat_g,
+    source: entry.source,
+    ...(entry.ai_guess !== undefined ? { ai_guess: entry.ai_guess } : {}),
+  };
+}
+
+/**
+ * Saves entries in order. With no connection (or if the connection drops part-way) the entries not
+ * yet saved go to the offline queue instead of failing; if even the queue cannot take them the
+ * network error is raised so the screen shows its normal "didn't save" message.
+ */
+async function saveOrQueueEntries(
+  date: string,
+  entries: CreateFoodEntryInput[],
+): Promise<CreatedFoodEntry[] | QueuedLogResult> {
+  const created: CreatedFoodEntry[] = [];
+  const queueRest = async (from: number): Promise<QueuedLogResult> => {
+    const createdAt = new Date().toISOString();
+    const queued = await useMealQueueStore.getState().enqueue(
+      entries.slice(from).map((entry) => ({
+        id: newMealId(),
+        createdAt,
+        date,
+        entry: toQueuedEntry(entry),
+      })),
+    );
+    if (!queued) throw ApiError.network();
+    return { queued: true };
+  };
+
+  for (let index = 0; index < entries.length; index += 1) {
+    if (!useConnectivityStore.getState().isOnline) return queueRest(index);
+    try {
+      created.push(await postFoodEntry(date, entries[index]));
+    } catch (error) {
+      if (error instanceof ApiError && error.kind === 'network') return queueRest(index);
+      throw error;
+    }
+  }
+  return created;
+}
+
+/** `POST /food/entries/` — commit a confirmed entry. Invalidates the day's entries + summary.
+ * Offline, the entry is queued instead (see `QueuedLogResult`). */
 export function useCreateFoodEntryMutation(date: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (values: CreateFoodEntryInput) => postFoodEntry(date, values),
+    mutationFn: async (
+      values: CreateFoodEntryInput,
+    ): Promise<CreatedFoodEntry | QueuedLogResult> => {
+      const result = await saveOrQueueEntries(date, [values]);
+      return Array.isArray(result) ? result[0] : result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: nutritionKeys.foodEntries(date) });
       queryClient.invalidateQueries({ queryKey: nutritionKeys.dailySummary(date) });
@@ -272,15 +336,12 @@ export function useCreateFoodEntryMutation(date: string) {
   });
 }
 
-/** Commit photo line items sequentially, then refresh the day once all items have saved. */
+/** Commit photo line items sequentially, then refresh the day once all items have saved. Offline,
+ * the items not yet saved are queued instead. */
 export function useCreateFoodEntriesMutation(date: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (entries: CreateFoodEntryInput[]) => {
-      const created: CreatedFoodEntry[] = [];
-      for (const entry of entries) created.push(await postFoodEntry(date, entry));
-      return created;
-    },
+    mutationFn: (entries: CreateFoodEntryInput[]) => saveOrQueueEntries(date, entries),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: nutritionKeys.foodEntries(date) });
       queryClient.invalidateQueries({ queryKey: nutritionKeys.dailySummary(date) });

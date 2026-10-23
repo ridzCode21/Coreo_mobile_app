@@ -32,4 +32,6 @@ export const STORAGE_KEYS = {
   hasSeenFirstOpen: 'coreo.app.hasSeenFirstOpen',
   dismissedDietQuickSetup: 'coreo.app.dismissedDietQuickSetup',
   visitedProfileSections: 'coreo.app.visitedProfileSections',
+  homeCache: 'coreo.offline.homeCache',
+  mealQueue: 'coreo.offline.mealQueue',
 } as const;

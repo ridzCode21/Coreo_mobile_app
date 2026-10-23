@@ -2,7 +2,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { useRouter, type Href } from 'expo-router';
 
 import { GlassCard } from '@/shared/components/GlassCard';
-import { PetalCluster } from '@/shared/components/PetalCluster';
+import { PetalCluster, type PetalClusterItem } from '@/shared/components/PetalCluster';
 import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
 import { colors, fontFamily, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
@@ -11,11 +11,18 @@ import { useSourcesQuery } from '@/features/home/api/sourcesApi';
 import { AskAnythingBar } from '@/features/home/components/AskAnythingBar';
 import { CalibratingWaveCard } from '@/features/home/components/CalibratingWaveCard';
 import { HomeHeader } from '@/features/home/components/HomeHeader';
+import { HomeNoticeBanner } from '@/features/home/components/HomeNoticeBanner';
 import { ReadingYouCard } from '@/features/home/components/ReadingYouCard';
 import { TodayScoreCard } from '@/features/home/components/TodayScoreCard';
 import { timeOfDayGreeting } from '@/features/home/lib/greeting';
+import { useOfflineHome } from '@/features/home/lib/useOfflineHome';
 import { targetQuality, useDietProfileQuery } from '@/features/onboarding';
-import { targetsFromProfile, todayISO, useDailySummaryQuery } from '@/features/nutrition';
+import {
+  targetsFromProfile,
+  todayISO,
+  useDailySummaryQuery,
+  useRejectedMeals,
+} from '@/features/nutrition';
 
 const DIET_ROUTE = '/diet' as Href;
 const FITNESS_ROUTE = '/fitness' as Href;
@@ -49,6 +56,8 @@ export default function CoreoHomeScreen() {
   const calibrationDay = userProfileQuery.data?.calibration_day ?? null;
   const profileQuery = useDietProfileQuery();
   const summaryQuery = useDailySummaryQuery(today);
+  const offlineView = useOfflineHome(summaryQuery, today);
+  const rejectedMeals = useRejectedMeals();
 
   const isLoading = profileQuery.isLoading || summaryQuery.isLoading;
   const firstName = userProfileQuery.data?.first_name.trim();
@@ -72,12 +81,48 @@ export default function CoreoHomeScreen() {
         ? "Here's where today stands."
         : 'Today starts here.';
 
+  const pillarPetals: PetalClusterItem[] = [
+    { id: 'wellness', label: 'Wellness', onPress: () => router.navigate(WELLNESS_ROUTE) },
+    { id: 'fitness', label: 'Fitness', onPress: () => router.navigate(FITNESS_ROUTE) },
+    { id: 'diet', label: 'Diet', onPress: () => router.navigate(DIET_ROUTE) },
+    { id: 'core', label: 'Core', emphasized: true },
+  ];
+
   return (
     <View style={styles.root}>
       <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
         <HomeHeader now={now} />
-        {isCalibrating ? (
+        {rejectedMeals.count > 0 ? (
+          <HomeNoticeBanner
+            text={`${rejectedMeals.count === 1 ? '1 logged meal' : `${rejectedMeals.count} logged meals`} couldn't be saved.`}
+            onPress={rejectedMeals.dismiss}
+            accessibilityHint="Dismisses this notice"
+          />
+        ) : null}
+        {offlineView.offline ? (
+          <>
+            <HomeNoticeBanner text={offlineView.bannerText} showOfflineIcon />
+            <View style={styles.offlineGreetingBlock}>
+              <Text style={styles.greeting}>
+                {timeOfDayGreeting(now)},
+                {firstName ? (
+                  <>
+                    {' '}
+                    <Text style={styles.greetingName}>{firstName}.</Text>
+                  </>
+                ) : null}
+              </Text>
+            </View>
+            {offlineView.waveProgress === null ? null : (
+              <TodayScoreCard now={now} offline={offlineView} />
+            )}
+            <View style={styles.offlinePetals}>
+              <PetalCluster items={pillarPetals} />
+            </View>
+            <AskAnythingBar offline />
+          </>
+        ) : isCalibrating ? (
           <>
             <View style={styles.greetingBlock}>
               <Text style={styles.greeting}>
@@ -177,30 +222,7 @@ export default function CoreoHomeScreen() {
                   </View>
                 </GlassCard>
 
-                <PetalCluster
-                  items={[
-                    {
-                      id: 'wellness',
-                      label: 'Wellness',
-                      onPress: () => router.navigate(WELLNESS_ROUTE),
-                    },
-                    {
-                      id: 'fitness',
-                      label: 'Fitness',
-                      onPress: () => router.navigate(FITNESS_ROUTE),
-                    },
-                    {
-                      id: 'diet',
-                      label: 'Diet',
-                      onPress: () => router.navigate(DIET_ROUTE),
-                    },
-                    {
-                      id: 'core',
-                      label: 'Core',
-                      emphasized: true,
-                    },
-                  ]}
-                />
+                <PetalCluster items={pillarPetals} />
 
                 <AskAnythingBar />
               </>
@@ -253,6 +275,12 @@ const styles = StyleSheet.create({
   },
   greetingName: {
     fontFamily: fontFamily.poppins400,
+  },
+  offlineGreetingBlock: {
+    marginTop: spacing.ml,
+  },
+  offlinePetals: {
+    marginTop: spacing.lg,
   },
   greetingSubtitle: {
     ...textStyle('greetingSubtitle'),

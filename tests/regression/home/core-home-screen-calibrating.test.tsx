@@ -41,6 +41,7 @@ let mockSummary: Partial<DailySummary> | undefined;
 jest.mock('@/features/nutrition', () => ({
   todayISO: () => '2026-07-06',
   useDailySummaryQuery: () => ({ data: mockSummary, isLoading: false }),
+  useRejectedMeals: () => ({ count: 0, dismiss: jest.fn() }),
   targetsFromProfile: () => ({ calories: 2000, protein: 150, carbs: 200, fat: 60 }),
 }));
 

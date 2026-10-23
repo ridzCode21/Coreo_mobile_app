@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import { secureAuthTokenStore } from '@/shared/api/authTokenStore';
 import { queryClient } from '@/shared/api/queryClient';
+import { runSessionCleanup } from '@/shared/lib/sessionCleanup';
 import { profileKeys } from '@/features/auth/api/profileApi';
 import { usePillarSelectionStore } from '@/features/auth/store/pillarSelectionStore';
 
@@ -48,6 +49,8 @@ export const useSessionStore = create<SessionState>((set) => ({
     await secureAuthTokenStore.clearTokens();
     queryClient.removeQueries({ queryKey: profileKeys.all });
     usePillarSelectionStore.getState().clear();
+    // Saved offline copies are personal data on unencrypted storage: never outlive the session.
+    await runSessionCleanup();
     set({ status: 'signedOut' });
   },
 }));

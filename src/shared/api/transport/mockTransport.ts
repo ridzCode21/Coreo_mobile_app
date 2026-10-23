@@ -1,5 +1,6 @@
 import { resolveMock } from '@/shared/api/mock/router';
 import type { Transport, TransportResponse } from '@/shared/api/transport/types';
+import { useConnectivityStore } from '@/shared/stores/connectivityStore';
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -19,6 +20,12 @@ function notFound(): TransportResponse {
  * to `shared/api/client.ts`.
  */
 export const mockTransport: Transport = async (request) => {
+  // Simulated offline (tests/dev): fail like a dropped connection so `apiClient` raises a
+  // `network` ApiError, exactly as the live transport would.
+  if (useConnectivityStore.getState().simulatedOffline) {
+    throw new TypeError('Network request failed');
+  }
+
   const [pathOnly, queryString] = request.path.split('?');
   const query = Object.fromEntries(new URLSearchParams(queryString ?? ''));
   const match = resolveMock(request.method, pathOnly);
