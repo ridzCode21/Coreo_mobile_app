@@ -14,8 +14,16 @@ export function isSourceQuiet(
   source: SourceStatus,
   now = new Date(),
 ): source is SourceStatus & { last_synced_at: string } {
-  if (!source.connected || source.last_synced_at === null) {
+  if (!source.connected) {
     return false;
+  }
+
+  if (source.last_synced_at === null) {
+    return false;
+  }
+
+  if (source.source !== 'strava') {
+    return source.status === 'quiet';
   }
 
   return now.getTime() - new Date(source.last_synced_at).getTime() >= QUIET_AFTER_MS;
@@ -75,6 +83,15 @@ export function formatLastSynced(lastSyncedAt: string, now = new Date()): string
     day: 'numeric',
     timeZone: 'UTC',
   })}, ${time}`;
+}
+
+export function formatSleepDuration(hours: number): string {
+  const minutes = Math.round(hours * 60);
+  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+}
+
+export function formatRecoveryValue(recovery: { score: number } | null): string {
+  return recovery === null ? 'Unavailable today' : String(recovery.score);
 }
 
 export function reconnectRouteForSource(

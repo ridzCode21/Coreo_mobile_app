@@ -6,6 +6,7 @@
 
 export const colors = {
   ink: '#17191D',
+  ink10: 'rgba(23,25,29,0.1)',
   ink40: 'rgba(23,25,29,0.42)',
   ink45: 'rgba(23,25,29,0.45)',
   ink50: 'rgba(23,25,29,0.5)',
@@ -492,6 +493,7 @@ export const componentSizes = {
   portionSliderShadowRadius: 18,
   portionSliderElevation: 4,
   dietHeaderControl: 38,
+  sourceQuietEstimateHeight: 20,
   dietWeightChipHeight: 26,
   dietLogPillHeight: 58,
   dietLogPlus: 42,
@@ -632,6 +634,20 @@ export const typography = {
   sourceQuietFooterTitle: { fontSize: 12, fontWeight: '400', letterSpacing: 0 },
   sourceQuietFooterSubtitle: { fontSize: 10, fontWeight: '300', letterSpacing: 0 },
   sourceQuietManagePill: { fontSize: 10, fontWeight: '400', letterSpacing: 0 },
+  sourceQuietLastNightLabel: {
+    fontSize: 9,
+    fontWeight: '500',
+    letterSpacing: 1.8,
+    textTransform: 'uppercase',
+  },
+  sourceQuietRowLabel: { fontSize: 12.5, fontWeight: '400', letterSpacing: 0 },
+  sourceQuietRowValue: { fontSize: 12.5, fontWeight: '300', letterSpacing: 0 },
+  sourceQuietEstimate: {
+    fontSize: 8.5,
+    fontWeight: '500',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
   patternsInsightBody: { fontSize: 18, fontWeight: '300', letterSpacing: 0, lineHeight: 1.65 },
   sheetSubtitle: { fontSize: 11.5, fontWeight: '300', letterSpacing: 0 },
   sheetTitle: { fontSize: 25, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.4 },

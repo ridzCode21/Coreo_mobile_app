@@ -2,13 +2,15 @@ import type { ReactNode } from 'react';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { useSourcesQuery } from '@/features/home';
+import { useLastNightQuery, useSourcesQuery } from '@/features/home';
 import { BackButton } from '@/shared/components/BackButton';
 import { sourceLabels } from '@/features/profile/lib/profileCopy';
 import {
   buildConnectedSummary,
   findQuietSource,
   formatLastSynced,
+  formatRecoveryValue,
+  formatSleepDuration,
   reconnectRouteForSource,
 } from '@/features/profile/lib/sourceQuietStatus';
 import { GlassCard } from '@/shared/components/GlassCard';
@@ -26,6 +28,7 @@ import {
 export default function SourceQuietScreen() {
   const router = useRouter();
   const query = useSourcesQuery();
+  const lastNightQuery = useLastNightQuery();
   const now = new Date();
 
   let content: ReactNode;
@@ -77,6 +80,36 @@ export default function SourceQuietScreen() {
               </Pressable>
             </View>
           </GlassCard>
+          {lastNightQuery.data?.sleep ? (
+            <View style={styles.lastNight}>
+              <Text style={styles.lastNightLabel}>Last night</Text>
+              <View style={styles.lastNightRows}>
+                <GlassCard variant="planRowSkipped" radius={radii.control} padded={false}>
+                  <View style={styles.lastNightRow}>
+                    <Text style={styles.lastNightRowLabel}>Sleep</Text>
+                    <View style={styles.lastNightValueGroup}>
+                      <Text style={styles.lastNightValue}>
+                        {formatSleepDuration(lastNightQuery.data.sleep.hours)}
+                      </Text>
+                      {lastNightQuery.data.sleep.estimate ? (
+                        <View style={styles.estimateBadge}>
+                          <Text style={styles.estimateText}>Estimate</Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  </View>
+                </GlassCard>
+                <GlassCard variant="planRowSkipped" radius={radii.control} padded={false}>
+                  <View style={styles.lastNightRow}>
+                    <Text style={styles.lastNightRowLabel}>Recovery</Text>
+                    <Text style={styles.recoveryValue}>
+                      {formatRecoveryValue(lastNightQuery.data.recovery)}
+                    </Text>
+                  </View>
+                </GlassCard>
+              </View>
+            </View>
+          ) : null}
           {connectedSummary ? (
             <GlassCard variant="usualNote" radius={radii.md} padded={false} style={styles.footer}>
               <View style={styles.footerContent}>
@@ -142,6 +175,38 @@ const styles = StyleSheet.create({
     color: colors.ink50,
     textDecorationLine: 'underline',
   },
+  lastNight: { marginTop: spacing.md },
+  lastNightLabel: {
+    ...typography.sourceQuietLastNightLabel,
+    color: colors.label,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.xs / 2,
+  },
+  lastNightRows: { gap: spacing.sm },
+  lastNightRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.planMealRowPaddingX,
+    paddingVertical: spacing.planMealRowPaddingY,
+  },
+  lastNightRowLabel: { ...typography.sourceQuietRowLabel, color: colors.ink },
+  lastNightValueGroup: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sliderCaptionGap,
+  },
+  lastNightValue: { ...typography.sourceQuietRowValue, color: colors.ink },
+  estimateBadge: {
+    alignItems: 'center',
+    backgroundColor: colors.ink10,
+    borderRadius: radii.asOfBadge,
+    height: componentSizes.sourceQuietEstimateHeight,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.sm,
+  },
+  estimateText: { ...typography.sourceQuietEstimate, color: colors.ink55 },
+  recoveryValue: { ...typography.rightNowPattern, color: colors.ink45 },
   footer: { marginTop: 'auto' },
   footerContent: {
     alignItems: 'center',

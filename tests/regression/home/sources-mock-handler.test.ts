@@ -1,12 +1,20 @@
 /**
  * Issue #19 — the "Reading you" card needs real connected-source data from
  * `GET /integrations/sources/` (`apps/integrations/urls.py:8`, view
- * `apps/integrations/views.py:17-19`, `apps/integrations/source_status.py:9-46`). The backend wraps
- * the three-record list (`apple_health`, `health_connect`, `strava` — `DeviceSync.Source` choices
- * `apps/integrations/models.py:33-35`, plus the literal `"strava"` string) in its own envelope,
- * `{"success": true, "sources": [...]}` — not Style A's `data` wrapper. No device-connect flow
- * exists in the app yet (see plan.md Decision log #2 / blocked.txt), so the mock always returns all
- * three disconnected, exactly like a fresh real account with no `DeviceSync`/`StravaConnection` rows.
+ * `apps/integrations/views.py:30-37`, `apps/integrations/source_status.py:9-70`). The backend wraps
+ * the record list in its own envelope, `{"success": true, "sources": [...], "last_night": {...}}` —
+ * not Style A's `data` wrapper. No device-connect flow exists in the app yet (see plan.md Decision
+ * log #2 / blocked.txt), so the mock always returns every source disconnected, exactly like a fresh
+ * real account with no `DeviceSync`/`StravaConnection`/`WearableConnection` rows.
+ *
+ * Updated for issue #48 round 2 (not weakened — corrected to match the backend's real current
+ * shape): `source_status()` (`source_status.py:9-70`) unconditionally appends a `whoop` and `oura`
+ * record to `sources` (iterating `WEARABLE_ORDER`, `source_status.py:30-31`) even though no in-app
+ * flow connects them, and adds a `status` field per record. `views.py:30-37` also adds a top-level
+ * `last_night` key (`apps/integrations/readings.py:26-36`). The old assertion of exactly 3 records
+ * with no `status`/`last_night` no longer matches the backend and was breaking `useSourcesQuery`'s
+ * Zod parse against this real shape (plan.md Decision log #4) — this test now locks in the corrected
+ * 5-record shape instead.
  */
 
 import '@/shared/api/mock/registerAllMocks';
@@ -72,7 +80,7 @@ describe('home mock: GET /integrations/sources/ (issue #19)', () => {
     expect(response.status).toBe(401);
   });
 
-  it('returns exactly 3 disconnected records in the backend envelope shape, no counts', async () => {
+  it('returns exactly 5 disconnected records in the backend envelope shape, plus last_night, no counts', async () => {
     const user = seedUser();
     const { access } = issueTokenPair(user);
 
@@ -86,15 +94,26 @@ describe('home mock: GET /integrations/sources/ (issue #19)', () => {
         connected: boolean;
         last_synced_at: string | null;
         synced_through: string | null;
+        status: string | null;
       }[];
+      last_night: { sleep: unknown; recovery: unknown };
     };
     expect(body.success).toBe(true);
-    expect(body.sources).toHaveLength(3);
-    expect(body.sources.map((s) => s.source)).toEqual(['apple_health', 'health_connect', 'strava']);
+    expect(body.sources).toHaveLength(5);
+    expect(body.sources.map((s) => s.source)).toEqual([
+      'apple_health',
+      'health_connect',
+      'strava',
+      'whoop',
+      'oura',
+    ]);
     for (const record of body.sources) {
       expect(record.connected).toBe(false);
       expect(record.last_synced_at).toBeNull();
       expect(record.synced_through).toBeNull();
+      expect(record.status).toBeNull();
     }
+    expect(body.last_night.sleep).toBeNull();
+    expect(body.last_night.recovery).toBeNull();
   });
 });

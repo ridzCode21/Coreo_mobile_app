@@ -18,6 +18,7 @@ export type GlassCardVariant =
   | 'dock'
   | 'afterSnapSurface'
   | 'sourceQuietCard'
+  | 'planRowSkipped'
   | 'usualHighlight'
   | 'usualCard'
   | 'usualNote';
@@ -68,6 +69,7 @@ export function GlassCard({
     dock: { intensity: 90, tint: 'light' },
     afterSnapSurface: { intensity: 60, tint: 'light' },
     sourceQuietCard: { intensity: 60, tint: 'light' },
+    planRowSkipped: { intensity: 60, tint: 'light' },
     usualHighlight: { intensity: 90, tint: 'dark' },
     usualCard: { intensity: 60, tint: 'light' },
     usualNote: { intensity: 60, tint: 'light' },

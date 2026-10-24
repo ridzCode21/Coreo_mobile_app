@@ -198,6 +198,11 @@ control uses `radii.sourceQuietAction` (21px); the main and footer cards reuse
 `radii.dietNextMeal` (24px) and `radii.md` (20px), respectively.
 The main card uses `glass.sourceQuietCard`: white `.66` → `.26` gradient, `.6` white border,
 `.14` overlay-ink shadow, and `.7` white top highlight; it uses a light intensity-60 blur.
+Its conditional Last night section uses `typography.sourceQuietLastNightLabel` (9px/500,
++1.8px uppercase), `sourceQuietRowLabel` (12.5px/400), `sourceQuietRowValue` (12.5px/300),
+`sourceQuietEstimate` (8.5px/500, +.4px uppercase), `colors.ink10` for the Estimate badge,
+`componentSizes.sourceQuietEstimateHeight` (20px), and `glass.planRowSkipped` with
+`radii.control` (18px) for both rows.
 
 Non-type text tracking overrides also live in the token module; `tracking.wide` is `1px` for
 scanner codes and manual barcode entry.
