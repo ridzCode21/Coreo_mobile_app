@@ -124,6 +124,9 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `planFailedTitle`        | 22px      | 200              | −0.4px, line-height 1.4   | Today-plan failed-state headline                                      |
 | `planMealName*`          | 12.5–13px | 400 / 500        | normal                    | Today-plan meal names and next-up emphasis                            |
 | `planMealCalories`       | 11.5px    | 400              | normal                    | Today-plan meal calories                                              |
+| `planRepairBanner`       | 12px      | 300              | normal, line-height 1.65  | Plan-check repair explanation                                         |
+| `planAdjustedChip`       | 9px       | 500              | +0.3px                    | Plan-check repaired-meal indicator                                    |
+| `planRepairHint`         | 10.5px    | 300              | normal                    | Plan-check repaired-meal tap hint                                     |
 | `planQuickAction`        | 11px      | 400              | normal                    | Today-plan quick-action chips                                         |
 | `planKcalHero`           | 22px      | 200              | normal                    | Compact ready-plan remaining-calorie value                            |
 | `planKcalUnit`           | 10px      | 300              | normal                    | Compact ready-plan calorie unit                                       |
@@ -203,6 +206,12 @@ Its conditional Last night section uses `typography.sourceQuietLastNightLabel` (
 `sourceQuietEstimate` (8.5px/500, +.4px uppercase), `colors.ink10` for the Estimate badge,
 `componentSizes.sourceQuietEstimateHeight` (20px), and `glass.planRowSkipped` with
 `radii.control` (18px) for both rows.
+
+Plan check repair screen 33a uses `colors.adjustedChipBackground` (`rgba(23,25,29,.08)`),
+`radii.planRepairBanner` (20px), `radii.planAdjustedChip` (11px),
+`componentSizes.planRepairIcon` (16px), `planRepairIconStrokeWidth` (1.8px), and
+`planAdjustedChipHeight` (22px). Its 14/16px banner padding, 10px icon gap, 14px placements,
+and 10px chip inset are the matching `spacing.planRepair*` / `planAdjustedChipPaddingX` tokens.
 
 Non-type text tracking overrides also live in the token module; `tracking.wide` is `1px` for
 scanner codes and manual barcode entry.

@@ -197,6 +197,7 @@ function makeMeal(
     recipe_json: null,
     replaced_at: null,
     replacement_of_id: replacementOfId,
+    repair_reason: '',
     constraint_violation: false,
     status: 'planned',
     serving_size: seed.serving_size,
@@ -384,11 +385,10 @@ registerMock('POST', '/meal-plans/', (request) => {
   const key = planKey(user.id, body.date);
   const existing = mockDb.mealPlans[key];
   if (existing) {
-    // Mock-only QA convenience: the real create endpoint returns a failed plan unchanged. Re-run
-    // it here without consuming quota so the intended failed → building → ready UI can be tested
-    // until the backend exposes a free failed-plan requeue path (issue #31).
+    // The backend retries a failed plan in place before checking quota
+    // (apps/meals/views.py:177-193), preserving the original plan id.
     if (existing.status === 'failed') {
-      const plan = createPlan(user.id, body.date, planMode);
+      const plan = { ...createPlan(user.id, body.date, planMode), id: existing.id };
       mockDb.mealPlans[key] = plan;
       mockDb.mealPlanPollCounts[key] = 0;
       return {
@@ -616,6 +616,7 @@ registerMock('POST', '/meal-plans/:date/meals/:mealId/replace/confirm/', (reques
     status: 'planned',
     replaced_at: null,
     replacement_of_id: meal.id,
+    repair_reason: '',
     constraint_violation: false,
     serving_size: alternative.serving_size,
     portion_multiplier: 1,
