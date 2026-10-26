@@ -16,6 +16,7 @@ const EMPTY_WELLNESS_PROFILE: WellnessProfile = {
   wellness_interview_complete: false,
   wellness_focus: '',
   nights_note: '',
+  nights_tags: [],
   morning_first: '',
   what_helps: [],
   check_in_style: '',

@@ -22,6 +22,7 @@ const BASE_WELLNESS_PROFILE: WellnessProfile = {
   wellness_interview_complete: true,
   wellness_focus: 'sleep',
   nights_note: '',
+  nights_tags: [],
   morning_first: 'bathroom',
   what_helps: ['chai'],
   check_in_style: 'step_in',

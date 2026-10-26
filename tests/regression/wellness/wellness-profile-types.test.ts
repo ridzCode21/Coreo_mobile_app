@@ -19,6 +19,7 @@ const EMPTY = {
   wellness_interview_complete: false,
   wellness_focus: '' as const,
   nights_note: '',
+  nights_tags: [] as string[],
   morning_first: '' as const,
   what_helps: [] as string[],
   check_in_style: '' as const,
@@ -29,6 +30,7 @@ const FULL = {
   wellness_interview_complete: true,
   wellness_focus: 'racing_mind' as const,
   nights_note: 'In bed by 11:30 but on the phone till 1.',
+  nights_tags: ['Bed 11:30, phone till 1', 'Wakes ~4 AM'],
   morning_first: 'phone' as const,
   what_helps: ['walks', 'chai'],
   check_in_style: 'step_in' as const,
@@ -79,6 +81,10 @@ describe('wellness profile: wellnessProfileSchema (#41)', () => {
 
   it('parses the backend full shape', () => {
     expect(wellnessProfileSchema.parse(FULL)).toEqual(FULL);
+  });
+
+  it('rejects read-only nights_tags in a patch', () => {
+    expect(() => wellnessProfilePatchSchema.parse({ nights_tags: [] })).toThrow();
   });
 
   it('rejects an unknown extra key (strict)', () => {

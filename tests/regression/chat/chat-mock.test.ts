@@ -59,6 +59,7 @@ function seedCompleteWellnessProfile(userId: string) {
     wellness_interview_complete: true,
     wellness_focus: 'racing_mind',
     nights_note: 'Up late scrolling.',
+    nights_tags: [],
     morning_first: 'phone',
     what_helps: ['chai'],
     check_in_style: 'step_in',
