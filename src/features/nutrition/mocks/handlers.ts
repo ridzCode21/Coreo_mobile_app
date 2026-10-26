@@ -327,6 +327,16 @@ registerMock('POST', '/food/items/', (request) => {
   return { status: 201, delayMs: 300, body: styleB(item) };
 });
 
+// GET /food/items/ — caller-owned custom foods only, newest first (views.py:107-114).
+registerMock('GET', '/food/items/', (request) => {
+  const user = requireMockUser(request);
+  if (!user) return UNAUTHORIZED;
+  const items = mockDb.foodItems
+    .filter((item) => mockDb.foodItemOwnerByItemId[item.id] === user.id && item.source === 'custom')
+    .sort((left, right) => right.id - left.id);
+  return { status: 200, delayMs: 300, body: styleB(items) };
+});
+
 // GET /food/search/ — caller's custom matches first, then shared catalog matches (§8).
 registerMock('GET', '/food/search/', (request) => {
   const user = requireMockUser(request);

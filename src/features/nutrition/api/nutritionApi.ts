@@ -47,6 +47,7 @@ export const nutritionKeys = {
   all: ['nutrition'] as const,
   dailySummary: (date: string) => ['nutrition', 'daily-summary', date] as const,
   foodEntries: (date: string) => ['nutrition', 'food-entries', date] as const,
+  foodItems: ['nutrition', 'food-items'] as const,
   foodSearchAll: ['nutrition', 'food-search'] as const,
   foodSearch: (q: string) => ['nutrition', 'food-search', q] as const,
   barcode: (code: string) => ['nutrition', 'barcode', code] as const,
@@ -162,6 +163,17 @@ export function useFoodSearchQuery(q: string) {
   });
 }
 
+/** `GET /food/items/` — the signed-in user's custom foods, newest first. */
+export function useFoodItemsQuery() {
+  return useQuery({
+    queryKey: nutritionKeys.foodItems,
+    queryFn: async (): Promise<FoodItem[]> => {
+      const response = await apiClient.get<unknown>('/food/items/');
+      return z.array(foodItemSchema).parse(response);
+    },
+  });
+}
+
 /** `POST /food/items/` — save a user-owned food, then refresh every cached search. */
 export function useCreateFoodItemMutation() {
   const queryClient = useQueryClient();
@@ -175,6 +187,7 @@ export function useCreateFoodItemMutation() {
         queryKey: nutritionKeys.foodSearchAll,
         exact: false,
       });
+      queryClient.invalidateQueries({ queryKey: nutritionKeys.foodItems });
     },
   });
 }

@@ -16,6 +16,7 @@ export { default as LabelUnreadableScreen } from '@/features/nutrition/screens/L
 export { default as WeekInReviewScreen } from '@/features/nutrition/screens/WeekInReviewScreen';
 export { default as AddFoodScreen } from '@/features/nutrition/screens/AddFoodScreen';
 export { default as SearchFoodsScreen } from '@/features/nutrition/screens/SearchFoodsScreen';
+export { default as MyFoodsScreen } from '@/features/nutrition/screens/MyFoodsScreen';
 export {
   nutritionKeys,
   todayISO,

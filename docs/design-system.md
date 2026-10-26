@@ -138,6 +138,8 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `usualRowTitle`          | 14px      | 400              | normal                    | Your-usuals suggestion title                                          |
 | `usualRowSubtitle`       | 10.5px    | 300              | normal                    | Your-usuals reason/food and calorie line                              |
 | `usualFooter`            | 11px      | 300              | normal, line-height 1.6   | Your-usuals learned-repeats note                                      |
+| `myFoodsRowTitle`        | 13.5px    | 500              | normal                    | My foods custom-item title                                            |
+| `myFoodsEmptyTitle`      | 20px      | 200              | −0.3px                    | My foods empty-state headline                                         |
 | `mealReviewSummaryValue` | 24px      | 200              | normal                    | Photo-review summary calorie value                                    |
 | `mealReviewRowTitle`     | 12.5px    | 400              | normal                    | Photo-review item names                                               |
 | `mealReviewFix`          | 10.5px    | 400              | normal                    | Photo-review Fix action                                               |
@@ -190,6 +192,10 @@ Profile 19a uses `typography.profileAvatar` (24px/200) and `componentSizes.profi
 `componentSizes.dietHeaderControl` (38px), `profileRowMinHeight` (58px),
 `profileManageMinHeight` (30px), `profileKnowledgeMinHeight` (56px), and
 `profileKnowledgeArrow` (40px).
+
+My foods 32a/32b uses `componentSizes.myFoodsEmptyIcon` (52px),
+`myFoodsEmptyIconStrokeWidth` (1.3), `myFoodsAddButtonHeight` (56px), and
+`myFoodsEmptyBodyMaxWidth` (250px).
 Notebook 19b uses `typography.notebookBadge` (10px/500, sentence case),
 `componentSizes.notebookBadgeHeight` (26px) and `notebookPromptIcon` (40px).
 
