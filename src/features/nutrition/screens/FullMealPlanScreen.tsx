@@ -10,7 +10,7 @@ import {
   fullPlanRowState,
   type FullPlanRowState,
 } from '@/features/nutrition/lib/fullPlanRow';
-import { MEAL_LABEL } from '@/features/nutrition/lib/mealClock';
+import { MEAL_LABEL, mealTimeLabel } from '@/features/nutrition/lib/mealClock';
 import { GlassCard } from '@/shared/components/GlassCard';
 import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
@@ -181,7 +181,7 @@ function MealRow({ meal, state, onPress }: MealRowProps) {
       >
         <View style={styles.mealCopy}>
           <Text style={[styles.mealMeta, logged && styles.mealMetaLogged]}>
-            {MEAL_LABEL[meal.meal_type]}
+            {mealTimeLabel(meal.meal_type, meal.scheduled_time)}
           </Text>
           <Text
             style={[

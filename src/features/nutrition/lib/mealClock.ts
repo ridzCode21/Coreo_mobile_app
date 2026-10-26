@@ -7,6 +7,18 @@ export const MEAL_LABEL: Record<MealType, string> = {
   snack: 'Snack',
 };
 
+export function formatMealTime(time: string): string {
+  return time.replace(/^0/, '');
+}
+
+export function mealTimeLabel(
+  mealType: MealType,
+  scheduledTime: string | null | undefined,
+): string {
+  const label = MEAL_LABEL[mealType];
+  return scheduledTime ? `${label} · ${formatMealTime(scheduledTime)}` : label;
+}
+
 export function currentMealByClock(): MealType {
   const hour = new Date().getHours();
   if (hour < 11) return 'breakfast';

@@ -70,6 +70,7 @@ export type PlannedMeal = {
   prep_time_minutes: number | null;
   estimated_cost_tier: BudgetTier | '';
   confidence_note: string;
+  scheduled_time?: string | null;
 };
 
 export type ValidationResult = {
