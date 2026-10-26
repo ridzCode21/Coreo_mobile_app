@@ -58,6 +58,7 @@ export type PlannedMeal = {
   recipe_json: RecipeJson | null;
   replaced_at: string | null;
   replacement_of_id: number | null;
+  repair_reason: string;
   constraint_violation: boolean;
   status: PlannedMealStatus;
   serving_size: string;

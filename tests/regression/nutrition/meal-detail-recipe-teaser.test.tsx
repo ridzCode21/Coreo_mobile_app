@@ -28,6 +28,7 @@ const mockMeal: PlannedMeal = {
   },
   replaced_at: null,
   replacement_of_id: null,
+  repair_reason: '',
   constraint_violation: false,
   status: 'planned',
   serving_size: '1 serving',

@@ -76,6 +76,7 @@ const MEAL: PlannedMeal = {
   recipe_json: null,
   replaced_at: null,
   replacement_of_id: null,
+  repair_reason: '',
   constraint_violation: false,
   status: 'planned',
   serving_size: '1 serving',

@@ -15,6 +15,7 @@ function meal(status: PlannedMealStatus, id = 1): PlannedMeal {
     recipe_json: null,
     replaced_at: null,
     replacement_of_id: null,
+    repair_reason: '',
     constraint_violation: false,
     status,
     serving_size: '1 serving',

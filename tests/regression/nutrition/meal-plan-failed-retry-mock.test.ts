@@ -40,12 +40,17 @@ function createPlan(token: string) {
   return match.handler(request);
 }
 
-describe('nutrition mock: retrying a failed meal plan (issue #31)', () => {
+describe('nutrition mock: retrying a failed meal plan (issue #37)', () => {
   beforeEach(() => {
     __resetMockDbForTests();
   });
 
-  it('starts a fresh pending attempt without consuming another generation quota', async () => {
+  // Corrected for issue #37: the real backend's `_retry_failed_plan`
+  // (apps/meals/views.py:177-193) rebuilds the SAME plan row in place — same `plan_id`, meals
+  // cleared, `validation_result`/`failure_reason` reset — and never reaches the quota check at
+  // all, so a retry never touches the daily cap. The mock previously created a brand-new plan
+  // row instead; that was a documented workaround for a gap that is now closed.
+  it('rebuilds the same plan row in place, without consuming another generation quota', async () => {
     const user = seedUser();
     const { access } = issueTokenPair(user);
     await createPlan(access);
@@ -58,7 +63,7 @@ describe('nutrition mock: retrying a failed meal plan (issue #31)', () => {
 
     expect(response.status).toBe(202);
     expect(mockDb.mealPlans[key].status).toBe('pending');
-    expect(mockDb.mealPlans[key].id).not.toBe(firstPlanId);
+    expect(mockDb.mealPlans[key].id).toBe(firstPlanId);
     expect(mockDb.mealPlanPollCounts[key]).toBe(0);
     expect(mockDb.quotaCounters[quotaKey]).toBe(1);
   });
