@@ -41,6 +41,7 @@ export const wellnessProfileSchema = z
     wellness_interview_complete: z.boolean(),
     wellness_focus: z.union([wellnessFocusSchema, z.literal('')]),
     nights_note: z.string().max(2000),
+    nights_tags: z.array(z.string()),
     morning_first: z.union([morningFirstSchema, z.literal('')]),
     what_helps: z.array(whatHelpsSchema),
     check_in_style: z.union([checkInStyleSchema, z.literal('')]),
