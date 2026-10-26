@@ -38,6 +38,7 @@ const DIET_LABEL_UNREADABLE_ROUTE = '/diet/label-unreadable';
 const DIET_SCAN_ROUTE = '/diet/scan' as Href;
 const DIET_SEARCH_ROUTE = '/diet/food-search' as Href;
 const DIET_ADD_FOOD_ROUTE = '/diet/add-food' as Href;
+const DIET_MY_FOODS_ROUTE = '/diet/my-foods' as Href;
 
 function CameraIcon({ stroke }: { stroke: string }) {
   return (
@@ -82,6 +83,19 @@ function AddIcon({ stroke }: { stroke: string }) {
   return (
     <Svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none">
       <Path d="M12 5v14M5 12h14" stroke={stroke} strokeWidth={1.6} strokeLinecap="round" />
+    </Svg>
+  );
+}
+function SavedFoodsIcon({ stroke }: { stroke: string }) {
+  return (
+    <Svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M5 4h11a2 2 0 0 1 2 2v14l-3.5-2-3.5 2-3.5-2L5 20V6a2 2 0 0 1 2-2Z"
+        stroke={stroke}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </Svg>
   );
 }
@@ -307,6 +321,14 @@ export function LogMealSheet({ visible, onClose }: LogMealSheetProps) {
                 subtitle="Save your own macros"
                 icon={<AddIcon stroke={iconStroke} />}
                 onPress={() => openRoute(DIET_ADD_FOOD_ROUTE)}
+              />
+            </View>
+            <View style={styles.gridRow}>
+              <LoggingOptionTile
+                title="My foods"
+                subtitle="See everything you've saved"
+                icon={<SavedFoodsIcon stroke={iconStroke} />}
+                onPress={() => openRoute(DIET_MY_FOODS_ROUTE)}
               />
             </View>
           </View>
