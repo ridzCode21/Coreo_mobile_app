@@ -34,7 +34,7 @@ import { ReplaceCompareScreen } from '@/features/nutrition/components/ReplaceCom
 import { ReplaceConfirmSheet } from '@/features/nutrition/components/ReplaceConfirmSheet';
 import { ReplacePromptSheet } from '@/features/nutrition/components/ReplacePromptSheet';
 import { costTierLabel, recipeRefusedFrom } from '@/features/nutrition/lib/mealDetail';
-import { MEAL_LABEL } from '@/features/nutrition/lib/mealClock';
+import { MEAL_LABEL, mealTimeLabel } from '@/features/nutrition/lib/mealClock';
 import { resolvePortionBase } from '@/features/nutrition/lib/portionEstimate';
 import { quotaErrorFrom } from '@/features/nutrition/lib/quotaError';
 import {
@@ -50,7 +50,7 @@ type ReplaceStep = 'prompt' | 'compare' | 'confirm';
 
 function detailFallback(meal: PlannedMeal | undefined): string {
   if (!meal) return 'Meal';
-  return MEAL_LABEL[meal.meal_type];
+  return mealTimeLabel(meal.meal_type, meal.scheduled_time);
 }
 
 export default function MealDetailScreen() {

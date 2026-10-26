@@ -90,6 +90,10 @@ const PLAN_LIBRARY = [
   },
 ];
 
+type MealSeed = (typeof PLAN_LIBRARY)[number] & {
+  scheduled_time?: string | null;
+};
+
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -173,7 +177,7 @@ function round1(value: number): number {
 
 function makeMeal(
   date: string,
-  seed: (typeof PLAN_LIBRARY)[number],
+  seed: MealSeed,
   calories: number,
   protein: number,
   carbs: number,
@@ -205,6 +209,7 @@ function makeMeal(
     prep_time_minutes: seed.prep_time_minutes,
     estimated_cost_tier: 'moderate',
     confidence_note: 'Mock estimate based on your current diet profile.',
+    scheduled_time: seed.scheduled_time ?? null,
   };
 }
 
@@ -625,6 +630,7 @@ registerMock('POST', '/meal-plans/:date/meals/:mealId/replace/confirm/', (reques
     prep_time_minutes: alternative.prep_time_minutes,
     estimated_cost_tier: alternative.estimated_cost_tier,
     confidence_note: '',
+    scheduled_time: meal.scheduled_time ?? null,
   };
   plan.meals.push(replacement);
   mockDb.mealPlans[planKey(user.id, request.params.date)] = recomputeTotals(plan);
@@ -753,7 +759,12 @@ registerMock('POST', '/meal-plans/:date/assistant/confirm/', (request) => {
   }
   const replacement = makeMeal(
     proposal.date,
-    { ...PLAN_LIBRARY[3], meal_type: meal.meal_type, name: 'Lighter tofu bowl' },
+    {
+      ...PLAN_LIBRARY[3],
+      meal_type: meal.meal_type,
+      name: 'Lighter tofu bowl',
+      scheduled_time: meal.scheduled_time ?? null,
+    },
     meal.calories_kcal * 0.82,
     meal.protein_g,
     meal.carbs_g * 0.7,
