@@ -181,6 +181,17 @@ Screen-specific tokens preserve the supplied compositions without raw values in 
 `wellnessCardFooter`, `rightNowHeadline`, `rightNowCue`, `rightNowPattern`, `rightNowLine`, and
 `rightNowButton`.
 
+Evening check-in 24a uses `typography.eveningCheckInQuestion` (27px/200), mood emoji and labels
+(`eveningCheckInMoodEmoji`, `eveningCheckInMoodLabel`, `eveningCheckInMoodLabelSelected`), recap
+and form labels (`eveningCheckInLooksRight`, `eveningCheckInFix`, `eveningCheckInRecapLine`,
+`eveningCheckInNotePrompt`, `eveningCheckInClose`), plus the dark tomorrow card
+(`eveningCheckInPreviewEyebrow`, `eveningCheckInPreviewLine`, `eveningCheckInPreviewAction`). Its
+matching semantic size/radius tokens are `componentSizes.eveningCheckIn*` and
+`radii.eveningCheckIn*`. The close action's depth shadow uses its 12px offset and 26px radius,
+with an 18px white outer glow; the tomorrow-preview action uses its 20px white outer glow. The
+tomorrow card's grabber bar uses its own `colors.eveningCheckInGrabber` (`rgba(255,255,255,.25)`),
+not a reused label-preview token.
+
 Patterns 37a uses `glass.patternsCalibratingCard`: `rgba(60,72,86,.5)` to
 `rgba(30,40,50,.58)`, white `.16` border/top highlight, and `rgba(8,24,44,.24)` shadow.
 Patterns 37b uses `glass.patternsInsightCard`: `rgba(34,66,102,.85)` to

@@ -48,6 +48,7 @@ export const colors = {
   fog: '#EFF4F8',
   overlayInk: '#122A46',
   labelPreviewBorder: 'rgba(255,255,255,0.6)',
+  eveningCheckInGrabber: 'rgba(255,255,255,0.25)',
   labelPreviewMuted: 'rgba(255,255,255,0.45)',
   labelPreviewStrong: 'rgba(255,255,255,0.75)',
   labelPreviewShade: 'rgba(8,24,44,0.45)',
@@ -418,6 +419,11 @@ export const radii = {
   pill: 9999,
   petalOuter: 125,
   petalInner: 30,
+  eveningCheckInMood: 20,
+  eveningCheckInRecap: 22,
+  eveningCheckInNote: 24,
+  eveningCheckInClose: 28,
+  eveningCheckInPreview: 32,
 } as const;
 
 export const componentSizes = {
@@ -582,6 +588,15 @@ export const componentSizes = {
   labelUnreadableActionIcon: 19,
   labelScanIconStrokeWidth: 1.6,
   hairline: 1,
+  eveningCheckInMoodPillMinHeight: 62,
+  eveningCheckInNoteHeight: 48,
+  eveningCheckInCloseHeight: 56,
+  eveningCheckInPreviewCloseHeight: 52,
+  eveningCheckInRecapIcon: 13,
+  eveningCheckInCloseShadowOffset: 12,
+  eveningCheckInCloseShadowRadius: 26,
+  eveningCheckInCloseGlowRadius: 18,
+  eveningCheckInPreviewGlowRadius: 20,
 } as const;
 
 export const fontFamily = {
@@ -608,6 +623,23 @@ type TypographySpec = {
  * docs/design-system.md §2 and §10 "Don't").
  */
 export const typography = {
+  eveningCheckInQuestion: { fontSize: 27, fontWeight: '200', letterSpacing: -0.4 },
+  eveningCheckInMoodEmoji: { fontSize: 20, fontWeight: '400', letterSpacing: 0 },
+  eveningCheckInMoodLabel: { fontSize: 9, fontWeight: '400', letterSpacing: 0 },
+  eveningCheckInMoodLabelSelected: { fontSize: 9, fontWeight: '500', letterSpacing: 0 },
+  eveningCheckInLooksRight: { fontSize: 12, fontWeight: '500', letterSpacing: 0 },
+  eveningCheckInFix: { fontSize: 10.5, fontWeight: '400', letterSpacing: 0 },
+  eveningCheckInRecapLine: { fontSize: 12, fontWeight: '300', letterSpacing: 0 },
+  eveningCheckInNotePrompt: { fontSize: 12, fontWeight: '300', letterSpacing: 0 },
+  eveningCheckInClose: { fontSize: 14, fontWeight: '500', letterSpacing: 0 },
+  eveningCheckInPreviewEyebrow: {
+    fontSize: 10,
+    fontWeight: '500',
+    letterSpacing: 2.4,
+    textTransform: 'uppercase',
+  },
+  eveningCheckInPreviewLine: { fontSize: 17, fontWeight: '300', letterSpacing: 0, lineHeight: 1.7 },
+  eveningCheckInPreviewAction: { fontSize: 13.5, fontWeight: '500', letterSpacing: 0 },
   profileAvatar: { fontSize: 24, fontWeight: '200', letterSpacing: 0 },
   wellnessHeadline: { fontSize: 25, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.4 },
   wellnessCardLabel: {

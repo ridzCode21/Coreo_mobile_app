@@ -11,6 +11,7 @@
  */
 import * as Notifications from 'expo-notifications';
 import { AppState } from 'react-native';
+import { router } from 'expo-router';
 
 import { answerCheckInNoticeWith } from '@/features/notifications/api/checkInNoticeApi';
 import {
@@ -52,7 +53,10 @@ export async function handleNotificationResponse(
     responseKey: key,
   });
   if (decision.type === 'unreadable') return 'ignored'; // no notice id: nothing the server could accept
-  if (decision.type === 'open') return 'open';
+  if (decision.type === 'open') {
+    router.push('/evening-check-in');
+    return 'open';
+  }
 
   try {
     await submitAnswer(answerQueueDeps, decision.noticeId, decision.answer);
