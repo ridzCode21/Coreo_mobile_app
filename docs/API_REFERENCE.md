@@ -221,6 +221,46 @@ Deletes the authenticated user account. **204 No Content**.
 Deletes health data (daily logs, insight cards, import tasks, custom exercises)
 but keeps the account. **204 No Content**.
 
+### GET `/users/me/evening-check-in/`
+
+The 20-second evening ritual (screen 24a). Auth required. **200** → Style B (bare payload):
+
+```json
+{
+  "eyebrow": "Evening check-in · 20 seconds",
+  "question": "How did today feel?",
+  "moods": [{ "key": "rough", "label": "Rough" }, "... meh, okay, good, great"],
+  "looks_right_label": "Looks right?",
+  "fix_label": "Fix something",
+  "recap": ["7,904 steps", "Lunch logged · rice bowl", "No session — moved to Thursday"],
+  "note_prompt": "Anything for tomorrow-me?",
+  "close_label": "Close the day",
+  "closed": false
+}
+```
+
+`recap` holds only lines backed by real data (steps are left out when the user hides numbers).
+When today is already closed (in the app, or by answering the lock-screen notice) `closed` is
+`true` and the payload also carries the tomorrow preview: `preview: { eyebrow, line, action }`,
+or `preview: null` with `message` (a string, or `null` when nothing should be said).
+
+### POST `/users/me/evening-check-in/`
+
+Closes the day. **Request**: `{ "mood": "rough|meh|okay|good|great", "note": "<=500 chars" }`
+(`note` optional). Posting again the same local day overwrites it.
+**200** →
+
+```json
+{
+  "check_in": { "local_date": "2026-10-05", "mood": "good", "closed": true },
+  "preview": { "eyebrow": "Tomorrow, previewed", "line": "...", "action": "Good night" }
+}
+```
+
+`preview` may be `null`, with `message` set. The note is never echoed back.
+**400** → `{ "detail": "..." }` (bare, not `VALIDATION_ERROR`): `Send a mood.`,
+`Pick Rough, Meh, Okay, Good, or Great.`, or `Keep the note short.`
+
 ---
 
 ## 5. Users — diet profile (onboarding)

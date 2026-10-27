@@ -116,6 +116,20 @@ describe('eveningCheckIn: useCloseEveningCheckInMutation contract (POST /users/m
     });
   });
 
+  it('trims the note and does not send a whitespace-only one', async () => {
+    mockPost.mockResolvedValue(CLOSE_RESPONSE);
+    const { result } = renderHook(() => useCloseEveningCheckInMutation(), { wrapper });
+
+    result.current.mutate({ mood: 'good', note: '  kidney pain \n' });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockPost.mock.calls[0][1]).toEqual({ mood: 'good', note: 'kidney pain' });
+
+    mockPost.mockClear();
+    result.current.mutate({ mood: 'good', note: '   \n ' });
+    await waitFor(() => expect(mockPost).toHaveBeenCalled());
+    expect(mockPost.mock.calls[0][1]).toEqual({ mood: 'good' });
+  });
+
   it('omits an empty note rather than sending null', async () => {
     mockPost.mockResolvedValue({
       check_in: { local_date: '2026-10-05', mood: 'rough', closed: true },

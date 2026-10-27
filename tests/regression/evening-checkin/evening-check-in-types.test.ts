@@ -80,13 +80,15 @@ describe('eveningCheckIn: GET ritual schema (#46)', () => {
     ).toThrow();
   });
 
-  it('rejects a payload missing a required field (.strict() catches drift)', () => {
+  it('rejects a payload missing a required field ', () => {
     const { close_label: _close_label, ...withoutCloseLabel } = OPEN_RITUAL;
     expect(() => eveningCheckInRitualSchema.parse(withoutCloseLabel)).toThrow();
   });
 
-  it('rejects an unknown extra field (.strict())', () => {
-    expect(() => eveningCheckInRitualSchema.parse({ ...OPEN_RITUAL, score: 42 })).toThrow();
+  it('ignores a field the backend adds later instead of breaking the screen', () => {
+    const parsed = eveningCheckInRitualSchema.parse({ ...OPEN_RITUAL, score: 42 });
+    expect(parsed.question).toBe('How did today feel?');
+    expect(parsed).not.toHaveProperty('score');
   });
 });
 

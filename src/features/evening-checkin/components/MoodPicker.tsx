@@ -2,7 +2,14 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { MOOD_EMOJI } from '@/features/evening-checkin/lib/moodEmoji';
 import { GlassCard } from '@/shared/components/GlassCard';
-import { colors, componentSizes, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import {
+  colors,
+  componentSizes,
+  radii,
+  spacing,
+  textStyle,
+  withAlpha,
+} from '@/shared/theme/tokens';
 import type {
   EveningCheckInMoodKey,
   EveningCheckInMoodOption,
@@ -26,13 +33,14 @@ export function MoodPicker({ moods, selected, onSelect }: Props) {
             accessibilityLabel={mood.label}
             accessibilityState={{ selected: isSelected }}
             onPress={() => onSelect(mood.key)}
-            style={styles.pressable}
+            style={[styles.pressable, isSelected && styles.glow]}
           >
             <GlassCard
-              variant={isSelected ? 'chipSelected' : 'chip'}
+              variant={isSelected ? 'eveningCheckInMoodSelected' : 'eveningCheckInMood'}
               radius={radii.eveningCheckInMood}
+              blurred={false}
               padded={false}
-              style={styles.pill}
+              style={isSelected ? { ...styles.pill, ...styles.selectedShadow } : styles.pill}
             >
               <Text style={styles.emoji}>{MOOD_EMOJI[mood.key]}</Text>
               <Text style={[styles.label, isSelected && styles.labelSelected]}>{mood.label}</Text>
@@ -45,15 +53,26 @@ export function MoodPicker({ moods, selected, onSelect }: Props) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: spacing.sliderCaptionGap, marginTop: spacing.lg },
-  pressable: { flex: 1, minWidth: 0 },
+  row: { flexDirection: 'row', gap: spacing.eveningCheckInMoodGap, marginTop: spacing.lg },
+  pressable: { flex: 1, minWidth: 0, borderRadius: radii.eveningCheckInMood },
+  glow: {
+    elevation: componentSizes.eveningCheckInElevation,
+    shadowColor: withAlpha(colors.white, 0.8),
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: componentSizes.eveningCheckInMoodGlowRadius,
+  },
   pill: {
     minHeight: componentSizes.eveningCheckInMoodPillMinHeight,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sliderCaptionGap,
-    paddingHorizontal: spacing.xs,
+    gap: spacing.eveningCheckInMoodGap,
+    paddingHorizontal: spacing.eveningCheckInMoodPadX,
     paddingVertical: spacing.ms,
+  },
+  selectedShadow: {
+    shadowOffset: { width: 0, height: componentSizes.eveningCheckInMoodShadowOffset },
+    shadowRadius: componentSizes.eveningCheckInMoodShadowRadius,
   },
   emoji: { ...textStyle('eveningCheckInMoodEmoji') },
   label: { ...textStyle('eveningCheckInMoodLabel'), color: colors.ink55 },

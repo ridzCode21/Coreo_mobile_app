@@ -19,6 +19,14 @@ type ScreenProps = PropsWithChildren<{
   contentContainerStyle?: ViewStyle;
   background?: string;
   refreshControl?: ReactElement<RefreshControlProps>;
+  /** Stretch the content to the full screen height so children can pin to the bottom (e.g. with
+   * `marginTop: 'auto'` or a `flex: 1` spacer). Off by default: content hugs the top. */
+  fill?: boolean;
+  /** Replaces the default safe-area padding with a total distance from the screen edges (never
+   * less than the safe area), for screens designed with fixed top/bottom padding. */
+  edgePadding?: { top: number; bottom: number };
+  /** Lets a first tap reach a button while the keyboard is open instead of only closing it. */
+  keyboardShouldPersistTaps?: 'never' | 'always' | 'handled';
 }>;
 
 /**
@@ -33,20 +41,28 @@ export function Screen({
   contentContainerStyle,
   background = colors.zenith,
   refreshControl,
+  fill = false,
+  edgePadding,
+  keyboardShouldPersistTaps,
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const { contentMaxWidth, breakpoint } = useResponsive();
 
   const paddingX = breakpoint === 'compact' ? spacing.screenPadXCompact : spacing.screenPadX;
 
+  const paddingTop = edgePadding ? Math.max(edgePadding.top, insets.top) : insets.top + spacing.md;
+  const paddingBottom = edgePadding
+    ? Math.max(edgePadding.bottom, insets.bottom)
+    : insets.bottom + spacing.md;
+
   const content = (
-    <View
-      style={[
-        styles.centerer,
-        { paddingTop: insets.top + spacing.md, paddingBottom: insets.bottom + spacing.md },
-      ]}
-    >
-      <View style={{ width: '100%', maxWidth: contentMaxWidth, paddingHorizontal: paddingX }}>
+    <View style={[styles.centerer, { paddingTop, paddingBottom }]}>
+      <View
+        style={[
+          { width: '100%', maxWidth: contentMaxWidth, paddingHorizontal: paddingX },
+          fill && styles.flex,
+        ]}
+      >
         {children}
       </View>
     </View>
@@ -61,6 +77,7 @@ export function Screen({
       style={[styles.flex, { backgroundColor: background }, style]}
       contentContainerStyle={[styles.grow, contentContainerStyle]}
       refreshControl={refreshControl}
+      keyboardShouldPersistTaps={keyboardShouldPersistTaps}
     >
       {content}
     </ScrollView>

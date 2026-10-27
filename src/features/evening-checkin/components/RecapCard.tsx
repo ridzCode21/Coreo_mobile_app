@@ -9,22 +9,28 @@ type Props = { label: string; fixLabel: string; lines: string[]; onFix: () => vo
 export function RecapCard({ label, fixLabel, lines, onFix }: Props) {
   return (
     <GlassCard
-      variant="light"
+      variant="eveningCheckInRecap"
       radius={radii.eveningCheckInRecap}
       style={styles.card}
-      contentPaddingVertical={spacing.lg}
-      contentPaddingHorizontal={spacing.sheetTitleGap}
+      contentPaddingVertical={spacing.eveningCheckInCardPadY}
+      contentPaddingHorizontal={spacing.eveningCheckInCardPadX}
     >
       <View style={styles.header}>
         <Text style={styles.label}>{label}</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel={fixLabel} onPress={onFix}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={fixLabel}
+          onPress={onFix}
+          style={styles.fixWrap}
+        >
           <Text style={styles.fix}>{fixLabel}</Text>
         </Pressable>
       </View>
       {lines.length ? (
         <View style={styles.lines}>
-          {lines.map((line) => (
-            <View key={line} style={styles.line}>
+          {lines.map((line, index) => (
+            // Lines can repeat, so the position is part of the key; the list never reorders.
+            <View key={`${index}:${line}`} style={styles.line}>
               <Svg
                 width={componentSizes.eveningCheckInRecapIcon}
                 height={componentSizes.eveningCheckInRecapIcon}
@@ -49,11 +55,21 @@ export function RecapCard({ label, fixLabel, lines, onFix }: Props) {
 }
 
 const styles = StyleSheet.create({
-  card: { marginTop: spacing.lg },
+  card: {
+    marginTop: spacing.lg,
+    shadowOffset: { width: 0, height: componentSizes.eveningCheckInRecapShadowOffset },
+    shadowRadius: componentSizes.eveningCheckInRecapShadowRadius,
+  },
   header: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
   label: { ...textStyle('eveningCheckInLooksRight'), color: colors.ink },
-  fix: { ...textStyle('eveningCheckInFix'), color: colors.ink50, textDecorationLine: 'underline' },
-  lines: { gap: spacing.ms, marginTop: spacing.ms },
+  // React Native cannot offset an underline, so the line is drawn as a bottom border 3px below.
+  fixWrap: {
+    borderBottomColor: colors.ink50,
+    borderBottomWidth: componentSizes.hairline,
+    paddingBottom: componentSizes.eveningCheckInFixUnderlineGap,
+  },
+  fix: { ...textStyle('eveningCheckInFix'), color: colors.ink50 },
+  lines: { gap: spacing.eveningCheckInRecapGap, marginTop: spacing.ms },
   line: { alignItems: 'center', flexDirection: 'row', gap: spacing.sm },
   lineText: { ...textStyle('eveningCheckInRecapLine'), color: colors.ink },
 });

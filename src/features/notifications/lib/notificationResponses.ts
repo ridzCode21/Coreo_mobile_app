@@ -19,7 +19,11 @@ import {
   submitAnswer,
   type AnswerQueueDeps,
 } from '@/features/notifications/lib/answerQueue';
-import { decideNoticeResponse } from '@/features/notifications/lib/checkInNotice';
+import {
+  decideNoticeResponse,
+  isEveningCheckInNotice,
+} from '@/features/notifications/lib/checkInNotice';
+import { useSessionStore } from '@/features/auth';
 import {
   readPendingAnswers,
   writePendingAnswers,
@@ -27,6 +31,38 @@ import {
 import { queryClient } from '@/shared/api/queryClient';
 
 const handledResponses = new Set<string>();
+const EVENING_CHECK_IN_ROUTE = '/evening-check-in';
+
+/** A tap that could not open the screen yet (app still starting); retried once the app is shown. */
+let pendingEveningCheckIn = false;
+
+/**
+ * Opens the evening check-in screen. Never throws. A signed-out person is not sent there (the
+ * route is behind the sign-in guard). While the session is still being read, or if the router is
+ * not ready (cold start), the request is kept and retried by `flushPendingNavigation`.
+ */
+function openEveningCheckIn(): void {
+  const { status } = useSessionStore.getState();
+  if (status === 'signedOut') {
+    pendingEveningCheckIn = false;
+    return;
+  }
+  if (status === 'checking') {
+    pendingEveningCheckIn = true;
+    return;
+  }
+  try {
+    router.push(EVENING_CHECK_IN_ROUTE);
+    pendingEveningCheckIn = false;
+  } catch {
+    pendingEveningCheckIn = true;
+  }
+}
+
+/** Called once the signed-in layout is mounted: completes a navigation that had to wait. */
+export function flushPendingNavigation(): void {
+  if (pendingEveningCheckIn) openEveningCheckIn();
+}
 
 export const answerQueueDeps: AnswerQueueDeps = {
   send: (noticeId, answer) => answerCheckInNoticeWith(queryClient, { noticeId, answer }),
@@ -54,7 +90,7 @@ export async function handleNotificationResponse(
   });
   if (decision.type === 'unreadable') return 'ignored'; // no notice id: nothing the server could accept
   if (decision.type === 'open') {
-    router.push('/evening-check-in');
+    if (isEveningCheckInNotice(response.notification.request.content.data)) openEveningCheckIn();
     return 'open';
   }
 
@@ -108,4 +144,5 @@ export function startNotificationResponseHandling(): () => void {
 /** Test helper: forget which taps were handled. */
 export function __resetHandledResponsesForTests(): void {
   handledResponses.clear();
+  pendingEveningCheckIn = false;
 }

@@ -150,12 +150,27 @@ describe('EveningCheckInScreen: open ritual (#46)', () => {
     expect(screen.queryByText('7,904 steps')).toBeNull();
   });
 
-  it('"Close the day" is disabled until a mood is selected', () => {
+  it('opens with "Good" already picked, so Close the day is ready without a selection', () => {
     render(<EveningCheckInScreen />);
+
+    expect(screen.getByLabelText('Good').props.accessibilityState.selected).toBe(true);
+    const close = screen.getByRole('button', { name: 'Close the day' });
+    expect(close.props.accessibilityState.disabled).toBe(false);
 
     fireEvent.press(screen.getByText('Close the day'));
 
-    expect(mockMutate).not.toHaveBeenCalled();
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ mood: 'good', note: '' }),
+      expect.anything(),
+    );
+  });
+
+  it('shows the note as a single-line field', () => {
+    render(<EveningCheckInScreen />);
+
+    const field = screen.getByPlaceholderText('Anything for tomorrow-me?');
+    expect(field.props.multiline).toBeFalsy();
+    expect(StyleSheet.flatten(field.props.style)).toMatchObject({ height: 48 });
   });
 
   it('renders Close the day with its designed depth shadow and outer white glow', () => {
@@ -176,18 +191,18 @@ describe('EveningCheckInScreen: open ritual (#46)', () => {
     });
   });
 
-  it('selecting a mood enables Close and marks only that pill selected', () => {
+  it('selecting another mood moves the selection to that pill only', () => {
     render(<EveningCheckInScreen />);
 
-    const goodPill = screen.getByLabelText('Good');
-    fireEvent.press(goodPill);
-    expect(goodPill.props.accessibilityState.selected).toBe(true);
-    expect(screen.getByLabelText('Rough').props.accessibilityState.selected).toBe(false);
+    const greatPill = screen.getByLabelText('Great');
+    fireEvent.press(greatPill);
+    expect(greatPill.props.accessibilityState.selected).toBe(true);
+    expect(screen.getByLabelText('Good').props.accessibilityState.selected).toBe(false);
 
     fireEvent.press(screen.getByText('Close the day'));
 
     expect(mockMutate).toHaveBeenCalledWith(
-      expect.objectContaining({ mood: 'good' }),
+      expect.objectContaining({ mood: 'great' }),
       expect.anything(),
     );
   });
@@ -260,6 +275,38 @@ describe('EveningCheckInScreen: closed / tomorrow previewed (#46)', () => {
 
     expect(screen.queryByText('Evening check-in · 20 seconds')).toBeNull();
     expect(screen.queryByText('How did today feel?')).toBeNull();
+  });
+
+  it('shows only the action, with no empty line, when neither preview nor message came back', () => {
+    mockQuery({
+      isLoading: false,
+      isError: false,
+      data: { ...OPEN_RITUAL, closed: true, preview: null, message: null },
+    });
+
+    render(<EveningCheckInScreen />);
+
+    expect(screen.queryByText('Tomorrow, previewed')).toBeNull();
+    expect(screen.getByText('Good night')).toBeTruthy();
+    fireEvent.press(screen.getByText('Good night'));
+    expect(mockBack).toHaveBeenCalled();
+  });
+
+  it('dims the closed-view eyebrow with the design colour and softens the question', () => {
+    mockQuery({ isLoading: false, isError: false, data: CLOSED_WITH_PREVIEW });
+
+    render(<EveningCheckInScreen />);
+
+    const eyebrow = screen.UNSAFE_getByProps({ children: 'Evening check-in · 20 seconds' });
+    expect(StyleSheet.flatten(eyebrow.props.style)).toMatchObject({
+      color: colors.eveningCheckInDimEyebrow,
+      opacity: 0.5,
+    });
+    const question = screen.UNSAFE_getByProps({ children: 'How did today feel?' });
+    expect(StyleSheet.flatten(question.props.style)).toMatchObject({
+      opacity: 0.35,
+      textShadowRadius: 1,
+    });
   });
 
   it('renders the message in place of the preview line when preview is null', () => {

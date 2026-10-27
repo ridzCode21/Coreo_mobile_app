@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/shared/api/client';
+import { queryClient as appQueryClient } from '@/shared/api/queryClient';
+import { onSessionEnd } from '@/shared/lib/sessionCleanup';
 import {
   eveningCheckInCloseResponseSchema,
   eveningCheckInRitualSchema,
@@ -8,6 +10,9 @@ import {
 } from '@/shared/types/eveningCheckIn';
 
 export const eveningCheckInKeys = { all: ['eveningCheckIn'] as const };
+
+// The recap and the saved mood are personal data: never outlive the sign-in.
+onSessionEnd(() => appQueryClient.removeQueries({ queryKey: eveningCheckInKeys.all }));
 
 export function useEveningCheckInQuery() {
   return useQuery({
@@ -22,13 +27,15 @@ type CloseInput = { mood: EveningCheckInMoodKey; note: string };
 export function useCloseEveningCheckInMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ mood, note }: CloseInput) =>
-      eveningCheckInCloseResponseSchema.parse(
+    mutationFn: async ({ mood, note }: CloseInput) => {
+      const trimmed = note.trim();
+      return eveningCheckInCloseResponseSchema.parse(
         await apiClient.post<unknown>('/users/me/evening-check-in/', {
           mood,
-          ...(note ? { note } : {}),
+          ...(trimmed ? { note: trimmed } : {}),
         }),
-      ),
+      );
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: eveningCheckInKeys.all }),
   });
 }
