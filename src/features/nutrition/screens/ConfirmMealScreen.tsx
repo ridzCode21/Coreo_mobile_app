@@ -489,7 +489,7 @@ export default function ConfirmMealScreen() {
               style={styles.primaryWrap}
             >
               <LinearGradient
-                colors={[colors.coreBlue, colors.coreBlueDeep]}
+                colors={[colors.ink, colors.ink]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={[styles.primary, createEntry.isPending && styles.primaryDisabled]}

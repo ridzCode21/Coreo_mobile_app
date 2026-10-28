@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 50,
     borderRadius: radii.pill,
-    backgroundColor: colors.coreBlue,
+    backgroundColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center',
   },

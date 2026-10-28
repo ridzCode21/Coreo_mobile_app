@@ -5,6 +5,12 @@ declare module 'fs' {
 
   interface FileSystem {
     readFileSync(path: string, encoding: Encoding): string;
+    readdirSync(path: string, options: { withFileTypes: true }): DirectoryEntry[];
+  }
+
+  interface DirectoryEntry {
+    name: string;
+    isDirectory(): boolean;
   }
 
   const fs: FileSystem;
@@ -15,6 +21,8 @@ declare module 'path' {
   interface Path {
     join(...paths: string[]): string;
     resolve(...paths: string[]): string;
+    relative(from: string, to: string): string;
+    sep: string;
   }
 
   const path: Path;
