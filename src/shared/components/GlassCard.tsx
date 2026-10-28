@@ -21,7 +21,11 @@ export type GlassCardVariant =
   | 'planRowSkipped'
   | 'usualHighlight'
   | 'usualCard'
-  | 'usualNote';
+  | 'usualNote'
+  | 'eveningCheckInMood'
+  | 'eveningCheckInMoodSelected'
+  | 'eveningCheckInRecap'
+  | 'eveningCheckInPreview';
 
 type GlassCardProps = PropsWithChildren<{
   variant?: GlassCardVariant;
@@ -73,6 +77,10 @@ export function GlassCard({
     usualHighlight: { intensity: 90, tint: 'dark' },
     usualCard: { intensity: 60, tint: 'light' },
     usualNote: { intensity: 60, tint: 'light' },
+    eveningCheckInMood: { intensity: 60, tint: 'light' },
+    eveningCheckInMoodSelected: { intensity: 60, tint: 'light' },
+    eveningCheckInRecap: { intensity: 60, tint: 'light' },
+    eveningCheckInPreview: { intensity: 90, tint: 'dark' },
   } as const;
 
   return (

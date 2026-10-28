@@ -18,6 +18,7 @@ import type { WeeklyDietReview } from '@/shared/types/weeklyDietReview';
 import type { FitnessProfile } from '@/shared/types/fitnessProfile';
 import type { WellnessProfile } from '@/shared/types/wellnessProfile';
 import type { ChatReceipt } from '@/shared/types/chat';
+import type { EveningCheckInMoodKey } from '@/shared/types/eveningCheckIn';
 
 export type MockChatTurn = {
   id: string;
@@ -90,6 +91,12 @@ export type MockCheckInNotice = {
   sent_at: string | null;
   answer: 'good' | 'rough' | null;
   answered_at: string | null;
+};
+
+export type MockEveningCheckIn = {
+  local_date: string;
+  mood: EveningCheckInMoodKey;
+  note: string;
 };
 
 type MockDb = {
@@ -165,6 +172,8 @@ type MockDb = {
   memoryFacts: MockMemoryFact[];
   deviceTokens: MockDeviceToken[];
   checkInNotices: MockCheckInNotice[];
+  /** One closed evening ritual per user-local date. */
+  eveningCheckIns: Record<string, MockEveningCheckIn>;
   /** Monotonic id source for created food entries. */
   nextFoodEntryId: number;
   /** Monotonic id source for user-created food items. */
@@ -204,6 +213,7 @@ function createEmptyDb(): MockDb {
     memoryFacts: [],
     deviceTokens: [],
     checkInNotices: [],
+    eveningCheckIns: {},
     nextFoodEntryId: 1,
     nextFoodItemId: 11,
     nextMealPlanId: 1,
@@ -241,6 +251,7 @@ export function __resetMockDbForTests(): void {
   mockDb.memoryFacts = [];
   mockDb.deviceTokens = [];
   mockDb.checkInNotices = [];
+  mockDb.eveningCheckIns = {};
   mockDb.nextFoodEntryId = 1;
   mockDb.nextFoodItemId = 11;
   mockDb.nextMealPlanId = 1;

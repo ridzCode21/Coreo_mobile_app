@@ -16,6 +16,7 @@ export default function AppLayout() {
         <Stack.Screen name="wellness-interview" />
         <Stack.Screen name="right-now" options={{ presentation: 'modal' }} />
         <Stack.Screen name="chat-presence" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="evening-check-in" options={{ presentation: 'modal' }} />
       </Stack>
       <CheckInNotificationsHost />
     </>

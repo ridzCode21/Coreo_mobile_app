@@ -66,3 +66,9 @@ export function decideNoticeResponse(input: NoticeResponseInput): NoticeResponse
   if (payload.data.kind !== EVENING_CHECK_IN_CATEGORY) return { type: 'open' };
   return { type: 'answer', noticeId: payload.data.id, answer, responseKey: input.responseKey };
 }
+
+/** True when the notification's data says it is the evening check-in notice (not the late-night one). */
+export function isEveningCheckInNotice(data: unknown): boolean {
+  const payload = noticePayloadSchema.safeParse(data);
+  return payload.success && payload.data.kind === EVENING_CHECK_IN_CATEGORY;
+}

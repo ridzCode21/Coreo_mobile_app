@@ -181,6 +181,27 @@ Screen-specific tokens preserve the supplied compositions without raw values in 
 `wellnessCardFooter`, `rightNowHeadline`, `rightNowCue`, `rightNowPattern`, `rightNowLine`, and
 `rightNowButton`.
 
+Evening check-in 24a uses `typography.eveningCheckInQuestion` (27px/200), mood emoji and labels
+(`eveningCheckInMoodEmoji`, `eveningCheckInMoodLabel`, `eveningCheckInMoodLabelSelected`), recap
+and form labels (`eveningCheckInLooksRight`, `eveningCheckInFix`, `eveningCheckInRecapLine`,
+`eveningCheckInNotePrompt`, `eveningCheckInClose`), plus the dark tomorrow card
+(`eveningCheckInPreviewEyebrow`, `eveningCheckInPreviewLine`, `eveningCheckInPreviewAction`). It owns
+its other values and borrows nothing from other features: `componentSizes.eveningCheckIn*`,
+`radii.eveningCheckIn*`, `spacing.eveningCheckIn*` (bottom padding 32, mood gap 6 and padding 2,
+card padding 16/18, field padding 18, recap line gap 9, preview padding 24/22/26, action gap 18),
+`colors.eveningCheckInGrabber` (`rgba(255,255,255,.25)`), `colors.eveningCheckInDimEyebrow`
+(`rgba(23,25,29,.3)`, closed view) and `colors.eveningCheckInPreviewEyebrow`
+(`rgba(239,244,249,.5)`). Glass recipes: `glass.eveningCheckInMood` (flat white .4, border .55),
+`eveningCheckInMoodSelected` (white .94 to .6, border .95, shadow `0 10 22` at `overlayInk` .18 plus
+an 18px white .8 glow), `eveningCheckInRecap` (white .66 to .26, border .6, highlight .7, shadow
+`0 16 32` at .14) and `eveningCheckInPreview` (`rgba(34,66,102,.9)` to `rgba(12,28,48,.95)`, white
+.22 border, shadow `0 30 60` at .4 plus a second `0 -20 50` at .3 thrown upward). The close action's
+depth shadow uses its 12px offset and 26px radius, with an 18px white outer glow; the tomorrow
+action uses a 20px white .5 glow. The screen uses 64px top and 32px bottom total padding (never
+below the safe area) through `Screen`'s `edgePadding` and `fill` options. React Native cannot offset
+an underline or blur text on iOS, so "Fix something" draws its underline as a bottom border 3px
+below the text, and the closed view's dimmed question gets its 1px blur from a 1px text shadow.
+
 Patterns 37a uses `glass.patternsCalibratingCard`: `rgba(60,72,86,.5)` to
 `rgba(30,40,50,.58)`, white `.16` border/top highlight, and `rgba(8,24,44,.24)` shadow.
 Patterns 37b uses `glass.patternsInsightCard`: `rgba(34,66,102,.85)` to

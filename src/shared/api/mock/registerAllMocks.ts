@@ -21,3 +21,4 @@ import '@/features/profile/mocks/account.handlers';
 import '@/features/profile/mocks/memoryFacts.handlers';
 import '@/features/patterns/mocks/insights.handlers';
 import '@/features/notifications/mocks/checkInNotices.handlers';
+import '@/features/evening-checkin/mocks/eveningCheckIn.handlers';

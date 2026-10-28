@@ -1,9 +1,15 @@
+import { useEffect } from 'react';
+
+import { flushPendingNavigation } from '@/features/notifications/lib/notificationResponses';
 import { CheckInPermissionSheet } from '@/features/notifications/components/CheckInPermissionSheet';
 import { useCheckInNotifications } from '@/features/notifications/lib/useCheckInNotifications';
 
 /** Mounted once in the signed-in layout: runs the nudge setup and shows the explanation sheet. */
 export function CheckInNotificationsHost() {
   const { visible, busy, confirm, decline } = useCheckInNotifications();
+  useEffect(() => {
+    flushPendingNavigation();
+  }, []);
   return (
     <CheckInPermissionSheet
       visible={visible}
