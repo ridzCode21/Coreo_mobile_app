@@ -11,10 +11,11 @@
  *  2. Closing Replace and reopening it starts clean (no stale preference/alternatives).
  *  3. A confirm that 404s `preview_not_found` (`apps/meals/views.py:474-480`) returns to the 30a
  *     prompt step with a clear path to retry, rather than leaving the user stuck on a dead sheet.
- *  7. The 35b "replaced" receipt: the "Replaced" badge only needs `replacement_of_id !== null`
- *     (present on every meal, `apps/meals/views.py:777`); the explanatory line and "View the
- *     original" additionally need the `replacedFrom` snapshot carried from the screen that did the
- *     replacing (see plan.md Decision #9 — the backend cannot answer this after the fact).
+ *  7. The 35b "replaced" receipt (issue #132): the "Replaced" badge only needs
+ *     `replacement_of_id !== null` (present on every meal, `apps/meals/views.py:777`); the
+ *     explanatory line and "View the original" come from the meal's own `original_meal` field
+ *     (`apps/meals/views.py:809-823` `_replacement_receipt`), so they survive a restart, a deep
+ *     link, or any later visit — not a route param set only by the screen that did the replacing.
  */
 
 import { render, screen, fireEvent } from '@testing-library/react-native';
@@ -24,7 +25,7 @@ import type { PlannedMeal } from '@/shared/types/mealPlan';
 
 const mockReplace = jest.fn();
 const mockBack = jest.fn();
-let mockParams: { id?: string; replacedFrom?: string } = { id: '42' };
+let mockParams: { id?: string } = { id: '42' };
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: mockBack, push: jest.fn(), replace: mockReplace }),
@@ -68,6 +69,14 @@ const REPLACED_DINNER: PlannedMeal = {
   carbs_g: 58,
   fat_g: 20,
   replacement_of_id: 42,
+  original_meal: {
+    name: 'Grilled fish, roti, sabzi',
+    calories_kcal: 570,
+    protein_g: 40,
+    carbs_g: 66,
+    fat_g: 14,
+  },
+  replacement_reason: "Approx. Closest match to tonight's macros.",
 };
 
 const ALTERNATIVE = {
@@ -260,17 +269,8 @@ describe('nutrition: MealDetailScreen replace flow wiring (issue #35)', () => {
       expect(screen.getByText('Replaced')).toBeTruthy();
     });
 
-    it('shows the explanatory line and "View the original" when a replacedFrom snapshot is present', () => {
-      mockParams = {
-        id: '999',
-        replacedFrom: JSON.stringify({
-          name: 'Grilled fish, roti, sabzi',
-          calories_kcal: 570,
-          protein_g: 40,
-          carbs_g: 66,
-          fat_g: 14,
-        }),
-      };
+    it('shows the explanatory line and "View the original" from meal.original_meal, with no route param at all (restart/deep-link case)', () => {
+      mockParams = { id: '999' };
       mockPlanMeals = [REPLACED_DINNER];
       render(<MealDetailScreen />);
 
@@ -283,9 +283,11 @@ describe('nutrition: MealDetailScreen replace flow wiring (issue #35)', () => {
       expect(screen.getAllByText('Grilled fish, roti, sabzi').length).toBeGreaterThan(0);
     });
 
-    it('omits the explanatory line and the link when there is no replacedFrom snapshot', () => {
+    it('omits the explanatory line and the link when the loaded meal has no original_meal data', () => {
       mockParams = { id: '999' };
-      mockPlanMeals = [REPLACED_DINNER];
+      mockPlanMeals = [
+        { ...REPLACED_DINNER, original_meal: undefined, replacement_reason: undefined },
+      ];
       render(<MealDetailScreen />);
 
       expect(screen.getByText('Replaced')).toBeTruthy();

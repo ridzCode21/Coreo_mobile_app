@@ -632,11 +632,28 @@ registerMock('POST', '/meal-plans/:date/meals/:mealId/replace/confirm/', (reques
     estimated_cost_tier: alternative.estimated_cost_tier,
     confidence_note: '',
     scheduled_time: meal.scheduled_time ?? null,
+    original_meal: {
+      name: meal.name,
+      calories_kcal: meal.calories_kcal,
+      protein_g: meal.protein_g,
+      carbs_g: meal.carbs_g,
+      fat_g: meal.fat_g,
+    },
+    replacement_reason: alternative.rationale.trim() || null,
   };
   plan.meals.push(replacement);
   mockDb.mealPlans[planKey(user.id, request.params.date)] = recomputeTotals(plan);
   delete mockDb.replacePreviews[previewToken];
-  return { status: 200, delayMs: 250, body: styleB({ status: 'ok', meal_id: replacement.id }) };
+  return {
+    status: 200,
+    delayMs: 250,
+    body: styleB({
+      status: 'ok',
+      meal_id: replacement.id,
+      original_meal: replacement.original_meal,
+      replacement_reason: replacement.replacement_reason,
+    }),
+  };
 });
 
 registerMock('POST', '/meal-plans/:date/ate-something-else/', (request) => {

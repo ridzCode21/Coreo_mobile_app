@@ -45,6 +45,14 @@ export const FEEDBACK_TYPES = [
 ] as const;
 export type FeedbackType = (typeof FEEDBACK_TYPES)[number];
 
+export type MealMacroSnapshot = {
+  name: string;
+  calories_kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+};
+
 export type PlannedMeal = {
   id: number;
   date: string;
@@ -72,6 +80,8 @@ export type PlannedMeal = {
   estimated_cost_tier: BudgetTier | '';
   confidence_note: string;
   scheduled_time?: string | null;
+  original_meal?: MealMacroSnapshot;
+  replacement_reason?: string | null;
 };
 
 export type ValidationResult = {
@@ -163,6 +173,8 @@ export type MealActionStatusResponse = {
   protein_g?: number;
   carbs_g?: number;
   fat_g?: number;
+  original_meal?: MealMacroSnapshot;
+  replacement_reason?: string | null;
 };
 
 export type ReplacePreviewAlternative = {
