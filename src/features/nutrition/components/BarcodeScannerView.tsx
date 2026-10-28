@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.coreBlue,
+    backgroundColor: colors.ink,
   },
   primaryButtonText: {
     ...textStyle('bodyLg'),
