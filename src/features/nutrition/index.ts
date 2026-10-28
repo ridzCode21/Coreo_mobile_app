@@ -3,6 +3,7 @@
  * plus meal planning, meal actions, and assistant prompts (Layer 2).
  */
 export { default as DietHomeScreen } from '@/features/nutrition/screens/DietHomeScreen';
+export { default as TodayEntriesScreen } from '@/features/nutrition/screens/TodayEntriesScreen';
 export { default as DietPreferencesScreen } from '@/features/nutrition/screens/DietPreferencesScreen';
 export { DIET_QUICK_SETUP_SUBTITLE } from '@/features/nutrition/components/DietPersonalizationCard';
 export { default as ConfirmMealScreen } from '@/features/nutrition/screens/ConfirmMealScreen';

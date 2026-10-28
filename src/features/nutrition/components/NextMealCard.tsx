@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { GlassCard } from '@/shared/components/GlassCard';
 import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
@@ -13,7 +14,10 @@ type NextMealCardProps = {
   date: string;
 };
 
+const PLAN_ROUTE = '/diet/plan';
+
 export function NextMealCard({ date }: NextMealCardProps) {
+  const router = useRouter();
   const planQuery = useMealPlanQuery(date);
   const plan = planQuery.data;
   const meal = plan?.status === 'ready' ? nextPlannedMeal(plan.meals) : null;
@@ -27,7 +31,16 @@ export function NextMealCard({ date }: NextMealCardProps) {
       contentPaddingVertical={spacing.dietCardPaddingY}
       contentPaddingHorizontal={spacing.dietCardPaddingX}
     >
-      <Text style={styles.eyebrow}>Next meal · {MEAL_WINDOW_COPY[meal.meal_type]}</Text>
+      <View style={styles.header}>
+        <Text style={styles.eyebrow}>Next meal · {MEAL_WINDOW_COPY[meal.meal_type]}</Text>
+        <Pressable
+          onPress={() => router.push(PLAN_ROUTE)}
+          accessibilityRole="button"
+          accessibilityLabel="See full plan"
+        >
+          <Text style={styles.linkText}>See full plan</Text>
+        </Pressable>
+      </View>
       <View style={styles.copy}>
         <Text style={styles.title}>{meal.name}</Text>
         <Text style={styles.subtitle}>
@@ -39,9 +52,15 @@ export function NextMealCard({ date }: NextMealCardProps) {
 }
 
 const styles = StyleSheet.create({
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   eyebrow: {
     ...textStyle('readingCardLabel'),
     color: colors.label,
+  },
+  linkText: {
+    ...textStyle('caption'),
+    color: colors.ink,
+    textDecorationLine: 'underline',
   },
   copy: {
     marginTop: spacing.dietNextMealTitleGap,

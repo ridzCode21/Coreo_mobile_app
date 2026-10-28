@@ -128,6 +128,16 @@ export default function DietHomeScreen() {
           )}
         </View>
 
+        <View style={styles.entriesLinkSection}>
+          <Pressable
+            onPress={() => router.push('/diet/entries')}
+            accessibilityRole="button"
+            accessibilityLabel="Today's entries"
+          >
+            <Text style={styles.entriesLink}>Today&apos;s entries</Text>
+          </Pressable>
+        </View>
+
         <View style={styles.cardSection}>
           <NextMealCard date={today} />
         </View>
@@ -330,6 +340,12 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   heroSection: { marginTop: spacing.dietHeroTop },
+  entriesLinkSection: { marginTop: spacing.dietCardGap },
+  entriesLink: {
+    ...textStyle('caption'),
+    color: colors.ink,
+    textDecorationLine: 'underline',
+  },
   softNote: {
     ...textStyle('body'),
     color: colors.ink55,

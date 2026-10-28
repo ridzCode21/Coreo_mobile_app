@@ -4,12 +4,22 @@
  * today, sourced from the same `useMealPlanQuery` already wired for the full plan screen
  * (`src/features/nutrition/api/mealPlanApi.ts:35-44`). The design has no loading/empty/error
  * variant for this card, so it renders nothing rather than fabricating one.
+ *
+ * Issue #128 — the design has no "See full plan" link for this card either (no screen match in
+ * design-spec.md for #128), so it reuses the plain-text `linkText` style the retired `MealPlanCard`
+ * used for the same link before #22 (`MealPlanCard.tsx:121-128`). Since the link lives inside this
+ * card, it only appears in the states the card itself renders in (plan.md Decision log #2).
  */
 
-import { render, screen } from '@testing-library/react-native';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 
 import { NextMealCard } from '@/features/nutrition/components/NextMealCard';
 import type { MealPlanDetail } from '@/shared/types/mealPlan';
+
+const mockPush = jest.fn();
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
 
 let mockPlan: Partial<MealPlanDetail> | undefined;
 
@@ -19,6 +29,7 @@ jest.mock('@/features/nutrition/api/mealPlanApi', () => ({
 
 describe('nutrition: NextMealCard (issue #22)', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     mockPlan = undefined;
   });
 
@@ -88,5 +99,39 @@ describe('nutrition: NextMealCard (issue #22)', () => {
     };
     const { toJSON } = render(<NextMealCard date="2026-07-06" />);
     expect(toJSON()).toBeNull();
+  });
+
+  describe('"See full plan" link (issue #128)', () => {
+    beforeEach(() => {
+      mockPlan = {
+        status: 'ready',
+        meals: [
+          {
+            id: 1,
+            meal_type: 'lunch',
+            name: 'Rice bowl with paneer and greens',
+            carbs_g: 90,
+            status: 'planned',
+          },
+        ] as MealPlanDetail['meals'],
+      };
+    });
+
+    it('shows a "See full plan" link alongside the next meal', () => {
+      render(<NextMealCard date="2026-07-06" />);
+      expect(screen.getByLabelText('See full plan')).toBeTruthy();
+    });
+
+    it('navigates to /diet/plan when pressed', () => {
+      render(<NextMealCard date="2026-07-06" />);
+      fireEvent.press(screen.getByLabelText('See full plan'));
+      expect(mockPush).toHaveBeenCalledWith('/diet/plan');
+    });
+
+    it('does not render the link when the card itself renders nothing (no next meal)', () => {
+      mockPlan = { status: 'generating', meals: [] };
+      render(<NextMealCard date="2026-07-06" />);
+      expect(screen.queryByLabelText('See full plan')).toBeNull();
+    });
   });
 });
