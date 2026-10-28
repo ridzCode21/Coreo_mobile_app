@@ -1,6 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import MealDetailScreen from '@/features/nutrition/screens/MealDetailScreen';
+import { colors } from '@/shared/theme/tokens';
 import type { PlannedMeal } from '@/shared/types/mealPlan';
 
 const mockAdjustMutate = jest.fn();
@@ -78,5 +80,19 @@ describe('MealDetailScreen status copy', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Adjust' }));
     fireEvent.press(screen.getByRole('button', { name: 'Save portion' }));
     expect(screen.getByText("Portion updated. Today's macros reflect it.")).toBeTruthy();
+  });
+
+  // Design 29b (screens 29a/29b, issue #32) has no green/success-colored copy anywhere on the
+  // meal detail screen; the action-confirmation message must use a neutral ink tone instead.
+  it('does not render the action confirmation message in the success/green color', () => {
+    mockAdjustMutate.mockImplementation((_values, handlers) => handlers.onSuccess());
+    render(<MealDetailScreen />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Adjust' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Save portion' }));
+
+    const message = screen.getByText("Portion updated. Today's macros reflect it.");
+    const flattened = StyleSheet.flatten(message.props.style);
+    expect(flattened.color).not.toBe(colors.success);
   });
 });

@@ -756,7 +756,7 @@ const styles = StyleSheet.create({
   },
   noticeText: {
     ...textStyle('body'),
-    color: colors.success,
+    color: colors.ink70,
   },
   actionGrid: {
     flexDirection: 'row',
