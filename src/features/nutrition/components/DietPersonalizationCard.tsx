@@ -88,6 +88,8 @@ type DietPersonalizationCardProps = {
   profile: DietProfile;
 };
 
+export const DIET_QUICK_SETUP_SUBTITLE = 'Diet type · Activity · Foods to avoid';
+
 function toggleString(list: string[], item: string): string[] {
   return list.includes(item) ? list.filter((entry) => entry !== item) : [...list, item];
 }
@@ -177,7 +179,7 @@ export function DietPersonalizationCard({ profile }: DietPersonalizationCardProp
         <Text style={styles.title}>
           3 quick things to improve your targets and future meal plans.
         </Text>
-        <Text style={styles.body}>Diet type · Activity · Foods to avoid</Text>
+        <Text style={styles.body}>{DIET_QUICK_SETUP_SUBTITLE}</Text>
 
         <Question title="How do you usually eat?">
           <View style={styles.chips}>
@@ -281,7 +283,7 @@ export function DietPersonalizationCard({ profile }: DietPersonalizationCardProp
             <Text style={styles.title}>
               3 quick things to improve your targets and future meal plans.
             </Text>
-            <Text style={styles.body}>Diet type · Activity · Foods to avoid</Text>
+            <Text style={styles.body}>{DIET_QUICK_SETUP_SUBTITLE}</Text>
             <Text style={styles.inlineAction}>Finish in ~1 min</Text>
           </GlassCard>
         </Pressable>

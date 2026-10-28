@@ -4,6 +4,12 @@
  * `ProfileScreen` with every hook mocked at the feature-index boundary (same pattern as
  * `tests/regression/home/core-home-screen.test.tsx`) so it never touches the network or the mock
  * API layer, and checks copy/structure/visibility rules rather than implementation details.
+ *
+ * Issue #127 — re-homes `DietPersonalizationCard` (orphaned since issue #22 removed it from Diet
+ * home) by adding a "Diet preferences" row here, using the same glass-row treatment as the
+ * Diet/Fitness/Wellness pillar rows above. The row is not in the design (19a doesn't show it); the
+ * PR must flag this to the design owner for confirmation (see plan.md Decision log). Tapping it
+ * pushes `/profile/diet-preferences`, a new route that renders the card unchanged.
  */
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
@@ -187,6 +193,25 @@ describe('profile: ProfileScreen (issue #44, design-spec.md 19a)', () => {
     render(<ProfileScreen />);
     fireEvent.press(screen.getByRole('button', { name: 'What Coreo knows about me' }));
     expect(mockPush).toHaveBeenCalledWith('/profile/notebook');
+  });
+
+  it('shows a "Diet preferences" row (issue #127, re-homing DietPersonalizationCard) when diet is active, with the quick-setup\'s own copy as the subtitle', () => {
+    render(<ProfileScreen />);
+    expect(screen.getByText('Diet preferences')).toBeTruthy();
+    // The row and card share the nutrition-owned subtitle constant, so its copy cannot drift.
+    expect(screen.getByText('Diet type · Activity · Foods to avoid')).toBeTruthy();
+  });
+
+  it('hides the "Diet preferences" row when the user never selected the diet pillar', () => {
+    mockActivePillars = ['fitness', 'wellness'];
+    render(<ProfileScreen />);
+    expect(screen.queryByText('Diet preferences')).toBeNull();
+  });
+
+  it('navigates to /profile/diet-preferences when the "Diet preferences" row is pressed (issue #127)', () => {
+    render(<ProfileScreen />);
+    fireEvent.press(screen.getByRole('button', { name: 'Diet preferences' }));
+    expect(mockPush).toHaveBeenCalledWith('/profile/diet-preferences');
   });
 
   it("uses the design's gradient and stroked-SVG treatment for profile controls", () => {

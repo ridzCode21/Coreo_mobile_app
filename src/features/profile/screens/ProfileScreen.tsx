@@ -6,6 +6,7 @@ import Svg, { Path } from 'react-native-svg';
 import { usePillarSelectionStore, useProfileQuery } from '@/features/auth';
 import { useFitnessProfileQuery } from '@/features/fitness';
 import { useSourcesQuery } from '@/features/home';
+import { DIET_QUICK_SETUP_SUBTITLE } from '@/features/nutrition';
 import { useDietProfileQuery } from '@/features/onboarding';
 import { AccountActionsSection } from '@/features/profile/components/AccountActionsSection';
 import { BackButton } from '@/shared/components/BackButton';
@@ -24,30 +25,53 @@ import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
 import { colors, componentSizes, glass, radii, spacing, typography } from '@/shared/theme/tokens';
 
-function PillarRow({ label, summary }: { label: string; summary: string | null }) {
+function PillarRow({
+  label,
+  summary,
+  onPress,
+}: {
+  label: string;
+  summary: string | null;
+  onPress?: () => void;
+}) {
   if (!summary) return null;
+  const content = (
+    <>
+      <View>
+        <Text style={styles.rowLabel}>{label}</Text>
+        <Text style={styles.rowSummary}>{summary}</Text>
+      </View>
+      <Svg
+        width={componentSizes.profilePillarChevron}
+        height={componentSizes.profilePillarChevron}
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <Path
+          d="M9 18l6-6-6-6"
+          stroke={colors.ink55}
+          strokeWidth={componentSizes.planHeaderStrokeWidth}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    </>
+  );
+
   return (
     <GlassCard variant="light" radius={radii.md} padded={false}>
-      <View style={styles.row}>
-        <View>
-          <Text style={styles.rowLabel}>{label}</Text>
-          <Text style={styles.rowSummary}>{summary}</Text>
-        </View>
-        <Svg
-          width={componentSizes.profilePillarChevron}
-          height={componentSizes.profilePillarChevron}
-          viewBox="0 0 24 24"
-          fill="none"
+      {onPress ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={label}
+          onPress={onPress}
+          style={styles.row}
         >
-          <Path
-            d="M9 18l6-6-6-6"
-            stroke={colors.ink55}
-            strokeWidth={componentSizes.planHeaderStrokeWidth}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </Svg>
-      </View>
+          {content}
+        </Pressable>
+      ) : (
+        <View style={styles.row}>{content}</View>
+      )}
     </GlassCard>
   );
 }
@@ -136,6 +160,13 @@ export default function ProfileScreen() {
                 wellness.data?.wellness_focus ?? '',
                 wellness.data?.hide_numbers ?? false,
               )}
+            />
+          ) : null}
+          {activePillars.includes('diet') ? (
+            <PillarRow
+              label="Diet preferences"
+              summary={DIET_QUICK_SETUP_SUBTITLE}
+              onPress={() => router.push('/profile/diet-preferences')}
             />
           ) : null}
         </View>
