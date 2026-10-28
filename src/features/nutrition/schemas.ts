@@ -242,12 +242,3 @@ export const photoReceiptSummarySchema = z.object({
   items: z.array(photoEstimateItemSchema),
 });
 export type PhotoReceiptSummary = z.infer<typeof photoReceiptSummarySchema>;
-
-export const replacedFromParamSchema = z.object({
-  name: z.string(),
-  calories_kcal: z.number(),
-  protein_g: z.number(),
-  carbs_g: z.number(),
-  fat_g: z.number(),
-});
-export type ReplacedFromParam = z.infer<typeof replacedFromParamSchema>;

@@ -121,7 +121,7 @@ describe('nutrition mock contract: replace preview/confirm (issue #35)', () => {
     expect(typeof body.preview_token).toBe('string');
   });
 
-  it('confirm returns exactly {status: "ok", meal_id} like meal_operations.py:283', async () => {
+  it('confirm returns the backend receipt alongside {status: "ok", meal_id}', async () => {
     const user = seedUser();
     const { access } = issueTokenPair(user);
     const dinner = await createPlanAndGetDinner(access, user.id);
@@ -142,9 +142,24 @@ describe('nutrition mock contract: replace preview/confirm (issue #35)', () => {
     );
 
     expect(confirm.status).toBe(200);
-    expect(Object.keys(confirm.body as object).sort()).toEqual(['meal_id', 'status']);
+    expect(Object.keys(confirm.body as object).sort()).toEqual([
+      'meal_id',
+      'original_meal',
+      'replacement_reason',
+      'status',
+    ]);
     expect((confirm.body as { status: string }).status).toBe('ok');
     expect(typeof (confirm.body as { meal_id: number }).meal_id).toBe('number');
+    expect((confirm.body as { original_meal: object }).original_meal).toEqual({
+      name: dinner.name,
+      calories_kcal: dinner.calories_kcal,
+      protein_g: dinner.protein_g,
+      carbs_g: dinner.carbs_g,
+      fat_g: dinner.fat_g,
+    });
+    expect((confirm.body as { replacement_reason: string | null }).replacement_reason).toEqual(
+      expect.any(String),
+    );
   });
 
   it('after confirm, GET excludes the old meal and includes the new one with replacement_of_id set', async () => {

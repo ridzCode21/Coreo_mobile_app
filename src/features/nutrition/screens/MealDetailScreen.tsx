@@ -42,7 +42,6 @@ import {
   previewNotFoundFrom,
   serviceUnavailableFrom,
 } from '@/features/nutrition/lib/replacePreview';
-import { replacedFromParamSchema, type ReplacedFromParam } from '@/features/nutrition/schemas';
 import type { FeedbackType, PlannedMeal } from '@/shared/types/mealPlan';
 
 type Sheet = 'portion' | 'replace' | 'feedback' | null;
@@ -55,7 +54,7 @@ function detailFallback(meal: PlannedMeal | undefined): string {
 
 export default function MealDetailScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ id?: string; replacedFrom?: string }>();
+  const params = useLocalSearchParams<{ id?: string }>();
   const date = todayISO();
   const mealId = Number(params.id);
   const planQuery = useMealPlanQuery(date);
@@ -102,16 +101,6 @@ export default function MealDetailScreen() {
   const recipeQuota = quotaErrorFrom(recipeQuery.error);
   const recipeRefused = recipeRefusedFrom(recipeQuery.error);
   const replaceQuota = quotaErrorFrom(replacePreview.error);
-  const replacedFrom = useMemo<ReplacedFromParam | null>(() => {
-    if (!params.replacedFrom) return null;
-    try {
-      const parsed = replacedFromParamSchema.safeParse(JSON.parse(params.replacedFrom));
-      return parsed.success ? parsed.data : null;
-    } catch {
-      return null;
-    }
-  }, [params.replacedFrom]);
-
   const resetReplace = () => {
     setReplacePreference('');
     setChosenReplacement(0);
@@ -184,18 +173,9 @@ export default function MealDetailScreen() {
       {
         onSuccess: (response) => {
           if (!response.meal_id) return;
-          const snapshot: ReplacedFromParam = {
-            name: meal.name,
-            calories_kcal: meal.calories_kcal,
-            protein_g: meal.protein_g,
-            carbs_g: meal.carbs_g,
-            fat_g: meal.fat_g,
-          };
           resetReplace();
           setSheet(null);
-          router.replace(
-            `/diet/meal/${response.meal_id}?replacedFrom=${encodeURIComponent(JSON.stringify(snapshot))}`,
-          );
+          router.replace(`/diet/meal/${response.meal_id}`);
         },
         onError: (error) => {
           if (previewNotFoundFrom(error)) {
@@ -292,18 +272,20 @@ export default function MealDetailScreen() {
               </GlassCard>
             )}
 
-            {meal.replacement_of_id !== null && replacedFrom ? (
+            {meal.replacement_of_id !== null && meal.original_meal ? (
               <>
                 <GlassCard variant="chip" radius={radii.sm} style={styles.replacedNotice}>
                   <Text style={styles.replacedNoticeText}>
-                    Replaced <Text style={styles.replacedOriginalName}>{replacedFrom.name}</Text> —
+                    Replaced{' '}
+                    <Text style={styles.replacedOriginalName}>{meal.original_meal.name}</Text> —
                     swapped for a closer macro match.
                   </Text>
                   {showOriginal ? (
                     <Text style={styles.originalMacros}>
-                      {replacedFrom.name} · {Math.round(replacedFrom.calories_kcal)} kcal · P{' '}
-                      {Math.round(replacedFrom.protein_g)}g · C {Math.round(replacedFrom.carbs_g)}g
-                      · F {Math.round(replacedFrom.fat_g)}g
+                      {meal.original_meal.name} · {Math.round(meal.original_meal.calories_kcal)}{' '}
+                      kcal · P {Math.round(meal.original_meal.protein_g)}g · C{' '}
+                      {Math.round(meal.original_meal.carbs_g)}g · F{' '}
+                      {Math.round(meal.original_meal.fat_g)}g
                     </Text>
                   ) : null}
                 </GlassCard>
