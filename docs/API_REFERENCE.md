@@ -565,9 +565,14 @@ The main dashboard payload for a day.
   "net_calories": 300,
   "food_log_count": 42,
   "food_entries": [ <FoodEntry> ],
-  "exercise_entries": [ <ExerciseEntry> ]
+  "exercise_entries": [ <ExerciseEntry> ],
+  "vs_yesterday": "ahead"
 }
 ```
+
+`vs_yesterday` is `"ahead"`, `"behind"`, `"level"`, or `null`. It compares food calories
+logged today with yesterday's entries at or before the current local time; it is `null` for a
+date other than the user's local today or when yesterday has no food entries.
 
 ### PATCH `/daily-summary/water/`
 

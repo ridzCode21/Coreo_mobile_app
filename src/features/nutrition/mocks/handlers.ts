@@ -46,6 +46,41 @@ function validISODate(value: string): Date | null {
   return Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value ? null : date;
 }
 
+function vsYesterday(date: string): 'ahead' | 'behind' | 'level' | null {
+  const summaryDate = validISODate(date);
+  if (!summaryDate || date !== todayISO()) return null;
+
+  const yesterdayDate = new Date(summaryDate);
+  yesterdayDate.setUTCDate(yesterdayDate.getUTCDate() - 1);
+  const yesterday = yesterdayDate.toISOString().slice(0, 10);
+  const entries = mockDb.foodEntries.filter(
+    (entry) => entry.date === date || entry.date === yesterday,
+  );
+  if (!entries.some((entry) => entry.date === yesterday)) return null;
+
+  const now = new Date();
+  const cutoffSeconds = now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+  const caloriesAtCutoff = (entryDate: string) =>
+    entries
+      .filter((entry) => entry.date === entryDate)
+      .filter((entry) => {
+        const createdAt = new Date(entry.created_at);
+        if (Number.isNaN(createdAt.getTime())) return false;
+        const entrySeconds =
+          createdAt.getUTCHours() * 3600 +
+          createdAt.getUTCMinutes() * 60 +
+          createdAt.getUTCSeconds();
+        return entrySeconds <= cutoffSeconds;
+      })
+      .reduce((total, entry) => total + (entry.calories ?? 0), 0);
+
+  const todayCalories = caloriesAtCutoff(date);
+  const yesterdayCalories = caloriesAtCutoff(yesterday);
+  if (todayCalories > yesterdayCalories) return 'ahead';
+  if (todayCalories < yesterdayCalories) return 'behind';
+  return 'level';
+}
+
 function ensureFoodDbSeeded(): void {
   if (mockDb.foodItems.length === 0) mockDb.foodItems = [...SEED_FOOD_ITEMS];
 }
@@ -553,6 +588,7 @@ registerMock('GET', '/daily-summary/', (request) => {
       food_log_count: foodEntries.length,
       food_entries: foodEntries,
       exercise_entries: [],
+      vs_yesterday: vsYesterday(date),
     }),
   };
 });

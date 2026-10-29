@@ -50,6 +50,10 @@ jest.mock('@/features/home/api/sourcesApi', () => ({
   useSourcesQuery: () => ({ data: mockSources, isLoading: false }),
 }));
 
+jest.mock('@/features/home/api/nudgeApi', () => ({
+  useNudgeQuery: () => ({ data: { nudge: null, message: null }, isLoading: false }),
+}));
+
 describe('home: CoreoHomeScreen calibrating state (issue #19)', () => {
   beforeEach(() => {
     jest.useFakeTimers().setSystemTime(new Date(2026, 6, 6, 8, 0));

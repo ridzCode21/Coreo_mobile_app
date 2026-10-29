@@ -7,16 +7,18 @@ import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
 import { colors, fontFamily, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 import { useProfileQuery } from '@/features/auth';
+import { useNudgeQuery } from '@/features/home/api/nudgeApi';
 import { useSourcesQuery } from '@/features/home/api/sourcesApi';
 import { AskAnythingBar } from '@/features/home/components/AskAnythingBar';
 import { CalibratingWaveCard } from '@/features/home/components/CalibratingWaveCard';
+import { CoreNudgeCard } from '@/features/home/components/CoreNudgeCard';
 import { HomeHeader } from '@/features/home/components/HomeHeader';
 import { HomeNoticeBanner } from '@/features/home/components/HomeNoticeBanner';
 import { ReadingYouCard } from '@/features/home/components/ReadingYouCard';
 import { TodayScoreCard } from '@/features/home/components/TodayScoreCard';
 import { timeOfDayGreeting } from '@/features/home/lib/greeting';
 import { useOfflineHome } from '@/features/home/lib/useOfflineHome';
-import { targetQuality, useDietProfileQuery } from '@/features/onboarding';
+import { useDietProfileQuery } from '@/features/onboarding';
 import {
   targetsFromProfile,
   todayISO,
@@ -56,6 +58,7 @@ export default function CoreoHomeScreen() {
   const calibrationDay = userProfileQuery.data?.calibration_day ?? null;
   const profileQuery = useDietProfileQuery();
   const summaryQuery = useDailySummaryQuery(today);
+  const nudgeQuery = useNudgeQuery();
   const offlineView = useOfflineHome(summaryQuery, today);
   const rejectedMeals = useRejectedMeals();
 
@@ -65,21 +68,10 @@ export default function CoreoHomeScreen() {
   const summary = summaryQuery.data;
   const log = summary?.daily_log;
   const targets = profile ? targetsFromProfile(profile) : null;
-  const quality = profile ? targetQuality(profile) : 'unavailable';
-
   const caloriesIn = log?.calories_in ?? 0;
   const waterMl = log?.water_ml ?? 0;
   const workoutSessions = log?.workout_sessions ?? 0;
-  const mealLogged = Boolean(summary && summary.food_log_count > 0);
-  const hasLoggedToday = mealLogged || waterMl > 0 || workoutSessions > 0;
-  const hasInsight = false;
-  const headline = hasInsight
-    ? 'A pattern is starting to show.'
-    : hasLoggedToday && (quality === 'estimated' || quality === 'confirmed')
-      ? 'Today, your core is readable.'
-      : hasLoggedToday
-        ? "Here's where today stands."
-        : 'Today starts here.';
+  const nudge = nudgeQuery.data?.nudge;
 
   const pillarPetals: PetalClusterItem[] = [
     { id: 'wellness', label: 'Wellness', onPress: () => router.navigate(WELLNESS_ROUTE) },
@@ -186,10 +178,14 @@ export default function CoreoHomeScreen() {
                   </>
                 ) : null}
               </Text>
-              <Text style={styles.greetingSubtitle}>{headline}</Text>
+              {summary?.vs_yesterday === 'ahead' ? (
+                <Text style={styles.greetingSubtitle}>You&apos;re running ahead of yesterday.</Text>
+              ) : null}
             </View>
 
             <TodayScoreCard now={now} />
+
+            {nudge ? <CoreNudgeCard text={nudge.home_line} /> : null}
 
             {isLoading ? (
               <View style={styles.loading}>
