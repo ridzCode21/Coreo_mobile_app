@@ -13,12 +13,25 @@
  *
  * Issue #18 — adds the design's "Today" hero wave/score card, the "Your core" nudge card, and the
  * "Ask me anything" bar (design-spec.md 24b/10a lines 7-20). The Core Index score, the nudge text
- * and the "ahead of yesterday" comparison have no backend source yet (issue #18 body), so they
- * stay hidden rather than showing an invented value — only the hero card's eyebrow label, axis
- * and decorative wave (driven by the clock, not fabricated data) can actually render today. This
+ * and the "ahead of yesterday" comparison had no backend source yet (issue #18 body), so they
+ * stayed hidden rather than showing an invented value — only the hero card's eyebrow label, axis
+ * and decorative wave (driven by the clock, not fabricated data) could actually render then. This
  * introduces a second element with the exact text "Today" (the hero card's eyebrow, alongside the
  * pre-existing nutrition card's own "Today" label) — the single-match assertion below is updated
  * to expect both, not weakened.
+ *
+ * Issue #133 — now that the backend provides both sources (`vs_yesterday` on `/daily-summary/`,
+ * `apps/insights/views.py:178,190-229`; `GET /users/me/nudge/`,
+ * `apps/users/services/nudge.py:37-41,88-100`), the comparison line and the nudge card are wired
+ * for real. The design (every Home variant in the design file — 24b/10a/23a/23b/23c) only ever
+ * shows the literal string "You're running ahead of yesterday." in this subtitle position, with no
+ * alternate wording anywhere for "behind"/"level"/no-comparison — so the old placeholder
+ * `headline` copy ("Today starts here.", "Here's where today stands.", "Today, your core is
+ * readable.", "A pattern is starting to show.", none of which appear in the design) is replaced:
+ * the subtitle now renders only when `vs_yesterday === 'ahead'`, using the design's exact string,
+ * and renders nothing for `'behind'`, `'level'`, or `null` (plan.md Decision log #1-2). The nudge
+ * card now mounts with the real `nudge.home_line` whenever the API returns a winning rule, and
+ * stays hidden for the two no-nudge shapes (plan.md Decision log #3).
  */
 
 import { render, screen } from '@testing-library/react-native';
@@ -51,6 +64,14 @@ jest.mock('@/features/nutrition', () => ({
   targetsFromProfile: () => ({ calories: 2000, protein: 150, carbs: 200, fat: 60 }),
 }));
 
+type MockNudgeData =
+  | { nudge: null; message: string | null }
+  | { nudge: { home_line: string; [key: string]: unknown } };
+let mockNudgeData: MockNudgeData | undefined;
+jest.mock('@/features/home/api/nudgeApi', () => ({
+  useNudgeQuery: () => ({ data: mockNudgeData, isLoading: false }),
+}));
+
 describe('home: CoreoHomeScreen (issue #17)', () => {
   beforeEach(() => {
     jest.useFakeTimers().setSystemTime(new Date(2026, 6, 6, 8, 0)); // Mon Jul 6, 08:00 → Morning
@@ -58,6 +79,7 @@ describe('home: CoreoHomeScreen (issue #17)', () => {
     mockProfileLoading = false;
     mockDietProfile = { daily_calories: 2000 } as Partial<DietProfile>;
     mockSummary = undefined;
+    mockNudgeData = { nudge: null, message: null };
   });
 
   afterEach(() => {
@@ -138,17 +160,81 @@ describe('home: CoreoHomeScreen (issue #17)', () => {
       expect(screen.queryByTestId('home-today-score')).toBeNull();
     });
 
-    it('does not show the "Your core" nudge card: the backend has no nudge-text endpoint yet (Self_dev#44)', () => {
-      render(<CoreoHomeScreen />);
-      expect(screen.queryByText('Your core')).toBeNull();
-      expect(
-        screen.queryByText("Eat carbs in the next hour and tonight's session will feel easy."),
-      ).toBeNull();
-    });
-
     it('shows the "Ask me anything" bar as a static placeholder (no chat screen to wire it to yet)', () => {
       render(<CoreoHomeScreen />);
       expect(screen.getByText('Ask me anything')).toBeTruthy();
+    });
+  });
+
+  describe('issue #133: the "ahead of yesterday" comparison line', () => {
+    it('shows the design\'s exact subtitle when vs_yesterday is "ahead"', () => {
+      mockSummary = { vs_yesterday: 'ahead' } as Partial<DailySummary>;
+      render(<CoreoHomeScreen />);
+      expect(screen.getByText("You're running ahead of yesterday.")).toBeTruthy();
+    });
+
+    it('shows nothing for "behind": the design defines no wording for it', () => {
+      mockSummary = { vs_yesterday: 'behind' } as Partial<DailySummary>;
+      render(<CoreoHomeScreen />);
+      expect(screen.queryByText("You're running ahead of yesterday.")).toBeNull();
+      expect(screen.queryByText(/yesterday/i)).toBeNull();
+    });
+
+    it('shows nothing for "level": the design defines no wording for it', () => {
+      mockSummary = { vs_yesterday: 'level' } as Partial<DailySummary>;
+      render(<CoreoHomeScreen />);
+      expect(screen.queryByText(/yesterday/i)).toBeNull();
+    });
+
+    it('shows nothing when vs_yesterday is null', () => {
+      mockSummary = { vs_yesterday: null } as Partial<DailySummary>;
+      render(<CoreoHomeScreen />);
+      expect(screen.queryByText(/yesterday/i)).toBeNull();
+    });
+
+    it('never falls back to the old invented headline copy, in any state', () => {
+      mockSummary = { vs_yesterday: null } as Partial<DailySummary>;
+      render(<CoreoHomeScreen />);
+      expect(screen.queryByText('Today starts here.')).toBeNull();
+      expect(screen.queryByText("Here's where today stands.")).toBeNull();
+      expect(screen.queryByText('Today, your core is readable.')).toBeNull();
+      expect(screen.queryByText('A pattern is starting to show.')).toBeNull();
+    });
+  });
+
+  describe('issue #133: the one nudge card', () => {
+    it('shows nothing when the API returns the onboarding/calibrating empty shape', () => {
+      mockNudgeData = { nudge: null, message: null };
+      render(<CoreoHomeScreen />);
+      expect(screen.queryByText('Your core')).toBeNull();
+    });
+
+    it('shows nothing when the API returns the "nothing fired" empty shape', () => {
+      mockNudgeData = { nudge: null, message: 'Nothing today.' };
+      render(<CoreoHomeScreen />);
+      expect(screen.queryByText('Your core')).toBeNull();
+    });
+
+    it('mounts CoreNudgeCard with the real home_line when a rule wins', () => {
+      mockNudgeData = {
+        nudge: {
+          home_line: "Eat carbs in the next hour and tonight's session will feel easy.",
+        },
+      };
+      render(<CoreoHomeScreen />);
+      expect(screen.getByText('Your core')).toBeTruthy();
+      expect(
+        screen.getByText("Eat carbs in the next hour and tonight's session will feel easy."),
+      ).toBeTruthy();
+    });
+
+    it('never invents nudge copy: renders exactly whatever home_line the API returns', () => {
+      mockNudgeData = { nudge: { home_line: 'A different nudge, from the mocked API.' } };
+      render(<CoreoHomeScreen />);
+      expect(screen.getByText('A different nudge, from the mocked API.')).toBeTruthy();
+      expect(
+        screen.queryByText("Eat carbs in the next hour and tonight's session will feel easy."),
+      ).toBeNull();
     });
   });
 });

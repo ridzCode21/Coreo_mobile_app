@@ -8,6 +8,7 @@
  */
 import '@/features/auth/mocks/handlers';
 import '@/features/home/mocks/sources.handlers';
+import '@/features/home/mocks/nudge.handlers';
 import '@/features/fitness/mocks/fitnessProfile.handlers';
 import '@/features/fitness/mocks/trainingWeek.handlers';
 import '@/features/wellness/mocks/wellnessProfile.handlers';

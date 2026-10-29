@@ -39,6 +39,10 @@ jest.mock('@/features/nutrition', () => ({
   useRejectedMeals: () => mockRejected,
 }));
 
+jest.mock('@/features/home/api/nudgeApi', () => ({
+  useNudgeQuery: () => ({ data: { nudge: null, message: null }, isLoading: false }),
+}));
+
 const SAVED_AT = new Date(2026, 6, 7, 14, 14);
 
 function goOffline() {
