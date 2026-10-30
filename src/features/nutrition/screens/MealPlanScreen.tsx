@@ -22,7 +22,10 @@ import { RebuildingPlanCard } from '@/features/nutrition/components/RebuildingPl
 import { RegenerateSheet } from '@/features/nutrition/components/RegenerateSheet';
 import type { BuildingStatus } from '@/features/nutrition/lib/planBuildSteps';
 import { normalizeMacroSummary, targetsFromProfile } from '@/features/nutrition/lib/macros';
-import { quotaErrorFrom } from '@/features/nutrition/lib/quotaError';
+import {
+  planGenerateQuotaFromNotFoundError,
+  quotaErrorFrom,
+} from '@/features/nutrition/lib/quotaError';
 import { ApiError } from '@/shared/api/errors';
 import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
@@ -59,6 +62,7 @@ export default function MealPlanScreen() {
   const [assistantPromptId, setAssistantPromptId] = useState<number | null>(null);
 
   const noPlan = planQuery.isError && isNotFound(planQuery.error);
+  const noPlanQuota = planGenerateQuotaFromNotFoundError(planQuery.error);
   const plan = planQuery.data?.status === 'ready' ? planQuery.data : null;
   const failedPlan = planQuery.data?.status === 'failed';
   const planCheckFailed = failedPlan && planQuery.data?.failure_reason === 'plan_check_failed';
@@ -114,6 +118,7 @@ export default function MealPlanScreen() {
       return (
         <PlanNoPlanState
           pending={createPlan.isPending}
+          quota={noPlanQuota}
           quotaError={createQuotaError}
           onGenerate={() => createPlan.mutate()}
         />
