@@ -4,7 +4,7 @@ import { ApiError } from '@/shared/api/errors';
 import { apiClient } from '@/shared/api/client';
 import { dietProfileKeys } from '@/features/onboarding';
 import { nutritionKeys } from '@/features/nutrition/api/nutritionApi';
-import { recipeJsonSchema } from '@/features/nutrition/schemas';
+import { parseMealPlanDetailResponse, recipeJsonSchema } from '@/features/nutrition/schemas';
 import type {
   AssistantPromptOption,
   AssistantResponse,
@@ -13,7 +13,6 @@ import type {
   FeedbackType,
   MealActionStatusResponse,
   MealPlanCreateResponse,
-  MealPlanDetail,
   RecipeJson,
   RegenerationReason,
   ReplacePreviewResponse,
@@ -36,7 +35,8 @@ function invalidateMealPlan(queryClient: ReturnType<typeof useQueryClient>, date
 export function useMealPlanQuery(date: string) {
   return useQuery({
     queryKey: mealPlanKeys.byDate(date),
-    queryFn: () => apiClient.get<MealPlanDetail>(`/meal-plans/${date}/`),
+    queryFn: async () =>
+      parseMealPlanDetailResponse(await apiClient.get<unknown>(`/meal-plans/${date}/`)),
     refetchInterval: (query) => {
       const status = query.state.data?.status;
       if (!status || status === 'ready' || status === 'failed') return false;

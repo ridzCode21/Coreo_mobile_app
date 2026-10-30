@@ -91,6 +91,21 @@ export type ValidationResult = {
   self_check_issues: string[];
 };
 
+/** Mirrors `apps.core.services.quota._action_counts` in the backend. */
+export type PlanActionQuota = {
+  limit: number;
+  used: number;
+  remaining: number;
+};
+
+/** Mirrors `apps.core.services.quota.plan_quota` in the backend. */
+export type PlanQuota = {
+  tier: 'free' | 'premium';
+  quota_resets_at: string;
+  plan_generate: PlanActionQuota;
+  plan_regenerate: PlanActionQuota;
+};
+
 export type MealPlanDetail = {
   id: number;
   status: MealPlanStatus;
@@ -106,6 +121,8 @@ export type MealPlanDetail = {
   plan_mode: 'standard' | 'historical';
   historical_fallback_reason: string;
   meals: PlannedMeal[];
+  /** Present on successful detail responses; absent from legacy detail payloads. */
+  quota?: PlanQuota;
 };
 
 export type QuotaAction =
