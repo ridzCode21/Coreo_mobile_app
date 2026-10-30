@@ -1,3 +1,5 @@
+import { formatMultiplier } from './portionEstimate';
+
 type LabelPerServing = {
   est_calories: number;
   est_protein_g: number;
@@ -35,4 +37,24 @@ export function clampServingsMultiplier(value: number, servingsPerContainer: num
 export function formatServingsLabel(multiplier: number): string {
   const amount = Number(multiplier.toFixed(2));
   return `${amount} ${amount === 1 ? 'serving' : 'servings'}`;
+}
+
+type LabelPortionLine = {
+  servingSizeText: string | null;
+  portionGrams: number;
+  servingsPerContainer: number | null;
+};
+
+export function formatLabelPortionLine({
+  servingSizeText,
+  portionGrams,
+  servingsPerContainer,
+}: LabelPortionLine): string {
+  const primary = servingSizeText ?? `${formatMultiplier(portionGrams)}g`;
+  const servings =
+    servingsPerContainer === null
+      ? null
+      : `${formatServingsLabel(servingsPerContainer)} per container`;
+
+  return servings ? `${primary} · ${servings}` : primary;
 }

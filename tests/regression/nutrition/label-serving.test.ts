@@ -10,6 +10,7 @@
 
 import {
   clampServingsMultiplier,
+  formatLabelPortionLine,
   formatServingsLabel,
   roundGram,
   scaleLabelServing,
@@ -81,5 +82,73 @@ describe('nutrition: formatServingsLabel (issue #26 — the "1 serving" chip on 
 
   it('drops a trailing .00 so whole numbers above 1 stay clean', () => {
     expect(formatServingsLabel(2)).toBe('2 servings');
+  });
+});
+
+/**
+ * Issue #137 — the 21c portion line. `apps/core/services/inference.py:151` adds
+ * `serving_size_text`, the printed phrase (e.g. "1 bar (68g)"), alongside the existing nullable
+ * `servings_per_container` (`inference.py:146`). Neither half may be invented when the backend
+ * didn't return it — see design-spec.md / design 21c line 1713 for the combined-copy example.
+ */
+describe('nutrition: formatLabelPortionLine (issue #137, design 21c line 1713)', () => {
+  it('uses the printed serving text and the servings-per-container clause when both are known', () => {
+    expect(
+      formatLabelPortionLine({
+        servingSizeText: '1 bar (68g)',
+        portionGrams: 68,
+        servingsPerContainer: 2.5,
+      }),
+    ).toBe('1 bar (68g) · 2.5 servings per container');
+  });
+
+  it('falls back to the gram weight when the printed serving text is not returned', () => {
+    expect(
+      formatLabelPortionLine({
+        servingSizeText: null,
+        portionGrams: 68,
+        servingsPerContainer: 2.5,
+      }),
+    ).toBe('68g · 2.5 servings per container');
+  });
+
+  it('shows the printed serving text alone when servings_per_container is null — never invents a count', () => {
+    expect(
+      formatLabelPortionLine({
+        servingSizeText: '1 bar (68g)',
+        portionGrams: 68,
+        servingsPerContainer: null,
+      }),
+    ).toBe('1 bar (68g)');
+  });
+
+  it('shows the gram weight alone when neither the text nor the servings count is known', () => {
+    expect(
+      formatLabelPortionLine({
+        servingSizeText: null,
+        portionGrams: 68,
+        servingsPerContainer: null,
+      }),
+    ).toBe('68g');
+  });
+
+  it('rounds backend-estimated gram weights and container counts before displaying them', () => {
+    expect(
+      formatLabelPortionLine({
+        servingSizeText: null,
+        portionGrams: 67.99999999999999,
+        servingsPerContainer: 2.333333,
+      }),
+    ).toBe('68g · 2.33 servings per container');
+  });
+
+  it('uses singular copy for a single-serving package', () => {
+    expect(
+      formatLabelPortionLine({
+        servingSizeText: '1 bar (68g)',
+        portionGrams: 68,
+        servingsPerContainer: 1,
+      }),
+    ).toBe('1 bar (68g) · 1 serving per container');
   });
 });

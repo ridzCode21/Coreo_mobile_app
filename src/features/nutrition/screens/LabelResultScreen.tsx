@@ -11,6 +11,7 @@ import {
 import { LabelServingsSheet } from '@/features/nutrition/components/LabelServingsSheet';
 import {
   clampServingsMultiplier,
+  formatLabelPortionLine,
   formatServingsLabel,
   roundGram,
   scaleLabelServing,
@@ -56,7 +57,7 @@ type MacroRowProps = {
 function MacroRow({ name, value, onDecrease, onIncrease }: MacroRowProps) {
   const accessibleName = name.toLowerCase();
   return (
-    <GlassCard variant="afterSnapSurface" radius={radii.md} padded={false} style={styles.macroCard}>
+    <GlassCard variant="afterSnapSurface" radius={radii.md} padded={false}>
       <View style={styles.macroRow}>
         <View style={styles.macroCopy}>
           <Text style={styles.macroTitle}>{name}</Text>
@@ -114,8 +115,10 @@ export default function LabelResultScreen() {
     );
   }
 
+  const servingsPerContainer = estimate.servings_per_container;
+  const effectiveServingsPerContainer = servingsPerContainer ?? 1;
   const setClampedMultiplier = (value: number) => {
-    setMultiplier(clampServingsMultiplier(roundGram(value), estimate.servings_per_container));
+    setMultiplier(clampServingsMultiplier(roundGram(value), effectiveServingsPerContainer));
   };
   const adjustMultiplier = (delta: number) => setClampedMultiplier(multiplier + delta);
   const totals = scaleLabelServing(estimate, multiplier);
@@ -180,36 +183,40 @@ export default function LabelResultScreen() {
             </View>
           </View>
           <Text style={styles.portionLine}>
-            {formatMultiplier(estimate.portion_grams)}g ·{' '}
-            {formatMultiplier(estimate.servings_per_container)} servings per container
+            {formatLabelPortionLine({
+              servingSizeText: estimate.serving_size_text,
+              portionGrams: estimate.portion_grams,
+              servingsPerContainer,
+            })}
           </Text>
         </GlassCard>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`How much did you eat? ${formatServingsLabel(multiplier)}`}
-          onPress={() => setSheetVisible(true)}
-        >
-          <GlassCard
-            variant="afterSnapSurface"
-            radius={radii.md}
-            padded={false}
-            style={styles.servingsCard}
+        {servingsPerContainer !== null ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`How much did you eat? ${formatServingsLabel(multiplier)}`}
+            onPress={() => setSheetVisible(true)}
           >
-            <View style={styles.servingsRow}>
-              <View style={styles.servingsCopy}>
-                <Text style={styles.macroTitle}>How much did you eat?</Text>
-                <Text style={styles.macroSubtitle}>
-                  Container has {formatMultiplier(estimate.servings_per_container)} servings ·
-                  defaults to 1
-                </Text>
+            <GlassCard
+              variant="afterSnapSurface"
+              radius={radii.md}
+              padded={false}
+              style={styles.servingsCard}
+            >
+              <View style={styles.servingsRow}>
+                <View style={styles.servingsCopy}>
+                  <Text style={styles.macroTitle}>How much did you eat?</Text>
+                  <Text style={styles.macroSubtitle}>
+                    Container has {formatMultiplier(servingsPerContainer)} servings · defaults to 1
+                  </Text>
+                </View>
+                <View style={styles.servingsChip}>
+                  <Text style={styles.servingsChipText}>{formatServingsLabel(multiplier)}</Text>
+                </View>
               </View>
-              <View style={styles.servingsChip}>
-                <Text style={styles.servingsChipText}>{formatServingsLabel(multiplier)}</Text>
-              </View>
-            </View>
-          </GlassCard>
-        </Pressable>
+            </GlassCard>
+          </Pressable>
+        ) : null}
 
         <View style={styles.macros}>
           <MacroRow
@@ -269,17 +276,19 @@ export default function LabelResultScreen() {
         </Pressable>
       </Screen>
 
-      <LabelServingsSheet
-        visible={sheetVisible}
-        multiplier={multiplier}
-        portionGrams={estimate.portion_grams}
-        servingsPerContainer={estimate.servings_per_container}
-        perServing={estimate}
-        busy={false}
-        onMultiplier={setClampedMultiplier}
-        onClose={() => setSheetVisible(false)}
-        onSave={() => setSheetVisible(false)}
-      />
+      {servingsPerContainer !== null ? (
+        <LabelServingsSheet
+          visible={sheetVisible}
+          multiplier={multiplier}
+          portionGrams={estimate.portion_grams}
+          servingsPerContainer={servingsPerContainer}
+          perServing={estimate}
+          busy={false}
+          onMultiplier={setClampedMultiplier}
+          onClose={() => setSheetVisible(false)}
+          onSave={() => setSheetVisible(false)}
+        />
+      ) : null}
     </View>
   );
 }
@@ -328,7 +337,6 @@ const styles = StyleSheet.create({
   },
   servingsChipText: { ...textStyle('mealReviewFix'), color: colors.white },
   macros: { gap: spacing.sm, marginTop: spacing.md },
-  macroCard: {},
   macroRow: {
     alignItems: 'center',
     flexDirection: 'row',

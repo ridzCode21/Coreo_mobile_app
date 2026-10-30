@@ -26,6 +26,7 @@ const VALID_ESTIMATE = {
   guessed: false,
   guess_note: null,
   remembered: false,
+  serving_size_text: null,
 };
 
 describe('nutrition: label-result route params (issue #26)', () => {
@@ -39,13 +40,30 @@ describe('nutrition: label-result route params (issue #26)', () => {
     expect(labelResultPrefillSchema.parse(VALID_ESTIMATE)).toEqual(VALID_ESTIMATE);
   });
 
-  it('requires servings_per_container to be a positive number — a container can never have 0 servings', () => {
+  it('requires servings_per_container to be a positive number when known — a container can never have 0 servings', () => {
     expect(() =>
       labelResultPrefillSchema.parse({ ...VALID_ESTIMATE, servings_per_container: 0 }),
     ).toThrow();
     expect(() =>
       labelResultPrefillSchema.parse({ ...VALID_ESTIMATE, servings_per_container: -1 }),
     ).toThrow();
+  });
+
+  // Issue #137: apps/core/services/inference.py:146 — servings_per_container is null when the
+  // label doesn't print a servings count; the backend is explicitly told not to invent one
+  // (inference.py:223-224).
+  it('accepts a null servings_per_container — not every label states a servings count', () => {
+    expect(
+      labelResultPrefillSchema.parse({ ...VALID_ESTIMATE, servings_per_container: null }),
+    ).toEqual({ ...VALID_ESTIMATE, servings_per_container: null });
+  });
+
+  // Issue #137: inference.py:151 — the printed serving phrase, e.g. "1 bar (68g)".
+  it('accepts a populated serving_size_text and keeps a null one', () => {
+    expect(
+      labelResultPrefillSchema.parse({ ...VALID_ESTIMATE, serving_size_text: '1 bar (68g)' }),
+    ).toEqual({ ...VALID_ESTIMATE, serving_size_text: '1 bar (68g)' });
+    expect(labelResultPrefillSchema.parse(VALID_ESTIMATE).serving_size_text).toBeNull();
   });
 
   it('rejects a prefill missing a required macro field', () => {

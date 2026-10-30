@@ -169,11 +169,12 @@ export const labelResultPrefillSchema = z.object({
   est_protein_g: z.number(),
   est_carbs_g: z.number(),
   est_fat_g: z.number(),
-  servings_per_container: z.number().positive(),
+  servings_per_container: z.number().positive().nullable(),
   confidence: z.number().min(0).max(1),
   guessed: z.boolean(),
   guess_note: z.string().nullable(),
   remembered: z.boolean(),
+  serving_size_text: z.string().nullable(),
 });
 export type LabelResultPrefill = z.infer<typeof labelResultPrefillSchema>;
 
