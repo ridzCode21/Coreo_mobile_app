@@ -5,6 +5,11 @@
  * day 4", the "Reading you" card, "While I read, go meet your pillars.", and petals with sub-labels.
  * From day 4 (`wave: 'solid'`) the normal issue-#17/#18 home must appear — this is the regression
  * half of the test, locking in that the calibrating branch cannot leak into the solid-wave home.
+ *
+ * Issue #136 — `core_index` is `null` while calibration is incomplete anyway
+ * (`apps/users/services/core_index.py:24-25`), and this branch renders `CalibratingWaveCard`
+ * instead of `TodayScoreCard` regardless, so the score digits must never appear here even if the
+ * daily-summary mock were given a number.
  */
 
 import { render, screen } from '@testing-library/react-native';
@@ -137,6 +142,12 @@ describe('home: CoreoHomeScreen calibrating state (issue #19)', () => {
       render(<CoreoHomeScreen />);
       expect(screen.queryByText('Today')).toBeNull();
       expect(screen.queryByText('Nutrition')).toBeNull();
+    });
+
+    it('never shows the Core Index score digits while calibrating, even if the backend returned a value', () => {
+      mockSummary = { core_index: 42 } as Partial<DailySummary>;
+      render(<CoreoHomeScreen />);
+      expect(screen.queryByTestId('home-today-score')).toBeNull();
     });
   });
 
