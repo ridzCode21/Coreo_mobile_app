@@ -494,7 +494,13 @@ registerMock('GET', '/meal-plans/:date/', (request) => {
   if (!validDate(date)) return { status: 400, body: styleB({ error: 'invalid_date' }) };
   const key = planKey(user.id, date);
   const plan = mockDb.mealPlans[key];
-  if (!plan) return { status: 404, delayMs: 200, body: styleB({ error: 'plan_not_found' }) };
+  if (!plan) {
+    return {
+      status: 404,
+      delayMs: 200,
+      body: styleB({ error: 'plan_not_found', quota: planQuota(user) }),
+    };
+  }
   const polls = (mockDb.mealPlanPollCounts[key] ?? 0) + 1;
   mockDb.mealPlanPollCounts[key] = polls;
   const advanced = advanceOnPoll(plan, TRANSITIONS, polls);

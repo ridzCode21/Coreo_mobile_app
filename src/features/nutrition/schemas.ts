@@ -34,6 +34,13 @@ const planActionQuotaSchema = z.object({
   remaining: z.number().int().nonnegative(),
 });
 
+export const planQuotaSchema = z.object({
+  tier: z.enum(['free', 'premium']),
+  quota_resets_at: z.string(),
+  plan_generate: planActionQuotaSchema,
+  plan_regenerate: planActionQuotaSchema,
+});
+
 /**
  * The quota shape added to successful `GET /meal-plans/{date}/` responses by
  * `MealPlanDetailView` (apps/meals/views.py). The current backend
@@ -44,15 +51,7 @@ const planActionQuotaSchema = z.object({
  */
 const mealPlanDetailResponseSchema = z
   .object({
-    quota: z
-      .object({
-        tier: z.enum(['free', 'premium']),
-        quota_resets_at: z.string(),
-        plan_generate: planActionQuotaSchema,
-        plan_regenerate: planActionQuotaSchema,
-      })
-      .optional()
-      .catch(undefined),
+    quota: planQuotaSchema.optional().catch(undefined),
   })
   .passthrough();
 

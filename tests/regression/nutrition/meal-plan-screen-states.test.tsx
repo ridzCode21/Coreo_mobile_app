@@ -146,6 +146,48 @@ describe('MealPlanScreen · 28a no plan yet (issue #31)', () => {
     expect(screen.queryByText('What flavours feel like home today?')).toBeNull();
   });
 
+  it('shows the real plan-generate quota line when the backend 404 includes usage (issue #138)', () => {
+    mockPlanError = apiError(404, {
+      error: 'plan_not_found',
+      quota: {
+        tier: 'free',
+        quota_resets_at: new Date(Date.now() + 3600_000).toISOString(),
+        plan_generate: { limit: 2, used: 0, remaining: 2 },
+        plan_regenerate: { limit: 2, used: 0, remaining: 2 },
+      },
+    });
+    render(<MealPlanScreen />);
+    expect(screen.getByText('Uses 1 of 2 plans today · 1 left after this')).toBeTruthy();
+  });
+
+  it('shows zero left after this on the last available generate today (issue #138)', () => {
+    mockPlanError = apiError(404, {
+      error: 'plan_not_found',
+      quota: {
+        tier: 'free',
+        quota_resets_at: new Date(Date.now() + 3600_000).toISOString(),
+        plan_generate: { limit: 2, used: 1, remaining: 1 },
+        plan_regenerate: { limit: 2, used: 0, remaining: 2 },
+      },
+    });
+    render(<MealPlanScreen />);
+    expect(screen.getByText('Uses 2 of 2 plans today · 0 left after this')).toBeTruthy();
+  });
+
+  it('hides the quota line once the daily generate limit is already spent (issue #138)', () => {
+    mockPlanError = apiError(404, {
+      error: 'plan_not_found',
+      quota: {
+        tier: 'free',
+        quota_resets_at: new Date(Date.now() + 3600_000).toISOString(),
+        plan_generate: { limit: 2, used: 2, remaining: 0 },
+        plan_regenerate: { limit: 2, used: 0, remaining: 2 },
+      },
+    });
+    render(<MealPlanScreen />);
+    expect(screen.queryByText(/plans today/i)).toBeNull();
+  });
+
   it('shows the quota banner when create hits the daily limit', () => {
     mockCreateError = apiError(429, {
       error: 'quota_exceeded',

@@ -1,5 +1,6 @@
 import { ApiError } from '@/shared/api/errors';
-import type { QuotaExceededError } from '@/shared/types/mealPlan';
+import { planQuotaSchema } from '@/features/nutrition/schemas';
+import type { PlanActionQuota, QuotaExceededError } from '@/shared/types/mealPlan';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -10,6 +11,20 @@ export function quotaErrorFrom(error: unknown): QuotaExceededError | null {
   return error.details.error === 'quota_exceeded'
     ? (error.details as unknown as QuotaExceededError)
     : null;
+}
+
+export function planGenerateQuotaFromNotFoundError(error: unknown): PlanActionQuota | undefined {
+  if (
+    !(error instanceof ApiError) ||
+    error.status !== 404 ||
+    !isRecord(error.details) ||
+    error.details.error !== 'plan_not_found'
+  ) {
+    return undefined;
+  }
+
+  const quota = planQuotaSchema.safeParse(error.details.quota);
+  return quota.success ? quota.data.plan_generate : undefined;
 }
 
 export function resetDistance(resetIso: string): string {
