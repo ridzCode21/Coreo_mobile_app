@@ -115,9 +115,10 @@ export type PhotoEstimate = {
 
 /** A per-serving nutrition-label estimate — §8 `POST /food/label-ocr/`. */
 export type LabelEstimate = Omit<PhotoEstimate, 'guessed_count' | 'items'> & {
-  servings_per_container: number;
+  servings_per_container: number | null;
   confidence: number;
   guessed: boolean;
   guess_note: string | null;
   remembered: boolean;
+  serving_size_text: string | null;
 };

@@ -50,6 +50,7 @@ const ESTIMATE = {
   guessed: false,
   guess_note: null,
   remembered: false,
+  serving_size_text: null,
 };
 
 function setPrefill(estimate: Record<string, unknown> | null) {
@@ -177,5 +178,62 @@ describe('nutrition: LabelResultScreen (issue #26, design 21c)', () => {
       ).toBeTruthy(),
     );
     expect(mockReplace).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Issue #137, design 21c line 1713 — the printed serving phrase (e.g. "1 bar (68g)") from
+ * `serving_size_text` (`apps/core/services/inference.py:151`), and the honest fallback when
+ * `servings_per_container` is null (`inference.py:146` — "Do not invent a servings count",
+ * `inference.py:223-224`).
+ */
+describe('nutrition: LabelResultScreen printed serving text (issue #137, design 21c)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockPending = false;
+  });
+
+  it('shows the printed serving text with the servings-per-container clause when both are known', () => {
+    setPrefill({ ...ESTIMATE, serving_size_text: '1 bar (68g)' });
+    render(<LabelResultScreen />);
+    expect(screen.getByText('1 bar (68g) · 2.5 servings per container')).toBeTruthy();
+  });
+
+  it('falls back to the gram-weight line when the printed serving text is not returned', () => {
+    setPrefill({ ...ESTIMATE, serving_size_text: null });
+    render(<LabelResultScreen />);
+    expect(screen.getByText('68g · 2.5 servings per container')).toBeTruthy();
+  });
+
+  it('shows the printed text alone and hides the servings adjustment when servings_per_container is null', () => {
+    setPrefill({ ...ESTIMATE, serving_size_text: '1 bar (68g)', servings_per_container: null });
+    render(<LabelResultScreen />);
+    expect(screen.getByText('1 bar (68g)')).toBeTruthy();
+    expect(screen.queryByText(/servings per container/)).toBeNull();
+    expect(screen.queryByText('How much did you eat?')).toBeNull();
+    fireEvent.press(screen.getByRole('button', { name: 'Looks right' }));
+    expect(screen.queryByText('How many servings?')).toBeNull();
+  });
+
+  it('locks the shared multiplier at 1 serving when servings_per_container is null, ignoring the per-macro steppers', async () => {
+    mockMutate.mockImplementation((_values, handlers) => handlers.onSuccess());
+    setPrefill({ ...ESTIMATE, serving_size_text: '1 bar (68g)', servings_per_container: null });
+    render(<LabelResultScreen />);
+
+    fireEvent.press(screen.getByRole('button', { name: /increase protein servings/i }));
+    fireEvent.press(screen.getByRole('button', { name: /increase carbs servings/i }));
+    fireEvent.press(screen.getByRole('button', { name: 'Looks right' }));
+
+    await waitFor(() => expect(mockMutate).toHaveBeenCalled());
+    const [values] = mockMutate.mock.calls[0];
+    expect(values).toEqual(
+      expect.objectContaining({
+        portion_g: 68,
+        calories: 250,
+        protein_g: 10,
+        carbs_g: 44,
+        fat_g: 7,
+      }),
+    );
   });
 });

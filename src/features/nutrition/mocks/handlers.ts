@@ -557,7 +557,7 @@ registerMock('POST', '/food/label-ocr/', (request) => {
     delayMs: 900,
     body: styleB({
       name: 'Protein bar',
-      portion_grams: 60,
+      portion_grams: 68,
       est_calories: 210,
       est_protein_g: 20,
       est_carbs_g: 22,
@@ -567,6 +567,7 @@ registerMock('POST', '/food/label-ocr/', (request) => {
       guessed: false,
       guess_note: null,
       remembered: false,
+      serving_size_text: '1 bar (68g)',
     }),
   };
 });

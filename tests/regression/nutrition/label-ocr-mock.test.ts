@@ -92,6 +92,9 @@ describe('nutrition mock: POST /food/label-ocr/ (issue #23)', () => {
     // positive number (a container always has at least one serving).
     expect(typeof body.servings_per_container).toBe('number');
     expect(body.servings_per_container as number).toBeGreaterThan(0);
+    // Issue #137 — apps/core/services/inference.py:151 adds serving_size_text (the printed
+    // serving phrase) to the real response; the mock must follow suit.
+    expect(typeof body.serving_size_text).toBe('string');
   });
 
   it('rejects an unauthenticated request with 401', async () => {
