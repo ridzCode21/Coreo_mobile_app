@@ -8,24 +8,30 @@ import {
   DIET_TYPES,
   HEALTH_CONDITIONS,
   HEALTH_CONDITIONS_MAX,
+  MEAL_RHYTHMS,
+  PACES,
+  WEAK_MOMENTS,
+  WHO_COOKS,
 } from '@/shared/types/dietProfile';
 
 /**
  * Mirrors the choice-field enums `PUT /users/me/diet-profile/` accepts (API_REFERENCE.md §5/§17).
  * Used to type/validate the incremental patch each diet-interview question sends — most steps are
- * select-driven (`dietQuestions.ts` options are already restricted to these values by
- * construction), so this mainly guards the one bit of real text entry in the flow (the "off the
- * table" free-add field) and documents the contract in one place, per architecture.md §3 ("Zod
- * schemas shared between form validation and API payload typing").
+ * select-driven, and documents the contract in one place, per architecture.md §3 ("Zod schemas
+ * shared between form validation and API payload typing").
  */
 export const dietProfilePatchSchema = z.object({
   diet_type: z.enum(DIET_TYPES).nullable().optional(),
   allergies: z.array(z.string()).optional(),
   disliked_foods: z.array(z.string()).optional(),
   cuisine_preference: z.enum(CUISINE_PREFERENCES).nullable().optional(),
-  target_weight_kg: z.number().positive().nullable().optional(),
+  target_weight_kg: z.number().nullable().optional(),
   activity_level: z.enum(ACTIVITY_LEVELS).nullable().optional(),
   cooking_frequency: z.enum(COOKING_FREQUENCIES).nullable().optional(),
+  pace: z.enum(PACES).optional(),
+  who_cooks: z.enum(WHO_COOKS).optional(),
+  meal_rhythm: z.enum(MEAL_RHYTHMS).optional(),
+  weak_moment: z.enum(WEAK_MOMENTS).optional(),
   meal_frequency: z.number().int().positive().nullable().optional(),
   budget_tier: z.enum(BUDGET_TIERS).nullable().optional(),
   health_conditions: z.array(z.enum(HEALTH_CONDITIONS)).max(HEALTH_CONDITIONS_MAX).optional(),

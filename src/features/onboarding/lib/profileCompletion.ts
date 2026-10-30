@@ -15,11 +15,13 @@ export type ProfileCompletionSection =
   | 'dietType'
   | 'activity'
   | 'allergies'
+  | 'target'
   | 'cuisine'
   | 'cooking'
   | 'mealRhythm'
   | 'budget'
-  | 'health';
+  | 'health'
+  | 'weakMoment';
 
 export type ProfileSectionVisitFlags = Record<string, boolean>;
 
@@ -37,8 +39,8 @@ export function profileCompletion(profile: DietProfile): ProfileCompletion {
   const mealPlanReady = Boolean(dietQuick && profile.cuisine_preference);
   const sharpened = Boolean(
     mealPlanReady &&
-    profile.cooking_frequency &&
-    profile.meal_frequency &&
+    profile.who_cooks &&
+    profile.meal_rhythm &&
     profile.budget_tier &&
     profile.health_conditions.length > 0,
   );
@@ -67,11 +69,17 @@ export function profileChecklist(
     { id: 'dietType', label: 'Diet type', done: profile.diet_type !== null },
     { id: 'activity', label: 'Activity', done: profile.activity_level !== null },
     { id: 'allergies', label: 'Foods to avoid', done: Boolean(visits.allergies) },
+    {
+      id: 'target',
+      label: 'Target weight and pace',
+      done: profile.target_weight_kg !== null && profile.pace != null,
+    },
     { id: 'cuisine', label: 'Cuisine', done: profile.cuisine_preference !== null },
-    { id: 'cooking', label: 'Cooking preferences', done: profile.cooking_frequency !== null },
-    { id: 'mealRhythm', label: 'Meal rhythm', done: Boolean(visits.mealRhythm) },
+    { id: 'cooking', label: 'Who cooks', done: profile.who_cooks != null },
+    { id: 'mealRhythm', label: 'Meal rhythm', done: profile.meal_rhythm != null },
     { id: 'budget', label: 'Budget', done: profile.budget_tier !== null },
     { id: 'health', label: 'Health considerations', done: profile.health_conditions.length > 0 },
+    { id: 'weakMoment', label: 'Weak moment', done: profile.weak_moment != null },
   ];
 }
 

@@ -46,11 +46,11 @@ deferred to the Profile/Personalization surface. All saves are partial
 | D3  | Cuisine             | `cuisine_preference` ⭑required                                           | **net-new** (no design source)                                                        |
 | D4  | 12a·3 Target        | `target_weight_kg` — only asked when the goal is weight-related          | design                                                                                |
 | D5  | Activity            | `activity_level`                                                         | **net-new**                                                                           |
-| D6  | 12a·4 Who cooks     | `cooking_frequency`                                                      | design (loose mapping, see F2 below)                                                  |
-| D7  | 12a·5 Meal rhythm   | `meal_frequency`                                                         | design                                                                                |
+| D6  | 12a·4 Who cooks     | `who_cooks`                                                              | design                                                                                |
+| D7  | 12a·5 Meal rhythm   | `meal_rhythm`                                                            | design                                                                                |
 | D8  | Budget              | `budget_tier`                                                            | **net-new**                                                                           |
 | D9  | Health              | `health_conditions` (max 3)                                              | **net-new**                                                                           |
-| D10 | 12a·6 Weak moment   | _(cut from v3; no API field)_                                            | design                                                                                |
+| D10 | 12a·6 Weak moment   | `weak_moment`                                                            | design                                                                                |
 
 D3/D5/D8/D9 have no corresponding mockup in `screens-source.html` — built in the established
 design-system style (glass `ToggleRow`/`SelectableChip` cards) to cover API fields the 57-screen
@@ -93,18 +93,12 @@ build around them:
   v3. The only authenticated call from the public onboarding flow is `SaveScreen`'s minimal
   starter-profile `PUT` immediately after register/sign-in; all remaining diet profile updates
   happen inside signed-in Diet surfaces.
-- **F9 — "Who cooks" copy vs. `cooking_frequency` enum.** The design's answers ("I cook / Family
-  cooks / House help") don't map cleanly onto `every_meal/once_daily/batch_cooking/
-minimal_cooking`. Mapped loosely for now (`dietQuestions.ts`, D6) — revisit copy-to-enum
-  alignment if it causes confusing mock target estimates.
-- **F10 — D2 free-typed `disliked_foods` removed for now.** The design's "Anything your body
-  refuses?" screen (12a·2) pairs a chip grid with a free-text bar in the same footer area; our
-  generic `DietQuestionScreen` renders that as its own `VoiceInputBar` block stacked _above_ the
-  screen's `NextBar` — two glass pill bars on one screen, which reads as a layout bug even though
-  it's intentional stacking. Removed the `freeAddField`/`freeAddPlaceholder` config for D2
-  (`allergies` chips alone remain); the `freeAddField` mechanism itself stays generic in
-  `dietQuestions.ts`'s types for whenever a real two-footer (or combined-footer) treatment is
-  designed, rather than deleting the feature outright.
+- **F9 — "Who cooks" copy vs. `cooking_frequency` enum. Resolved.** The backend now provides the
+  dedicated `who_cooks` enum, whose values match the design answers exactly. The unrelated
+  `cooking_frequency` field remains in use for meal-plan regeneration context.
+- **F10 — D2 free-typed `disliked_foods` removed for now.** The signed-in Diet card keeps the
+  design's allergy chip grid without the free-text interaction. A combined-footer treatment needs
+  a separate design and scope before free-text entry returns.
 - **F11 — `GET /food/lookup/barcode/:barcode/` mock is deliberately lenient.** §8 specs exact-match
   or 404; the mock additionally synthesizes a plausible generic `FoodItem` for any well-formed
   (6–14 digit) barcode that isn't one of the ~10 fake seeded codes in `mocks/fixtures.ts`, so

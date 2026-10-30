@@ -25,8 +25,51 @@ export const DIET_TYPES = [
   'jain',
   'keto',
   'low_carb',
+  'everything',
+  'no_beef',
+  'halal',
+  'pescatarian',
+  'no_pork',
 ] as const;
 export type DietType = (typeof DIET_TYPES)[number];
+
+export const PACES = ['gently', 'steady', 'push'] as const;
+export type Pace = (typeof PACES)[number];
+
+export const WHO_COOKS = [
+  'i_cook',
+  'family_cooks',
+  'house_help',
+  'mostly_order_in',
+  'office_canteen',
+] as const;
+export type WhoCooks = (typeof WHO_COOKS)[number];
+
+export const MEAL_RHYTHMS = [
+  'two_big_meals',
+  'three_meals',
+  'three_plus_snacks',
+  'grazing',
+  'no_pattern',
+] as const;
+export type MealRhythm = (typeof MEAL_RHYTHMS)[number];
+
+export const WEAK_MOMENTS = [
+  'skipping_meals',
+  'late_night_snacks',
+  'ordering_out',
+  'stress_eating',
+  'weekends',
+  'sugar',
+] as const;
+export type WeakMoment = (typeof WEAK_MOMENTS)[number];
+
+export type LateNightGuard = {
+  enabled: boolean;
+  check_in_time: string;
+  next_check_in_at: string | null;
+  status_line: string;
+};
 
 export const CUISINE_PREFERENCES = [
   'indian',
@@ -89,12 +132,17 @@ export type DietProfile = {
   budget_tier: BudgetTier | null;
   eating_pattern: EatingPattern | null;
   cooking_frequency: CookingFrequency | null;
+  pace?: Pace | null;
+  who_cooks?: WhoCooks | null;
+  meal_rhythm?: MealRhythm | null;
+  weak_moment?: WeakMoment | null;
   health_conditions: HealthCondition[];
   target_source: TargetSource;
   daily_calories: number;
   daily_protein_g: number;
   daily_carbs_g: number;
   daily_fat_g: number;
+  late_night_guard?: LateNightGuard;
 };
 
 /** A partial update — every field is optional (bare/partial PUT semantics, §5). */

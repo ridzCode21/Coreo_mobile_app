@@ -20,6 +20,9 @@ export const colors = {
   ink80: 'rgba(23,25,29,0.8)',
   ink85: 'rgba(23,25,29,0.85)',
   label: '#5F6B76',
+  targetSliderTrackStart: 'rgba(255,255,255,0.9)',
+  targetSliderTrackEnd: 'rgba(255,255,255,0.3)',
+  targetSliderThumbShadow: 'rgba(18,42,70,0.25)',
 
   zenith: '#EDF4FB',
   day: '#D3E6F8',
@@ -336,6 +339,7 @@ export const spacing = {
   xs: 4,
   dockItemGap: 3,
   sliderCaptionGap: 6,
+  targetSliderTrackTop: 16,
   headerLogoGap: 7,
   sm: 8,
   ms: 10,
@@ -474,6 +478,11 @@ export const radii = {
 } as const;
 
 export const componentSizes = {
+  targetSliderTrackHeight: 36,
+  targetSliderTrackLineHeight: 4,
+  targetSliderThumb: 32,
+  targetSliderThumbShadowOffset: 8,
+  targetSliderThumbShadowRadius: 18,
   profileAvatar: 64,
   profileAvatarShadowRadius: 30,
   profilePillarChevron: 14,
@@ -730,6 +739,7 @@ export const typography = {
   greetingSubtitle: { fontSize: 13.5, fontWeight: '300', letterSpacing: 0 },
   cardValue: { fontSize: 22, fontWeight: '300', letterSpacing: 0 },
   portionReadout: { fontSize: 44, fontWeight: '200', letterSpacing: -1 },
+  targetUnit: { fontSize: 14, fontWeight: '300', letterSpacing: 0 },
   cardTitle: { fontSize: 19, fontWeight: '300', letterSpacing: -0.3 },
   sourceQuietBody: { fontSize: 12.5, fontWeight: '300', letterSpacing: 0, lineHeight: 1.7 },
   sourceQuietAction: { fontSize: 12.5, fontWeight: '500', letterSpacing: 0 },

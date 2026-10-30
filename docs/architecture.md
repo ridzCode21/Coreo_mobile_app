@@ -73,14 +73,13 @@ src/
       index.ts                   # public surface (SplashScreen, imported by the route file)
     onboarding/                  # minimal pre-signup flow + post-signup diet profile utilities
       screens/                   # FirstOpenScreen, Name/Goal/Pillars/AboutYou/Save/
-                                  # SaveScreen, DietQuestionScreen (goal + D1–D10), CalibratingScreen
+                                  # SaveScreen, CalibratingScreen
       store/                      # onboardingStore — the draft, `persist`-backed by AsyncStorage
                                   # (survives app kill so an interrupted interview can resume —
                                   # see §5), incl. `dietProfile` sub-draft and `lastCompletedStep`
-      lib/                        # steps (THE unified sequencer — every step, bespoke + diet-config,
-                                  # in one ordered list, §5.1), dietQuestions (diet question config),
-                                  # resolveGoalType (fallback-only, goal_type is now a direct
-                                  # question), estimateDailyTargets, dietProfileCompleteness
+      lib/                        # steps (the unified sequencer, §5.1), resolveGoalType
+                                  # (fallback-only, goal_type is now a direct question),
+                                  # estimateDailyTargets
       api/                        # dietProfileApi — useDietProfileQuery/useUpdateDietProfileMutation;
                                   # SaveScreen sends the minimal starter profile; Diet tab sends
                                   # later partial profile updates

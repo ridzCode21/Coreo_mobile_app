@@ -8,6 +8,11 @@ const dietLabels = {
   jain: 'Jain',
   keto: 'Keto',
   low_carb: 'Low carb',
+  everything: 'Everything',
+  no_beef: 'No beef',
+  halal: 'Halal',
+  pescatarian: 'Pescatarian',
+  no_pork: 'No pork',
 } as const;
 const fitnessGoalLabels = {
   get_stronger: 'Get stronger',

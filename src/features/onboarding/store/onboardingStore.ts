@@ -2,70 +2,10 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { storage } from '@/shared/lib/storage';
-import type {
-  ActivityLevel,
-  BudgetTier,
-  CookingFrequency,
-  CuisinePreference,
-  DietType,
-  GoalType,
-  HealthCondition,
-} from '@/shared/types/dietProfile';
 import type { ActivePillar, Gender, InterviewGoal } from '@/shared/types/user';
 
 export type OnboardingPillar = ActivePillar;
 
-/**
- * The in-progress *interview* answer draft (docs/onboarding-v2-flow-plan.md §1) — every field
- * that used to live behind signup now lives here first. Field names/types mirror `DietProfile`
- * (shared/types/dietProfile.ts) exactly except every field is nullable/empty here (vs. the
- * server's own defaults for `meal_frequency`/`cooking_time_max`) — this is a draft, not yet a
- * committed profile, so "unanswered" must be representable for every field. `goal_type` is asked
- * directly now (v2 §5) rather than derived.
- */
-export type DietProfileDraft = {
-  goal_type: GoalType | null;
-  diet_type: DietType | null;
-  allergies: string[];
-  disliked_foods: string[];
-  cuisine_preference: CuisinePreference | null;
-  target_weight_kg: number | null;
-  activity_level: ActivityLevel | null;
-  cooking_frequency: CookingFrequency | null;
-  meal_frequency: number | null;
-  budget_tier: BudgetTier | null;
-  health_conditions: HealthCondition[];
-};
-
-export const DIET_PROFILE_DRAFT_DEFAULTS: DietProfileDraft = {
-  goal_type: null,
-  diet_type: null,
-  allergies: [],
-  disliked_foods: [],
-  cuisine_preference: null,
-  target_weight_kg: null,
-  activity_level: null,
-  cooking_frequency: null,
-  meal_frequency: null,
-  budget_tier: null,
-  health_conditions: [],
-};
-
-/** List-shaped fields on `DietProfileDraft` — the ones a `toggleDietListValue` call can target. */
-export type DietProfileListField = 'allergies' | 'disliked_foods' | 'health_conditions';
-
-/**
- * The in-progress onboarding answer draft (docs/onboarding-v2-flow-plan.md §1). `dietProfile`
- * covers the whole nutrition interview (now including `goal_type`); fitness/wellness
- * pillar-interview fields remain a later build phase (F2 in feature-map.md — no API home yet).
- *
- * Deliberately plain client state, not TanStack Query: nothing here is server data — it only
- * becomes server data once the *entire* interview commits in one shot at "Save your core" (v2 §2:
- * register, then a single `PUT /users/me/diet-profile/`). Persisted (see `persist` below) so
- * killing the app mid-interview doesn't lose progress — signup moved to the very end, so unlike
- * the old flow there's no account yet to have saved it server-side (v2 §3). Cleared on `reset()`,
- * called once the flow hands off to `(app)` home.
- */
 export type OnboardingDraft = {
   name: string;
   goal: InterviewGoal | null;
@@ -74,10 +14,6 @@ export type OnboardingDraft = {
   heightCm: number;
   weightKg: number;
   pillars: OnboardingPillar[];
-  dietProfile: DietProfileDraft;
-  /** D10 "weak moment" (12a·6) — mock/assistant-only, no API field (F3 in the refinement plan);
-   * never sent in the diet-profile PUT. */
-  weakMoments: string[];
 };
 
 export const ONBOARDING_DEFAULTS: OnboardingDraft = {
@@ -88,8 +24,6 @@ export const ONBOARDING_DEFAULTS: OnboardingDraft = {
   heightCm: 170,
   weightKg: 70,
   pillars: [],
-  dietProfile: DIET_PROFILE_DRAFT_DEFAULTS,
-  weakMoments: [],
 };
 
 type OnboardingState = {
@@ -102,9 +36,6 @@ type OnboardingState = {
   lastCompletedStep: string | null;
   update: (patch: Partial<OnboardingDraft>) => void;
   togglePillar: (pillar: OnboardingPillar) => void;
-  updateDietProfile: (patch: Partial<DietProfileDraft>) => void;
-  toggleDietListValue: (field: DietProfileListField, value: string) => void;
-  toggleWeakMoment: (value: string) => void;
   completeStep: (stepId: string) => void;
   reset: () => void;
   /** Flips true once the persisted draft has finished loading from AsyncStorage — resume
@@ -138,33 +69,6 @@ export const useOnboardingStore = create<OnboardingState>()(
       togglePillar: (pillar) =>
         set((state) => ({
           draft: { ...state.draft, pillars: toggleInList(state.draft.pillars, pillar) },
-        })),
-
-      updateDietProfile: (patch) =>
-        set((state) => ({
-          draft: { ...state.draft, dietProfile: { ...state.draft.dietProfile, ...patch } },
-        })),
-
-      toggleDietListValue: (field, value) =>
-        set((state) => {
-          // Cast to `string[]` here: callers (the config-driven `DietQuestionScreen`) only have
-          // raw option values typed as `string`, not the narrower per-field enum unions — the
-          // config itself is the source of truth that those strings are valid members.
-          const current = state.draft.dietProfile[field] as string[];
-          return {
-            draft: {
-              ...state.draft,
-              dietProfile: {
-                ...state.draft.dietProfile,
-                [field]: toggleInList(current, value),
-              },
-            },
-          };
-        }),
-
-      toggleWeakMoment: (value) =>
-        set((state) => ({
-          draft: { ...state.draft, weakMoments: toggleInList(state.draft.weakMoments, value) },
         })),
 
       completeStep: (stepId) => set({ lastCompletedStep: stepId }),
