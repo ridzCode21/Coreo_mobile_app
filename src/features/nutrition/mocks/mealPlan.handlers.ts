@@ -12,6 +12,8 @@ import type {
   MealPlanCreateResponse,
   MealPlanDetail,
   MealPlanStatus,
+  PlanActionQuota,
+  PlanQuota,
   PlannedMeal,
   QuotaAction,
   RecipeJson,
@@ -94,8 +96,47 @@ type MealSeed = (typeof PLAN_LIBRARY)[number] & {
   scheduled_time?: string | null;
 };
 
-function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+type LocalDateParts = {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+};
+
+type QuotaState = {
+  tier: PlanQuota['tier'];
+  limit: number;
+  key: string;
+  used: number;
+};
+
+function localDateParts(user: MockUser, date = new Date()): LocalDateParts {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: user.timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date);
+  const values: LocalDateParts = { year: 0, month: 0, day: 0, hour: 0, minute: 0, second: 0 };
+
+  for (const part of parts) {
+    if (part.type in values) {
+      values[part.type as keyof LocalDateParts] = Number(part.value);
+    }
+  }
+
+  return values;
+}
+
+function accountLocalDate(user: MockUser): string {
+  const parts = localDateParts(user);
+  return `${parts.year}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}`;
 }
 
 function planKey(userId: string, date: string): string {
@@ -106,18 +147,48 @@ function validDate(date: string | undefined): date is string {
   return Boolean(date && /^\d{4}-\d{2}-\d{2}$/.test(date));
 }
 
-function quotaResetIso(): string {
+function zoneOffsetMs(user: MockUser, at: Date): number {
+  const local = localDateParts(user, at);
+  return (
+    Date.UTC(local.year, local.month - 1, local.day, local.hour, local.minute, local.second) -
+    at.getTime()
+  );
+}
+
+function quotaResetIso(user: MockUser): string {
   const now = new Date();
+  const local = localDateParts(user, now);
+  const nextLocalMidnight = new Date(Date.UTC(local.year, local.month - 1, local.day + 1));
+  // Approximate the offset at the next local midnight; production derives this server-side.
   return new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1),
+    nextLocalMidnight.getTime() - zoneOffsetMs(user, nextLocalMidnight),
   ).toISOString();
 }
 
-function consumeQuota(user: MockUser, action: QuotaAction): MockResponse | null {
+function quotaState(user: MockUser, action: QuotaAction): QuotaState {
   const tier = user.is_premium ? 'premium' : 'free';
   const limit = QUOTA_LIMITS[action][tier];
-  const key = `${action}:${user.id}:${todayISO()}`;
-  const used = mockDb.quotaCounters[key] ?? 0;
+  const key = `${action}:${user.id}:${accountLocalDate(user)}`;
+  return { tier, limit, key, used: mockDb.quotaCounters[key] ?? 0 };
+}
+
+function toPlanActionQuota({ limit, used }: QuotaState): PlanActionQuota {
+  return { limit, used, remaining: Math.max(0, limit - used) };
+}
+
+function planQuota(user: MockUser): PlanQuota {
+  const planGenerate = quotaState(user, 'plan_generate');
+  const planRegenerate = quotaState(user, 'plan_regenerate');
+  return {
+    tier: planGenerate.tier,
+    quota_resets_at: quotaResetIso(user),
+    plan_generate: toPlanActionQuota(planGenerate),
+    plan_regenerate: toPlanActionQuota(planRegenerate),
+  };
+}
+
+function consumeQuota(user: MockUser, action: QuotaAction): MockResponse | null {
+  const { tier, limit, key, used } = quotaState(user, action);
   if (used >= limit) {
     return {
       status: 429,
@@ -127,7 +198,7 @@ function consumeQuota(user: MockUser, action: QuotaAction): MockResponse | null 
         message: quotaMessage(action),
         limit,
         tier,
-        quota_resets_at: quotaResetIso(),
+        quota_resets_at: quotaResetIso(user),
       }),
     };
   }
@@ -434,6 +505,7 @@ registerMock('GET', '/meal-plans/:date/', (request) => {
     body: styleB({
       ...advanced,
       meals: advanced.meals.filter((meal) => meal.status !== 'replaced'),
+      quota: planQuota(user),
     }),
   };
 });

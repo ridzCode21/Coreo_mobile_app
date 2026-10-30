@@ -718,12 +718,21 @@ Fetch a plan and its meals. `date` = `YYYY-MM-DD`. Sends `Cache-Control: no-cach
   "self_check_status": "ok",
   "plan_mode": "standard",
   "historical_fallback_reason": "",
+  "quota": {
+    "tier": "free", "quota_resets_at": "2026-07-06T00:00:00Z",
+    "plan_generate": { "limit": 2, "used": 1, "remaining": 1 },
+    "plan_regenerate": { "limit": 2, "used": 0, "remaining": 2 }
+  },
   "meals": [ <PlannedMeal> ]
 }
 ```
 
 `status`: `pending|generating|validating|ready|failed`. Only non-replaced meals
-are included. **404** if no plan for that date · **400** `invalid_date`.
+are included. `quota` is the authenticated account's local-day plan usage, with
+non-negative `limit`, `used`, and `remaining` counts for each action. It is
+available only on successful detail responses: the current **404** no-plan path
+does not return quota because the backend loads the plan before constructing the
+response (`apps/meals/views.py:145-172`). **400** `invalid_date`.
 
 ### POST `/meal-plans/{date}/regenerate/`
 

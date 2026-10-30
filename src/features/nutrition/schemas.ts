@@ -6,6 +6,8 @@
 
 import { z } from 'zod';
 
+import type { MealPlanDetail } from '@/shared/types/mealPlan';
+
 export const mealTypeSchema = z.enum(['breakfast', 'lunch', 'dinner', 'snack']);
 
 export const recipeJsonSchema = z.object({
@@ -25,6 +27,38 @@ export const recipeJsonSchema = z.object({
     trace: z.array(z.object({}).passthrough()),
   }),
 });
+
+const planActionQuotaSchema = z.object({
+  limit: z.number().int().nonnegative(),
+  used: z.number().int().nonnegative(),
+  remaining: z.number().int().nonnegative(),
+});
+
+/**
+ * The quota shape added to successful `GET /meal-plans/{date}/` responses by
+ * `MealPlanDetailView` (apps/meals/views.py). The current backend
+ * returns it on every successful detail response; the optional parser permits
+ * legacy payloads while preserving the no-plan 404 as a non-detail response.
+ * Only the new `quota` field is validated; the rest of the detail payload is
+ * still typed, not parsed.
+ */
+const mealPlanDetailResponseSchema = z
+  .object({
+    quota: z
+      .object({
+        tier: z.enum(['free', 'premium']),
+        quota_resets_at: z.string(),
+        plan_generate: planActionQuotaSchema,
+        plan_regenerate: planActionQuotaSchema,
+      })
+      .optional()
+      .catch(undefined),
+  })
+  .passthrough();
+
+export function parseMealPlanDetailResponse(response: unknown): MealPlanDetail {
+  return mealPlanDetailResponseSchema.parse(response) as MealPlanDetail;
+}
 
 export const photoUnreadableRouteParamsSchema = z.object({
   title: z.string().trim().min(1).optional().catch(undefined),

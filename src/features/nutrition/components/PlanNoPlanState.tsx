@@ -3,16 +3,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 
 import { QuotaBanner } from '@/features/nutrition/components/QuotaBanner';
+import { PlanGenerateQuotaLine } from '@/features/nutrition/components/PlanGenerateQuotaLine';
 import { glass, colors, componentSizes, radii, spacing, textStyle } from '@/shared/theme/tokens';
-import type { QuotaExceededError } from '@/shared/types/mealPlan';
+import type { PlanActionQuota, QuotaExceededError } from '@/shared/types/mealPlan';
 
 type PlanNoPlanStateProps = {
   pending: boolean;
   quotaError: QuotaExceededError | null;
+  quota?: PlanActionQuota;
   onGenerate: () => void;
 };
 
-export function PlanNoPlanState({ pending, quotaError, onGenerate }: PlanNoPlanStateProps) {
+export function PlanNoPlanState({ pending, quotaError, quota, onGenerate }: PlanNoPlanStateProps) {
   return (
     <View style={styles.root}>
       <View style={styles.titleBlock}>
@@ -73,6 +75,7 @@ export function PlanNoPlanState({ pending, quotaError, onGenerate }: PlanNoPlanS
             </LinearGradient>
           </Pressable>
         </View>
+        <PlanGenerateQuotaLine quota={quota} />
         {quotaError ? <QuotaBanner error={quotaError} /> : null}
       </View>
     </View>
