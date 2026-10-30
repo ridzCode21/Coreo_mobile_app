@@ -7,21 +7,25 @@ import {
   type LayoutChangeEvent,
   type ViewStyle,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 import { GlassCard } from '@/shared/components/GlassCard';
-import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import { colors, componentSizes, radii, spacing, textStyle } from '@/shared/theme/tokens';
 
 const THUMB_SIZE = 18;
 
 type SliderRowProps = {
-  label: string;
+  label?: string;
   value: number;
   min: number;
   max: number;
   step?: number;
   unit?: string;
+  displayVariant?: 'default' | 'targetWeight';
+  minLabel?: string;
+  maxLabel?: string;
   onChange: (value: number) => void;
   style?: ViewStyle;
 };
@@ -132,6 +136,9 @@ export function SliderRow({
   max,
   step = 1,
   unit,
+  displayVariant = 'default',
+  minLabel,
+  maxLabel,
   onChange,
   style,
 }: SliderRowProps) {
@@ -145,20 +152,59 @@ export function SliderRow({
 
   return (
     <GlassCard variant="light" radius={radii.lg} style={style}>
-      <View style={styles.header}>
-        <Text style={styles.label}>{label}</Text>
-        <Text style={styles.value}>
-          {liveValue}
-          {unit ? ` ${unit}` : ''}
-        </Text>
-      </View>
+      {displayVariant === 'targetWeight' ? (
+        <View style={styles.targetReadout}>
+          <Text style={styles.targetValue}>{liveValue}</Text>
+          {unit ? <Text style={styles.targetUnit}>{unit}</Text> : null}
+        </View>
+      ) : (
+        <View style={styles.header}>
+          <Text style={styles.label}>{label}</Text>
+          <Text style={styles.value}>
+            {liveValue}
+            {unit ? ` ${unit}` : ''}
+          </Text>
+        </View>
+      )}
       <GestureDetector gesture={pan}>
-        <View style={styles.track} onLayout={onTrackLayout}>
-          <View style={styles.trackBg} />
-          <Animated.View style={[styles.trackFill, fillStyle]} />
-          <Animated.View style={[styles.thumb, thumbStyle]} />
+        <View
+          style={[styles.track, displayVariant === 'targetWeight' && styles.targetTrack]}
+          onLayout={onTrackLayout}
+          accessibilityRole="adjustable"
+          accessibilityValue={{ min, max, now: liveValue }}
+        >
+          {displayVariant === 'targetWeight' ? (
+            <LinearGradient
+              colors={[colors.targetSliderTrackStart, colors.targetSliderTrackEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.targetTrackBg}
+            />
+          ) : (
+            <View style={styles.trackBg} />
+          )}
+          <Animated.View
+            style={[
+              styles.trackFill,
+              displayVariant === 'targetWeight' && styles.targetTrackFill,
+              fillStyle,
+            ]}
+          />
+          <Animated.View
+            style={[
+              styles.thumb,
+              displayVariant === 'targetWeight' && styles.targetThumb,
+              thumbStyle,
+            ]}
+          />
         </View>
       </GestureDetector>
+      {displayVariant === 'targetWeight' && minLabel && maxLabel ? (
+        <View style={styles.targetCaptions}>
+          <Text style={styles.targetCaption}>{minLabel}</Text>
+          <Text style={styles.targetCaption}>{maxLabel}</Text>
+        </View>
+      ) : null}
     </GlassCard>
   );
 }
@@ -176,6 +222,20 @@ const styles = StyleSheet.create({
   value: {
     ...textStyle('cardValue'),
     color: colors.ink,
+  },
+  targetReadout: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'center',
+    gap: spacing.sliderCaptionGap,
+  },
+  targetValue: {
+    ...textStyle('portionReadout'),
+    color: colors.ink,
+  },
+  targetUnit: {
+    ...textStyle('targetUnit'),
+    color: colors.ink55,
   },
   track: {
     height: 26,
@@ -196,6 +256,38 @@ const styles = StyleSheet.create({
     height: 2,
     borderRadius: 1,
     backgroundColor: 'rgba(23,25,29,0.6)',
+  },
+  targetTrack: {
+    height: componentSizes.targetSliderTrackHeight,
+    marginTop: spacing.targetSliderTrackTop,
+  },
+  targetTrackBg: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: componentSizes.targetSliderTrackLineHeight,
+    borderRadius: radii.weekReviewBar,
+  },
+  targetTrackFill: {
+    display: 'none',
+  },
+  targetThumb: {
+    width: componentSizes.targetSliderThumb,
+    height: componentSizes.targetSliderThumb,
+    marginLeft: -componentSizes.targetSliderThumb / 2,
+    borderRadius: componentSizes.targetSliderThumb / 2,
+    shadowColor: colors.targetSliderThumbShadow,
+    shadowOffset: { width: 0, height: componentSizes.targetSliderThumbShadowOffset },
+    shadowRadius: componentSizes.targetSliderThumbShadowRadius,
+  },
+  targetCaptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: spacing.sliderCaptionGap,
+  },
+  targetCaption: {
+    ...textStyle('micro'),
+    color: colors.label,
   },
   thumb: {
     position: 'absolute',

@@ -3,6 +3,7 @@ import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from 'rea
 
 import { GlassCard } from '@/shared/components/GlassCard';
 import { SelectableChip } from '@/shared/components/SelectableChip';
+import { SliderRow } from '@/shared/components/SliderRow';
 import { ToggleRow } from '@/shared/components/ToggleRow';
 import { useAppFlagsStore } from '@/shared/stores/appFlagsStore';
 import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
@@ -16,22 +17,27 @@ import {
 import type {
   ActivityLevel,
   BudgetTier,
-  CookingFrequency,
   CuisinePreference,
   DietProfile,
   DietProfilePatch,
   DietType,
   HealthCondition,
+  MealRhythm,
+  Pace,
+  WeakMoment,
+  WhoCooks,
 } from '@/shared/types/dietProfile';
 
 const DIET_OPTIONS: { label: string; value: DietType }[] = [
   { label: 'Vegetarian', value: 'vegetarian' },
   { label: 'Vegan', value: 'vegan' },
-  { label: 'Non-veg', value: 'non_veg' },
+  { label: 'Everything', value: 'everything' },
+  { label: 'No beef', value: 'no_beef' },
+  { label: 'Halal', value: 'halal' },
   { label: 'Eggs are fine', value: 'eggetarian' },
+  { label: 'Pescatarian', value: 'pescatarian' },
   { label: 'Jain', value: 'jain' },
-  { label: 'Keto', value: 'keto' },
-  { label: 'Low carb', value: 'low_carb' },
+  { label: 'No pork', value: 'no_pork' },
 ];
 
 const ACTIVITY_OPTIONS: { label: string; value: ActivityLevel }[] = [
@@ -52,17 +58,35 @@ const CUISINE_OPTIONS: { label: string; value: CuisinePreference }[] = [
   { label: 'Surprise me', value: 'any' },
 ];
 
-const COOKING_OPTIONS: { label: string; value: CookingFrequency }[] = [
-  { label: 'I cook every meal', value: 'every_meal' },
-  { label: 'Someone cooks once a day', value: 'once_daily' },
-  { label: 'We batch cook', value: 'batch_cooking' },
-  { label: 'I barely cook', value: 'minimal_cooking' },
+const WHO_COOKS_OPTIONS: { label: string; value: WhoCooks }[] = [
+  { label: 'I cook', value: 'i_cook' },
+  { label: 'Family cooks', value: 'family_cooks' },
+  { label: 'House help', value: 'house_help' },
+  { label: 'Mostly order in', value: 'mostly_order_in' },
+  { label: 'Office canteen', value: 'office_canteen' },
 ];
 
-const MEAL_OPTIONS = [
-  { label: 'Two big meals', value: 2 },
-  { label: 'Three meals', value: 3 },
-  { label: 'Three plus snacks', value: 4 },
+const MEAL_RHYTHM_OPTIONS: { label: string; value: MealRhythm }[] = [
+  { label: 'Two big meals', value: 'two_big_meals' },
+  { label: 'Three meals', value: 'three_meals' },
+  { label: 'Three plus snacks', value: 'three_plus_snacks' },
+  { label: 'Grazing all day', value: 'grazing' },
+  { label: 'No pattern', value: 'no_pattern' },
+];
+
+const PACE_OPTIONS: { label: string; value: Pace }[] = [
+  { label: 'Gently', value: 'gently' },
+  { label: 'Steady', value: 'steady' },
+  { label: 'Push me', value: 'push' },
+];
+
+const WEAK_MOMENT_OPTIONS: { label: string; value: WeakMoment }[] = [
+  { label: 'Skipping meals', value: 'skipping_meals' },
+  { label: 'Late-night snacks', value: 'late_night_snacks' },
+  { label: 'Ordering out', value: 'ordering_out' },
+  { label: 'Stress eating', value: 'stress_eating' },
+  { label: 'Weekends', value: 'weekends' },
+  { label: 'Sugar', value: 'sugar' },
 ];
 
 const BUDGET_OPTIONS: { label: string; value: BudgetTier }[] = [
@@ -115,6 +139,8 @@ export function DietPersonalizationCard({ profile }: DietPersonalizationCardProp
   );
   const [editing, setEditing] = useState<EditableSection | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
+  const [targetWeight, setTargetWeight] = useState<number | null>(null);
+  const [pace, setPace] = useState<Pace | null>(null);
 
   const checklist = profileChecklist(profile, visitedSections);
   const missing = editableMissing(checklist);
@@ -148,10 +174,14 @@ export function DietPersonalizationCard({ profile }: DietPersonalizationCardProp
       setSelected(profile.allergies.length > 0 ? profile.allergies : ['none']);
     if (section === 'cuisine')
       setSelected(profile.cuisine_preference ? [profile.cuisine_preference] : []);
-    if (section === 'cooking')
-      setSelected(profile.cooking_frequency ? [profile.cooking_frequency] : []);
-    if (section === 'mealRhythm')
-      setSelected(profile.meal_frequency ? [String(profile.meal_frequency)] : []);
+    if (section === 'cooking') setSelected(profile.who_cooks ? [profile.who_cooks] : []);
+    if (section === 'mealRhythm') setSelected(profile.meal_rhythm ? [profile.meal_rhythm] : []);
+    if (section === 'target') {
+      const currentWeight = Math.round(profile.weight_kg ?? 0);
+      setTargetWeight(profile.target_weight_kg ?? Math.max(30, currentWeight - 6));
+      setPace(profile.pace ?? 'steady');
+    }
+    if (section === 'weakMoment') setSelected(profile.weak_moment ? [profile.weak_moment] : []);
     if (section === 'budget') setSelected(profile.budget_tier ? [profile.budget_tier] : []);
     if (section === 'health') setSelected(profile.health_conditions);
   };
@@ -159,11 +189,13 @@ export function DietPersonalizationCard({ profile }: DietPersonalizationCardProp
   const closeEdit = () => {
     setEditing(null);
     setSelected([]);
+    setTargetWeight(null);
+    setPace(null);
   };
 
   const saveEdit = () => {
     if (!editing) return;
-    const patch = buildPatch(editing, selected);
+    const patch = buildPatch(editing, selected, targetWeight, pace);
     updateProfile.mutate(patch, {
       onSuccess: () => {
         void markVisited(editing);
@@ -181,7 +213,7 @@ export function DietPersonalizationCard({ profile }: DietPersonalizationCardProp
         </Text>
         <Text style={styles.body}>{DIET_QUICK_SETUP_SUBTITLE}</Text>
 
-        <Question title="How do you usually eat?">
+        <Question title="How do you eat?">
           <View style={styles.chips}>
             {DIET_OPTIONS.map((option) => (
               <SelectableChip
@@ -210,16 +242,8 @@ export function DietPersonalizationCard({ profile }: DietPersonalizationCardProp
           </View>
         </Question>
 
-        <Question title="Anything we should avoid?">
+        <Question title="Anything your body refuses? I never suggest what hurts you.">
           <View style={styles.chips}>
-            <SelectableChip
-              label="No allergies"
-              selected={quickNoAllergies}
-              onPress={() => {
-                setQuickNoAllergies(true);
-                setQuickAllergies([]);
-              }}
-            />
             {ALLERGY_OPTIONS.map((option) => {
               const value = option.toLowerCase();
               return (
@@ -234,6 +258,14 @@ export function DietPersonalizationCard({ profile }: DietPersonalizationCardProp
                 />
               );
             })}
+            <SelectableChip
+              label="Nothing"
+              selected={quickNoAllergies}
+              onPress={() => {
+                setQuickNoAllergies(true);
+                setQuickAllergies([]);
+              }}
+            />
           </View>
         </Question>
 
@@ -319,6 +351,11 @@ export function DietPersonalizationCard({ profile }: DietPersonalizationCardProp
         onSave={saveEdit}
         onClose={closeEdit}
         saving={updateProfile.isPending}
+        targetWeight={targetWeight}
+        setTargetWeight={setTargetWeight}
+        pace={pace}
+        setPace={setPace}
+        currentWeight={Math.round(profile.weight_kg ?? 0)}
       />
     </>
   );
@@ -333,7 +370,12 @@ function Question({ title, children }: { title: string; children: React.ReactNod
   );
 }
 
-function buildPatch(section: EditableSection, selected: string[]): DietProfilePatch {
+function buildPatch(
+  section: EditableSection,
+  selected: string[],
+  targetWeight: number | null,
+  pace: Pace | null,
+): DietProfilePatch {
   const first = selected[0];
   if (section === 'dietType') return { diet_type: (first as DietType | undefined) ?? null };
   if (section === 'activity')
@@ -341,46 +383,64 @@ function buildPatch(section: EditableSection, selected: string[]): DietProfilePa
   if (section === 'allergies') return { allergies: selected.includes('none') ? [] : selected };
   if (section === 'cuisine')
     return { cuisine_preference: (first as CuisinePreference | undefined) ?? null };
-  if (section === 'cooking')
-    return { cooking_frequency: (first as CookingFrequency | undefined) ?? null };
-  if (section === 'mealRhythm') return { meal_frequency: first ? Number(first) : undefined };
+  if (section === 'target') return { target_weight_kg: targetWeight, pace };
+  if (section === 'cooking') return { who_cooks: (first as WhoCooks | undefined) ?? null };
+  if (section === 'mealRhythm') return { meal_rhythm: (first as MealRhythm | undefined) ?? null };
   if (section === 'budget') return { budget_tier: (first as BudgetTier | undefined) ?? null };
+  if (section === 'weakMoment') return { weak_moment: (first as WeakMoment | undefined) ?? null };
   return { health_conditions: selected as HealthCondition[] };
 }
 
-function optionsForSection(section: EditableSection | null): { label: string; value: string }[] {
-  if (section === 'dietType') return DIET_OPTIONS;
-  if (section === 'activity') return ACTIVITY_OPTIONS;
-  if (section === 'allergies') {
-    return [
-      { label: 'No allergies', value: 'none' },
+type SectionConfig = {
+  title?: string;
+  options?: { label: string; value: string }[];
+  subtitle?: string;
+  buttonLabel?: string;
+  layout?: 'chips';
+  multi?: boolean;
+  required?: boolean;
+};
+
+const SECTION_CONFIG: Record<EditableSection, SectionConfig> = {
+  dietType: { title: 'How do you eat?', options: DIET_OPTIONS, layout: 'chips', required: true },
+  activity: { title: 'How active are you?', options: ACTIVITY_OPTIONS },
+  allergies: {
+    title: 'Anything your body refuses? I never suggest what hurts you.',
+    options: [
       ...ALLERGY_OPTIONS.map((label) => ({ label, value: label.toLowerCase() })),
-    ];
-  }
-  if (section === 'cuisine') return CUISINE_OPTIONS;
-  if (section === 'cooking') return COOKING_OPTIONS;
-  if (section === 'mealRhythm')
-    return MEAL_OPTIONS.map((option) => ({ label: option.label, value: String(option.value) }));
-  if (section === 'budget') return BUDGET_OPTIONS;
-  if (section === 'health') return HEALTH_OPTIONS;
-  return [];
-}
-
-function titleForSection(section: EditableSection | null): string {
-  if (section === 'dietType') return 'How do you usually eat?';
-  if (section === 'activity') return 'How active are you?';
-  if (section === 'allergies') return 'Anything we should avoid?';
-  if (section === 'cuisine') return 'What flavours feel like home?';
-  if (section === 'cooking') return 'Who makes your food most days?';
-  if (section === 'mealRhythm') return 'How does a normal day of eating flow?';
-  if (section === 'budget') return "What's the food budget like?";
-  if (section === 'health') return 'Anything I should plan around?';
-  return '';
-}
-
-function isMulti(section: EditableSection | null): boolean {
-  return section === 'allergies' || section === 'health';
-}
+      { label: 'Nothing', value: 'none' },
+    ],
+    layout: 'chips',
+    multi: true,
+  },
+  target: {},
+  cuisine: { title: 'What flavours feel like home?', options: CUISINE_OPTIONS },
+  cooking: {
+    title: 'Who makes your food most days?',
+    options: WHO_COOKS_OPTIONS,
+    subtitle: 'The plan bends to whoever is at the stove, not the other way.',
+    buttonLabel: 'Next',
+    layout: 'chips',
+    required: true,
+  },
+  mealRhythm: {
+    title: 'How does a normal day of eating flow?',
+    options: MEAL_RHYTHM_OPTIONS,
+    subtitle: 'Meal timing shapes the plan more than calorie math does.',
+    buttonLabel: 'Next',
+    layout: 'chips',
+    required: true,
+  },
+  budget: { title: "What's the food budget like?", options: BUDGET_OPTIONS },
+  health: { title: 'Anything I should plan around?', options: HEALTH_OPTIONS, multi: true },
+  weakMoment: {
+    title: "Last one. When do you slip? I'll guard that hour with you.",
+    options: WEAK_MOMENT_OPTIONS,
+    buttonLabel: 'Build my fuel plan',
+    layout: 'chips',
+    required: true,
+  },
+};
 
 function EditSheet({
   section,
@@ -389,6 +449,11 @@ function EditSheet({
   onSave,
   onClose,
   saving,
+  targetWeight,
+  setTargetWeight,
+  pace,
+  setPace,
+  currentWeight,
 }: {
   section: EditableSection | null;
   selected: string[];
@@ -396,59 +461,111 @@ function EditSheet({
   onSave: () => void;
   onClose: () => void;
   saving: boolean;
+  targetWeight: number | null;
+  setTargetWeight: (value: number | null) => void;
+  pace: Pace | null;
+  setPace: (value: Pace | null) => void;
+  currentWeight: number;
 }) {
-  const multi = isMulti(section);
+  const config = section ? SECTION_CONFIG[section] : null;
+  const multi = Boolean(config?.multi);
+  const subtitle = config?.subtitle;
+  const buttonLabel =
+    section === 'target' && targetWeight !== null && pace !== null
+      ? `${targetWeight}, ${PACE_OPTIONS.find((option) => option.value === pace)?.label.toLowerCase()}`
+      : (config?.buttonLabel ?? 'Save');
+  const targetMin = Math.max(30, currentWeight - 13);
+  const requiresSelection = Boolean(config?.required);
+  const canSave =
+    (section !== 'target' || (targetWeight !== null && pace !== null)) &&
+    (!requiresSelection || selected.length > 0);
   return (
     <Modal visible={section !== null} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Close edit sheet" />
       <View style={styles.sheetWrap} pointerEvents="box-none">
         <View style={styles.sheet}>
           <View style={styles.grabber} />
-          <Text style={styles.sheetTitle}>{titleForSection(section)}</Text>
-          <View style={styles.stack}>
-            {optionsForSection(section).map((option) => {
-              const active = selected.includes(option.value);
-              return (
-                <ToggleRow
-                  key={option.value}
-                  title={option.label}
-                  selected={active}
-                  selectionMode={multi ? 'check' : 'radio'}
-                  minHeight={56}
-                  titleFontSize={14}
-                  onPress={() => {
-                    if (!multi) {
-                      setSelected([option.value]);
-                      return;
-                    }
-                    if (option.value === 'none' || option.value === 'prefer_not_to_say') {
-                      setSelected(active ? [] : [option.value]);
-                      return;
-                    }
-                    setSelected((current) =>
-                      toggleString(
-                        current.filter(
-                          (entry) => entry !== 'none' && entry !== 'prefer_not_to_say',
-                        ),
-                        option.value,
-                      ),
-                    );
-                  }}
-                />
-              );
-            })}
-          </View>
+          <Text style={styles.sheetTitle}>
+            {section === 'target'
+              ? `You're at ${currentWeight} kg. Where are we taking it?`
+              : (config?.title ?? '')}
+          </Text>
+          {section === 'target' && targetWeight !== null ? (
+            <>
+              <SliderRow
+                value={targetWeight}
+                min={targetMin}
+                max={currentWeight}
+                unit="kg"
+                displayVariant="targetWeight"
+                minLabel={`${targetMin}`}
+                maxLabel={`${currentWeight} now`}
+                onChange={setTargetWeight}
+              />
+              <View style={styles.chips}>
+                {PACE_OPTIONS.map((option) => (
+                  <SelectableChip
+                    key={option.value}
+                    label={option.label}
+                    selected={pace === option.value}
+                    onPress={() => setPace(option.value)}
+                  />
+                ))}
+              </View>
+            </>
+          ) : (
+            <View style={config?.layout === 'chips' ? styles.chips : styles.stack}>
+              {(config?.options ?? []).map((option) => {
+                const active = selected.includes(option.value);
+                const onPress = () => {
+                  if (!multi) {
+                    setSelected([option.value]);
+                    return;
+                  }
+                  if (option.value === 'none' || option.value === 'prefer_not_to_say') {
+                    setSelected(active ? [] : [option.value]);
+                    return;
+                  }
+                  setSelected((current) =>
+                    toggleString(
+                      current.filter((entry) => entry !== 'none' && entry !== 'prefer_not_to_say'),
+                      option.value,
+                    ),
+                  );
+                };
+                return config?.layout === 'chips' ? (
+                  <SelectableChip
+                    key={option.value}
+                    label={option.label}
+                    selected={active}
+                    onPress={onPress}
+                  />
+                ) : (
+                  <ToggleRow
+                    key={option.value}
+                    title={option.label}
+                    selected={active}
+                    selectionMode={multi ? 'check' : 'radio'}
+                    minHeight={56}
+                    titleFontSize={14}
+                    onPress={onPress}
+                  />
+                );
+              })}
+            </View>
+          )}
+          {subtitle ? <Text style={styles.body}>{subtitle}</Text> : null}
           <Pressable
             onPress={onSave}
-            disabled={saving}
+            disabled={saving || !canSave}
             accessibilityRole="button"
-            accessibilityLabel="Save profile section"
-            style={[styles.primaryButton, saving && styles.disabled]}
+            accessibilityLabel={buttonLabel}
+            style={[styles.primaryButton, (saving || !canSave) && styles.disabled]}
           >
             {saving ? (
               <ActivityIndicator color={colors.white} />
             ) : (
-              <Text style={styles.primaryText}>Save</Text>
+              <Text style={styles.primaryText}>{buttonLabel}</Text>
             )}
           </Pressable>
         </View>

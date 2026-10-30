@@ -9,6 +9,9 @@ import {
   type DietProfilePatch,
 } from '@/shared/types/dietProfile';
 import { estimateDailyTargets } from '@/features/onboarding/lib/estimateDailyTargets';
+import { dietProfilePatchSchema } from '@/features/onboarding/schemas';
+
+const DEFAULT_CHECK_IN_TIME = '22:00';
 
 const DEFAULT_DIET_PROFILE: DietProfile = {
   onboarding_complete: false,
@@ -26,12 +29,22 @@ const DEFAULT_DIET_PROFILE: DietProfile = {
   budget_tier: null,
   eating_pattern: null,
   cooking_frequency: null,
+  pace: null,
+  who_cooks: null,
+  meal_rhythm: null,
+  weak_moment: null,
   health_conditions: [],
   target_source: 'calculated',
   daily_calories: 2000,
   daily_protein_g: 150,
   daily_carbs_g: 200,
   daily_fat_g: 60,
+  late_night_guard: {
+    enabled: false,
+    check_in_time: DEFAULT_CHECK_IN_TIME,
+    next_check_in_at: null,
+    status_line: 'Late-night guard is off.',
+  },
 };
 
 /** Mock-only: derives a whole-years age from the user's (possibly approximate — see D3 in
@@ -68,6 +81,22 @@ function validatePatch(patch: DietProfilePatch): Record<string, string[]> | null
       errors.health_conditions = [`Select at most ${HEALTH_CONDITIONS_MAX}.`];
     }
   }
+  const choices = dietProfilePatchSchema
+    .pick({ pace: true, who_cooks: true, meal_rhythm: true, weak_moment: true })
+    .safeParse(patch);
+  if (!choices.success) {
+    for (const issue of choices.error.issues) {
+      const field = issue.path[0];
+      if (typeof field === 'string') errors[field] = ['Invalid choice.'];
+    }
+  }
+  if (
+    patch.target_weight_kg !== undefined &&
+    patch.target_weight_kg !== null &&
+    typeof patch.target_weight_kg !== 'number'
+  ) {
+    errors.target_weight_kg = ['A valid number is required.'];
+  }
 
   return Object.keys(errors).length > 0 ? errors : null;
 }
@@ -96,6 +125,14 @@ registerMock('PUT', '/users/me/diet-profile/', (request) => {
 
   const current = getOrCreateProfile(user.id);
   const merged: DietProfile = { ...current, ...patch };
+  if (merged.weak_moment === 'late_night_snacks' && current.weak_moment !== 'late_night_snacks') {
+    merged.late_night_guard = {
+      enabled: true,
+      check_in_time: DEFAULT_CHECK_IN_TIME,
+      next_check_in_at: null,
+      status_line: "Late-night guard is on. I'll check in at 10.",
+    };
+  }
   merged.onboarding_complete = computeOnboardingComplete(merged);
 
   if (merged.target_source !== 'manual') {
