@@ -566,13 +566,19 @@ The main dashboard payload for a day.
   "food_log_count": 42,
   "food_entries": [ <FoodEntry> ],
   "exercise_entries": [ <ExerciseEntry> ],
-  "vs_yesterday": "ahead"
+  "vs_yesterday": "ahead",
+  "core_index": null
 }
 ```
 
 `vs_yesterday` is `"ahead"`, `"behind"`, `"level"`, or `null`. It compares food calories
 logged today with yesterday's entries at or before the current local time; it is `null` for a
 date other than the user's local today or when yesterday has no food entries.
+
+`core_index` is the Core Index for the requested `date`, the same field as on the diet profile.
+`null` means no index, not zero. It is `null` while calibration is incomplete, when that date has
+no food or exercise, and until a design note names the scoring formula. Water on an otherwise
+empty day does not count. The design sample of 78 is never filled in.
 
 ### PATCH `/daily-summary/water/`
 

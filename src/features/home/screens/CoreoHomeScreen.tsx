@@ -183,7 +183,7 @@ export default function CoreoHomeScreen() {
               ) : null}
             </View>
 
-            <TodayScoreCard now={now} />
+            <TodayScoreCard now={now} score={summary?.core_index ?? undefined} />
 
             {nudge ? <CoreNudgeCard text={nudge.home_line} /> : null}
 

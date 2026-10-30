@@ -32,6 +32,14 @@
  * and renders nothing for `'behind'`, `'level'`, or `null` (plan.md Decision log #1-2). The nudge
  * card now mounts with the real `nudge.home_line` whenever the API returns a winning rule, and
  * stays hidden for the two no-nudge shapes (plan.md Decision log #3).
+ *
+ * Issue #136 — `/daily-summary/` now returns `core_index` (`apps/insights/views.py:187-192`,
+ * `apps/users/services/core_index.py:17-30`), so the hero card's score digits are wired from that
+ * field instead of staying permanently absent. `core_index` is `number | null` — `null` means no
+ * index (calibration incomplete, nothing logged, or no scoring formula yet), never zero. The old
+ * issue-#18 test asserting the score never renders is replaced: the digits render when the backend
+ * returns a number, and stay absent (never an invented placeholder) when it returns `null` or the
+ * summary hasn't loaded yet.
  */
 
 import { render, screen } from '@testing-library/react-native';
@@ -155,14 +163,29 @@ describe('home: CoreoHomeScreen (issue #17)', () => {
       expect(screen.getByText('Evening')).toBeTruthy();
     });
 
-    it('never invents the Core Index score: the backend has no score endpoint yet', () => {
+    it('shows the "Ask me anything" bar as a static placeholder (no chat screen to wire it to yet)', () => {
+      render(<CoreoHomeScreen />);
+      expect(screen.getByText('Ask me anything')).toBeTruthy();
+    });
+  });
+
+  describe('issue #136: the Core Index score from the backend', () => {
+    it('shows the score digits when the backend returns a value', () => {
+      mockSummary = { core_index: 42 } as Partial<DailySummary>;
+      render(<CoreoHomeScreen />);
+      expect(screen.getByTestId('home-today-score')).toBeTruthy();
+    });
+
+    it('never invents a score: shows no digits when core_index is null', () => {
+      mockSummary = { core_index: null } as Partial<DailySummary>;
       render(<CoreoHomeScreen />);
       expect(screen.queryByTestId('home-today-score')).toBeNull();
     });
 
-    it('shows the "Ask me anything" bar as a static placeholder (no chat screen to wire it to yet)', () => {
+    it('never invents a score: shows no digits while the summary has not loaded yet', () => {
+      mockSummary = undefined;
       render(<CoreoHomeScreen />);
-      expect(screen.getByText('Ask me anything')).toBeTruthy();
+      expect(screen.queryByTestId('home-today-score')).toBeNull();
     });
   });
 

@@ -589,6 +589,8 @@ registerMock('GET', '/daily-summary/', (request) => {
       food_entries: foodEntries,
       exercise_entries: [],
       vs_yesterday: vsYesterday(date),
+      // apps/users/services/core_index.py:41-46 returns None until a scoring formula exists.
+      core_index: null,
     }),
   };
 });

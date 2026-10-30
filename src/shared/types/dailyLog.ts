@@ -33,4 +33,5 @@ export type DailySummary = {
   food_entries: FoodEntry[];
   exercise_entries: unknown[];
   vs_yesterday: 'ahead' | 'behind' | 'level' | null;
+  core_index: number | null;
 };
