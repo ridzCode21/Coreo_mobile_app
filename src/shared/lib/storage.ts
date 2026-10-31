@@ -36,4 +36,5 @@ export const STORAGE_KEYS = {
   mealQueue: 'coreo.offline.mealQueue',
   pendingCheckInAnswers: 'coreo.offline.pendingCheckInAnswers',
   checkInPromptDeclined: 'coreo.app.checkInPromptDeclined',
+  healthSyncCursor: 'coreo.integrations.sync.v1',
 } as const;

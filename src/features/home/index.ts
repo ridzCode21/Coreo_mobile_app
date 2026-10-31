@@ -2,6 +2,7 @@ export { default as CoreoHomeScreen } from '@/features/home/screens/CoreoHomeScr
 export {
   DEVICE_SOURCES,
   useLastNightQuery,
+  sourcesKeys,
   useSourcesQuery,
   type LastNight,
   type SourceStatus,

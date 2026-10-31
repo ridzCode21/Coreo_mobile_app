@@ -14,6 +14,7 @@ const OFFLINE_DATA_KEYS = [
   STORAGE_KEYS.homeCache,
   STORAGE_KEYS.mealQueue,
   STORAGE_KEYS.pendingCheckInAnswers,
+  STORAGE_KEYS.healthSyncCursor,
 ] as const;
 
 /**
