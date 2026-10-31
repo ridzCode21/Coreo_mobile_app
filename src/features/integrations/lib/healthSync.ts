@@ -52,8 +52,7 @@ export const runHealthSync = createSingleFlight(syncOnce);
 
 export type ConnectOutcome = SyncOutcome | { kind: 'permission_denied' };
 
-/** Asks for read access, then runs the first sync. The in-app explanation (issue #59) comes first. */
-export async function connectHealth(): Promise<ConnectOutcome> {
+async function connectOnce(): Promise<ConnectOutcome> {
   const client = await getHealthClient();
   if (!client) return { kind: 'skipped', reason: 'unsupported' };
 
@@ -62,3 +61,9 @@ export async function connectHealth(): Promise<ConnectOutcome> {
   if (!(await client.requestPermission())) return { kind: 'permission_denied' };
   return runHealthSync();
 }
+
+/**
+ * Asks for read access, then runs the first sync. The in-app explanation (issue #59) comes first.
+ * One request at a time: a second tap, or the app waking while the system dialog is open, shares it.
+ */
+export const connectHealth = createSingleFlight(connectOnce);

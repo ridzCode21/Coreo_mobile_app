@@ -100,6 +100,18 @@ describe('connectHealth', () => {
     expect(await connectHealth()).toEqual({ kind: 'skipped', reason: 'needs_install' });
     expect(mockClient.requestPermission).not.toHaveBeenCalled();
   });
+
+  it('asks only once when the person taps Connect twice, or the app wakes while the dialog is open', async () => {
+    const [first, second] = await Promise.all([connectHealth(), connectHealth()]);
+    expect(mockClient.requestPermission).toHaveBeenCalledTimes(1);
+    expect(second).toEqual(first);
+  });
+
+  it('can ask again after the first attempt finished', async () => {
+    await connectHealth();
+    await connectHealth();
+    expect(mockClient.requestPermission).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe('6. the sync keeps failing and nobody is told (GitHub issue #145)', () => {
