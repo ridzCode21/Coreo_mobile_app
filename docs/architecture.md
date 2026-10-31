@@ -104,6 +104,15 @@ src/
       screens/                    # CoreoHomeScreen, PillarComingSoonScreen
       index.ts
     profile/
+    integrations/                # phone health sync (issue #55 Android Health Connect; iOS HealthKit is #54)
+      api/                       # integrationsApi — `POST /insights/import/` via the query client
+      lib/                       # pure sync logic (cursor, day totals, payload, retry), the
+                                  # HealthSourceClient seam + Health Connect reader, sync runner,
+                                  # background task, useHealthSync hook
+      store/                     # syncStore — how far this phone has synced (non-secret, persisted)
+      mocks/                     # deviceImport.handlers — mock POST /insights/import/
+      components/                # HealthSyncHost — no UI, mounted in the signed-in layout
+      index.ts                   # public surface (HealthSyncHost, useHealthSync)
 
   shared/
     api/
@@ -312,7 +321,7 @@ plan (mock-backed now, real contract from day one).
 - Centralize error boundaries: one at the root layout, optionally one per major route group —
   not yet added.
 - `shared/api/errors.ts`'s `ApiError` is the normalized shape all query/mutation errors surface
-  through today. A single `reportError()` seam (still to add, in `shared/lib`) will be the one
+  through today. A single `reportError()` seam (`shared/lib/reportError.ts`, logs only the message) is the one
   file that changes when Sentry lands (deferred, see `CLAUDE.md` §7).
 
 ## 8. Release pipeline (EAS) — overview

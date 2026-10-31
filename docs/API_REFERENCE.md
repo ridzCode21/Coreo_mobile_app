@@ -30,6 +30,8 @@ values a frontend engineer needs to build the features end to end.
 15. [Core / system](#15-core--system)
 16. [Quota limits](#16-quota-limits)
 17. [Enum reference](#17-enum-reference)
+18. [Device batches (Apple Health and Health Connect)](#18-device-batches-apple-health-and-health-connect)
+19. [Source status](#19-source-status)
 
 ---
 
@@ -1143,3 +1145,57 @@ the action becomes available again.
 | POST     | `/core/contact-support/`                              | ✅       |
 
 _🔓 = public (no auth). All others require `Authorization: Bearer <access_token>`._
+
+---
+
+## 18. Device batches (Apple Health and Health Connect)
+
+Requires auth. The phone reads Apple Health or Android Health Connect on the device, groups the
+samples into one row per local day, and posts them here. Backend: `apps/integrations/views.py`
+(`device_import`), `device_sync.py`; backend reference §19.
+
+### POST `/insights/import/`
+
+Body: `{ "source": "apple_health" | "health_connect", "daily_logs": [ <row>, ... ] }`.
+
+Row: `date` (`YYYY-MM-DD`, the phone's local day) plus any of `steps` (≥ 0), `weight_kg` (≥ 0),
+`sleep_hours` (0–24), `hrv` (≥ 0, milliseconds), `workout_sessions` (`[{ "type", "duration_seconds",
+"avg_hr"? }]`), `calories_in`, `calories_out` (≥ 0, default 0), `heart_rates` (≤ 500 samples a day).
+The app sends only the first five (issue #55). Health Connect HRV is RMSSD and Apple Health HRV is
+SDNN; the backend stores one `hrv` field.
+
+Rules: at most 366 rows, no duplicate dates in one batch, no date later than tomorrow (UTC).
+
+A day sent again **replaces** `steps`, `weight_kg`, `sleep_hours`, `hrv` and that source's workout
+sessions for that day, so always send the whole day. A field left out keeps its stored value. An
+empty `daily_logs` list is a valid sync: it creates the connection and moves `last_synced_at`.
+
+**200** (bare payload with `success`, not Style A's `data` wrapper) →
+
+```json
+{
+  "success": true,
+  "source": "health_connect",
+  "days_written": 3,
+  "last_synced_at": "2026-06-08T21:04:11Z",
+  "synced_through": "2026-06-08"
+}
+```
+
+**400** `VALIDATION_ERROR`, message `Invalid request data`, with `details` naming the field
+(`{ "daily_logs": ["Send at most 366 days per batch."] }`). **401** `UNAUTHORIZED` without a token.
+
+The app keeps its own "synced through" date on the phone (`features/integrations/store`) and
+re-reads from two days before it. There is no disconnect route for these two sources: access is
+revoked in the phone's Health settings.
+
+---
+
+## 19. Source status
+
+### GET `/integrations/sources/`
+
+Always five records in this order: `apple_health`, `health_connect`, `strava`, `whoop`, `oura`,
+each `{ source, connected, last_synced_at, synced_through, status }` (`status`: `live`, `quiet`,
+`estimate` or null), plus `last_night`. A phone source is `connected` once its first batch was
+accepted, even an empty one. Read by `features/home` (`useSourcesQuery`).

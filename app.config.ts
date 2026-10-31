@@ -45,7 +45,18 @@ const config: ExpoConfig = {
     },
     predictiveBackGestureEnabled: false,
     // Camera for photo meal-logging (see ios.infoPlist note above).
-    permissions: ['android.permission.INTERNET', 'android.permission.CAMERA'],
+    permissions: [
+      'android.permission.INTERNET',
+      'android.permission.CAMERA',
+      // Health Connect read access (issue #55): the five metrics the device-import endpoint
+      // accepts, plus reading while the app is closed. Read-only — no write permission is declared.
+      'android.permission.health.READ_STEPS',
+      'android.permission.health.READ_SLEEP',
+      'android.permission.health.READ_HEART_RATE_VARIABILITY',
+      'android.permission.health.READ_WEIGHT',
+      'android.permission.health.READ_EXERCISE',
+      'android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND',
+    ],
   },
   web: {
     output: 'static',
@@ -66,6 +77,15 @@ const config: ExpoConfig = {
     // asking for permission (features/notifications/lib/expoPush.ts), so server pushes land in it.
     ['expo-notifications', { defaultChannel: 'default' }],
     ['@react-native-google-signin/google-signin', { iosUrlScheme: googleIosUrlScheme }],
+    // Health Connect (issue #55). Its plugin adds the permission-rationale screen Android requires.
+    // Health Connect needs minSdk 26; the library asks for compile/target SDK 36.
+    'react-native-health-connect',
+    [
+      'expo-build-properties',
+      { android: { minSdkVersion: 26, compileSdkVersion: 36, targetSdkVersion: 36 } },
+    ],
+    // Periodic sync while the app is closed (Android WorkManager under the hood).
+    'expo-background-task',
   ],
   experiments: {
     typedRoutes: true,
