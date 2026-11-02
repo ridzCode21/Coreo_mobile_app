@@ -41,6 +41,13 @@ function accessFromRefreshPayload(payload: unknown): string | null {
   return typeof data.access === 'string' ? data.access : null;
 }
 
+function refreshFromRefreshPayload(payload: unknown): string | null {
+  if (!isRecord(payload)) return null;
+  const data = payload.data;
+  if (!isRecord(data)) return null;
+  return typeof data.refresh === 'string' && data.refresh.length > 0 ? data.refresh : null;
+}
+
 /**
  * The single HTTP client every feature's API module calls through — see docs/architecture.md §4.
  * No feature should construct its own fetch/axios instance. The actual request is dispatched by
@@ -72,12 +79,17 @@ export function createApiClient({
 
     const payload = await response.json();
     const access = accessFromRefreshPayload(payload);
+    const nextRefresh = refreshFromRefreshPayload(payload);
     if (!access) {
       await tokenStore.clearTokens();
       return false;
     }
 
-    await tokenStore.setAccessToken(access);
+    if (nextRefresh) {
+      await tokenStore.setTokens({ access, refresh: nextRefresh });
+    } else {
+      await tokenStore.setAccessToken(access);
+    }
     return true;
   }
 

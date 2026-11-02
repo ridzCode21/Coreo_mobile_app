@@ -400,7 +400,7 @@ registerMock('POST', '/users/login/', (request) => {
   };
 });
 
-/** Mock `POST /users/token/refresh/` — returns a new access token only, per API_REFERENCE.md §3. */
+/** Mock `POST /users/token/refresh/` — rotates access and refresh tokens. */
 registerMock('POST', '/users/token/refresh/', (request) => {
   const body = (request.body ?? {}) as Record<string, unknown>;
   const refresh = asString(body.refresh);
@@ -422,10 +422,11 @@ registerMock('POST', '/users/token/refresh/', (request) => {
   }
 
   const tokens = issueTokenPair({ id: user.id, email: user.email });
+  blacklistMockToken(refresh);
 
   return {
     status: 200,
-    body: styleAOk({ access: tokens.access }),
+    body: styleAOk({ access: tokens.access, refresh: tokens.refresh }),
   };
 });
 
