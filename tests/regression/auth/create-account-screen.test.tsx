@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import CreateAccountScreen from '@/features/onboarding/screens/CreateAccountScreen';
 import { ApiError } from '@/shared/api/errors';
@@ -149,5 +149,21 @@ describe('onboarding: CreateAccountScreen server error messages (issue #166)', (
     logSpy.mockRestore();
     warnSpy.mockRestore();
     errorSpy.mockRestore();
+  });
+
+  /**
+   * Issue #168 — the backend treats `A@x.com` and `a@x.com` as different accounts, so the email
+   * typed at signup must be trimmed and lower-cased before it reaches `POST /users/register/`,
+   * otherwise a later lowercase login for the same address can 401.
+   */
+  it('sends a trimmed, lower-cased email to the register mutation (issue #168)', async () => {
+    render(<CreateAccountScreen />);
+    fireEvent.changeText(screen.getByPlaceholderText('you@example.com'), '  Name@Example.COM  ');
+    fireEvent.changeText(screen.getByPlaceholderText('Password'), 'quiet-harbor-42');
+    fireEvent.changeText(screen.getByPlaceholderText('Confirm password'), 'quiet-harbor-42');
+    submit();
+
+    await waitFor(() => expect(mockRegisterMutate).toHaveBeenCalled());
+    expect(mockRegisterMutate.mock.calls[0][0]).toMatchObject({ email: 'name@example.com' });
   });
 });

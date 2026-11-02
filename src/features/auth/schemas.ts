@@ -1,12 +1,19 @@
 import { z } from 'zod';
 
+const normalizedEmail = z
+  .string()
+  .trim()
+  .min(1, 'Email is required')
+  .email('Enter a valid email')
+  .transform((value) => value.toLowerCase());
+
 /**
  * Validation source of truth for the login form — React Hook Form's resolver reads this, so the
  * schema (not scattered field-level rules) is what defines "valid" here. See
  * docs/architecture.md §3 and docs/coding-standards.md.
  */
 export const loginSchema = z.object({
-  email: z.string().trim().min(1, 'Email is required').email('Enter a valid email'),
+  email: normalizedEmail,
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
@@ -19,7 +26,7 @@ export const requestPasswordResetSchema = z.object({
 export type RequestPasswordResetFormValues = z.infer<typeof requestPasswordResetSchema>;
 
 const credentialsShape = {
-  email: z.string().trim().min(1, 'Email is required').email('Enter a valid email'),
+  email: normalizedEmail,
   password: z.string().min(8, 'Password must be at least 8 characters'),
   passwordConfirm: z.string().min(1, 'Confirm password is required'),
 };

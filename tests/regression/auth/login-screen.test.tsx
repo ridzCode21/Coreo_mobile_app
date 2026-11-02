@@ -112,4 +112,19 @@ describe('auth: Sign in with email screen (8b, issue #14)', () => {
     expect(flat.color).toBe(colors.attention);
     expect(mockReplace).not.toHaveBeenCalled();
   });
+
+  /**
+   * Issue #168 — the backend treats `A@x.com` and `a@x.com` as different accounts, so a user who
+   * signed up as `Name@x.com` must still be able to sign in typing `name@x.com` (or any other
+   * casing). The resolver-level `loginSchema` normalizes before `handleSubmit` ever calls the
+   * mutation, so this locks the behaviour in at the screen.
+   */
+  it('sends a trimmed, lower-cased email to the login mutation (issue #168)', async () => {
+    render(<LoginScreen />);
+    fillCredentials('  Name@Example.COM  ', 'quiet-harbor-42');
+    fireEvent.press(screen.getByRole('button', { name: 'Sign in' }));
+
+    await waitFor(() => expect(mockLoginMutate).toHaveBeenCalled());
+    expect(mockLoginMutate.mock.calls[0][0]).toMatchObject({ email: 'name@example.com' });
+  });
 });
