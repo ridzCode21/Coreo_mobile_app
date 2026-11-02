@@ -39,6 +39,33 @@ export const dietProfilePatchSchema = z.object({
 
 export type DietProfilePatchValues = z.infer<typeof dietProfilePatchSchema>;
 
+const aboutYouMeasurementMessages = {
+  ageYears: 'Age must be between 16 and 90.',
+  heightCm: 'Height must be between 140 and 210 cm.',
+  weightKg: 'Weight must be between 40 and 160 kg.',
+} as const;
+
+/**
+ * Client-side bounds for the persisted values collected by AboutYouScreen's sliders. These match
+ * the slider ranges so stale drafts cannot bypass the product's normal input limits.
+ */
+export const aboutYouMeasurementsSchema = z.object({
+  ageYears: z
+    .number()
+    .min(16, aboutYouMeasurementMessages.ageYears)
+    .max(90, aboutYouMeasurementMessages.ageYears),
+  heightCm: z
+    .number()
+    .min(140, aboutYouMeasurementMessages.heightCm)
+    .max(210, aboutYouMeasurementMessages.heightCm),
+  weightKg: z
+    .number()
+    .min(40, aboutYouMeasurementMessages.weightKg)
+    .max(160, aboutYouMeasurementMessages.weightKg),
+});
+
+export type AboutYouMeasurementsValues = z.infer<typeof aboutYouMeasurementsSchema>;
+
 /** The "off the table" (D2/12a·2) free-add text entry — allergy/disliked-food names typed via
  * `VoiceInputBar` rather than picked from a preset chip. */
 export const freeFoodEntrySchema = z

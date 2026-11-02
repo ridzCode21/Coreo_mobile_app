@@ -103,4 +103,67 @@ describe('onboarding: About You screen matches the design (issue #10)', () => {
     expect(useOnboardingStore.getState().lastCompletedStep).toBe('about-you');
     expect(mockPush).toHaveBeenCalledWith('/(public)/onboarding/save');
   });
+
+  /**
+   * Issue #168 — dragging the slider can never produce an out-of-range value (it clamps to its
+   * own min/max), but a stale or corrupted persisted draft could still carry one (e.g. restored
+   * from an older app version, or `AsyncStorage` edited directly) and nothing blocked it from
+   * reaching `POST /users/register/`. This is the client-side gate: an out-of-range draft shows an
+   * inline error and disables Continue, same as any other invalid form in this app.
+   */
+  describe('blocks an out-of-range persisted draft (issue #168)', () => {
+    it('shows an inline error and disables Continue for an impossible age', () => {
+      useOnboardingStore.setState({
+        draft: { ...ONBOARDING_DEFAULTS, pillars: ['diet'], gender: 'male', ageYears: 99999 },
+        lastCompletedStep: null,
+      });
+      render(<AboutYouScreen />);
+
+      expect(screen.getByText(/age must be/i)).toBeTruthy();
+      expect(
+        screen.getByRole('button', { name: 'Continue' }).props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+
+    it('shows an inline error and disables Continue for an impossible height', () => {
+      useOnboardingStore.setState({
+        draft: { ...ONBOARDING_DEFAULTS, pillars: ['diet'], gender: 'male', heightCm: 0 },
+        lastCompletedStep: null,
+      });
+      render(<AboutYouScreen />);
+
+      expect(screen.getByText(/height must be/i)).toBeTruthy();
+      expect(
+        screen.getByRole('button', { name: 'Continue' }).props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+
+    it('shows an inline error and disables Continue for an impossible weight', () => {
+      useOnboardingStore.setState({
+        draft: { ...ONBOARDING_DEFAULTS, pillars: ['diet'], gender: 'male', weightKg: 99999 },
+        lastCompletedStep: null,
+      });
+      render(<AboutYouScreen />);
+
+      expect(screen.getByText(/weight must be/i)).toBeTruthy();
+      expect(
+        screen.getByRole('button', { name: 'Continue' }).props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+
+    it('shows no error and an enabled Continue for an in-range draft', () => {
+      useOnboardingStore.setState({
+        draft: { ...ONBOARDING_DEFAULTS, pillars: ['diet'], gender: 'male' },
+        lastCompletedStep: null,
+      });
+      render(<AboutYouScreen />);
+
+      expect(screen.queryByText(/age must be/i)).toBeNull();
+      expect(screen.queryByText(/height must be/i)).toBeNull();
+      expect(screen.queryByText(/weight must be/i)).toBeNull();
+      expect(
+        screen.getByRole('button', { name: 'Continue' }).props.accessibilityState?.disabled,
+      ).toBe(false);
+    });
+  });
 });

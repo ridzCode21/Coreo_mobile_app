@@ -1,5 +1,6 @@
 import {
   accountCredentialsSchema,
+  loginSchema,
   newPasswordSchema,
   registerSchema,
   requestPasswordResetSchema,
@@ -143,5 +144,46 @@ describe('auth: password reset schemas (issue #15)', () => {
           .success,
       ).toBe(false);
     });
+  });
+});
+
+/**
+ * Issue #168 — the backend treats `A@x.com` and `a@x.com` as different accounts
+ * (apps/users/models.py normalizes nothing beyond Django's default `UserManager`, confirmed
+ * against apps/users/serializers.py:23-45 `UserRegistrationSerializer`, which has no email
+ * normalization step), so a user who signs up as `Name@x.com` and later types `name@x.com` to log
+ * back in gets a 401. The login and signup forms must trim and lower-case the email client-side,
+ * before it ever reaches the request, so the same person always produces the same account key.
+ */
+describe('auth: email is trimmed and lower-cased before submission (issue #168)', () => {
+  it('loginSchema lower-cases and trims a mixed-case email', () => {
+    const result = loginSchema.safeParse({
+      email: '  Name@Example.COM  ',
+      password: 'quiet-harbor-42',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.email).toBe('name@example.com');
+  });
+
+  it('accountCredentialsSchema (8e signup form) lower-cases and trims a mixed-case email', () => {
+    const result = accountCredentialsSchema.safeParse({
+      email: '  Name@Example.COM  ',
+      password: 'quiet-harbor-42',
+      passwordConfirm: 'quiet-harbor-42',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.email).toBe('name@example.com');
+  });
+
+  it('registerSchema lower-cases and trims a mixed-case email', () => {
+    const result = registerSchema.safeParse({
+      firstName: 'Maya',
+      lastName: '',
+      email: '  Name@Example.COM  ',
+      password: 'quiet-harbor-42',
+      passwordConfirm: 'quiet-harbor-42',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.email).toBe('name@example.com');
   });
 });
