@@ -6,6 +6,7 @@ export {
   useGoogleSignInMutation,
   useRegisterMutation,
   authErrorMessage,
+  isAuthNetworkError,
   registerFieldErrors,
   isInvalidTokenError,
   passwordResetFieldErrors,
