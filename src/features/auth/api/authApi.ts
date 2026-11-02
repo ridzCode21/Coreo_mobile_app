@@ -69,6 +69,8 @@ type RegisterEnvelope = {
   data: { user: MockPublicUser; tokens: SessionTokens };
 };
 
+export const NETWORK_ERROR_MESSAGE = "Can't reach Coreo. Check your connection and try again.";
+
 function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((entry) => typeof entry === 'string');
 }
@@ -207,6 +209,7 @@ export function passwordResetFieldErrors(error: unknown): Record<string, string[
 
 export function authErrorMessage(error: unknown, fallback: string): string {
   if (!(error instanceof ApiError)) return fallback;
+  if (error.kind === 'network') return NETWORK_ERROR_MESSAGE;
   const body = error.details as
     | {
         detail?: unknown;
@@ -223,4 +226,8 @@ export function authErrorMessage(error: unknown, fallback: string): string {
     error.message;
 
   return message || fallback;
+}
+
+export function isAuthNetworkError(error: unknown): boolean {
+  return error instanceof ApiError && error.kind === 'network';
 }

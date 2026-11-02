@@ -4,7 +4,11 @@ import { useRouter } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { authErrorMessage, useLoginMutation } from '@/features/auth/api/authApi';
+import {
+  authErrorMessage,
+  isAuthNetworkError,
+  useLoginMutation,
+} from '@/features/auth/api/authApi';
 import { loginSchema, type LoginFormValues } from '@/features/auth/schemas';
 import { useSessionStore } from '@/features/auth/store/sessionStore';
 import { AuthFormScaffold, authTitleStyles } from '@/shared/components/AuthFormScaffold';
@@ -16,6 +20,7 @@ export default function LoginScreen() {
   const signIn = useSessionStore((state) => state.signIn);
   const loginMutation = useLoginMutation();
   const [banner, setBanner] = useState<string | null>(null);
+  const [canRetry, setCanRetry] = useState(false);
   const {
     control,
     handleSubmit,
@@ -27,6 +32,7 @@ export default function LoginScreen() {
 
   const submit = (values: LoginFormValues) => {
     setBanner(null);
+    setCanRetry(false);
     loginMutation.mutate(values, {
       onSuccess: async (envelope) => {
         await signIn(envelope.data.tokens);
@@ -34,6 +40,7 @@ export default function LoginScreen() {
       },
       onError: (error) => {
         setBanner(authErrorMessage(error, 'Unable to sign in. Please try again.'));
+        setCanRetry(isAuthNetworkError(error));
       },
     });
   };
@@ -102,6 +109,16 @@ export default function LoginScreen() {
         />
         {errors.password ? <Text style={styles.error}>{errors.password.message}</Text> : null}
         {banner ? <Text style={styles.banner}>{banner}</Text> : null}
+        {canRetry ? (
+          <Pressable
+            onPress={handleSubmit(submit)}
+            accessibilityRole="button"
+            accessibilityLabel="Try again"
+            style={styles.link}
+          >
+            <Text style={styles.linkText}>Try again</Text>
+          </Pressable>
+        ) : null}
       </View>
     </AuthFormScaffold>
   );

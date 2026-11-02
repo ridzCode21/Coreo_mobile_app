@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   accountCredentialsSchema,
   authErrorMessage,
+  isAuthNetworkError,
   registerFieldErrors,
   useLoginMutation,
   usePillarSelectionStore,
@@ -36,6 +37,7 @@ export default function CreateAccountScreen() {
   const registerMutation = useRegisterMutation();
   const loginMutation = useLoginMutation();
   const [banner, setBanner] = useState<string | null>(null);
+  const [canRetry, setCanRetry] = useState(false);
   const {
     control,
     handleSubmit,
@@ -55,6 +57,7 @@ export default function CreateAccountScreen() {
 
   const commit = (values: RegisterRequestValues) => {
     setBanner(null);
+    setCanRetry(false);
     registerMutation.mutate(values, {
       onSuccess: (envelope) => finishSignIn(envelope.data.tokens),
       onError: (error) => {
@@ -88,6 +91,7 @@ export default function CreateAccountScreen() {
         setBanner(
           authErrorMessage(error, "Something went wrong saving your core. Let's try again."),
         );
+        setCanRetry(isAuthNetworkError(error));
       },
     });
   };
@@ -182,6 +186,16 @@ export default function CreateAccountScreen() {
           <Text style={styles.error}>{errors.passwordConfirm.message}</Text>
         ) : null}
         {banner ? <Text style={styles.banner}>{banner}</Text> : null}
+        {canRetry ? (
+          <Pressable
+            onPress={handleSubmit(submit)}
+            accessibilityRole="button"
+            accessibilityLabel="Try again"
+            style={styles.link}
+          >
+            <Text style={styles.linkText}>Try again</Text>
+          </Pressable>
+        ) : null}
       </View>
     </AuthFormScaffold>
   );
