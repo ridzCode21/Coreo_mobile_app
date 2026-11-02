@@ -122,6 +122,10 @@ registerMock('POST', '/users/register/', (request) => {
   const pillarList = Array.isArray(activePillars) ? activePillars : null;
 
   const details: Record<string, string[]> = {};
+  const validationError = (errorDetails: Record<string, string[]>) => ({
+    status: 400,
+    body: styleAError('VALIDATION_ERROR', 'Invalid registration data', errorDetails),
+  });
   if (!email || !email.includes('@')) {
     details.email = ['Enter a valid email.'];
   } else if (mockDb.users.some((user) => user.email === email)) {
@@ -170,19 +174,15 @@ registerMock('POST', '/users/register/', (request) => {
   }
 
   if (Object.keys(details).length > 0) {
-    return {
-      status: 400,
-      body: styleAError('VALIDATION_ERROR', 'Invalid registration data', details),
-    };
+    return validationError(details);
   }
 
   if (password !== passwordConfirm) {
-    return {
-      status: 400,
-      body: styleAError('VALIDATION_ERROR', 'Invalid registration data', {
-        password_confirm: ['Passwords do not match.'],
-      }),
-    };
+    return validationError({ password_confirm: ['Passwords do not match.'] });
+  }
+
+  if (/^\d+$/.test(password)) {
+    return validationError({ non_field_errors: ['This password is entirely numeric.'] });
   }
 
   if (pillarList?.includes('diet')) {
@@ -201,10 +201,7 @@ registerMock('POST', '/users/register/', (request) => {
   }
 
   if (Object.keys(details).length > 0) {
-    return {
-      status: 400,
-      body: styleAError('VALIDATION_ERROR', 'Invalid registration data', details),
-    };
+    return validationError(details);
   }
 
   const now = new Date().toISOString();

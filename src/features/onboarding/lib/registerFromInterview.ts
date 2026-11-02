@@ -32,6 +32,8 @@ export function isExistingEmailError(fieldErrors: Record<string, string[]> | nul
 export function registerFormField(field: string): 'email' | 'password' | 'passwordConfirm' | null {
   if (field === 'email') return 'email';
   if (field === 'password') return 'password';
+  // Whole-object password validation reaches DRF under non_field_errors for this endpoint.
+  if (field === 'non_field_errors') return 'password';
   if (field === 'password_confirm' || field === 'passwordConfirm') return 'passwordConfirm';
   return null;
 }
