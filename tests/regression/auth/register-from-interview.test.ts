@@ -24,6 +24,18 @@ describe('onboarding: registerFromInterview helpers (issue #14)', () => {
       expect(registerFormField('first_name')).toBeNull();
       expect(registerFormField('last_name')).toBeNull();
     });
+
+    // Issue #166 — `UserRegistrationSerializer.validate()` (backend apps/users/serializers.py:110)
+    // calls Django's `validate_password`, which raises a plain (non-dict) `ValidationError`. DRF's
+    // `as_serializer_error` has no field to key that under, so it lands in `non_field_errors`
+    // (confirmed: the serializer's only other `validate()` failures — password_confirm mismatch at
+    // serializers.py:102 and the diet-required-fields check at serializers.py:113-119 — both raise
+    // dict errors keyed to their own field, so `non_field_errors` from this endpoint is always a
+    // password-strength complaint). Before this fix, an unmapped `non_field_errors` fell through to
+    // the generic "Invalid registration data" banner instead of the field it's actually about.
+    it('maps the backend non_field_errors (weak-password) error to the password form field', () => {
+      expect(registerFormField('non_field_errors')).toBe('password');
+    });
   });
 
   describe('splitName (unchanged — still the only source of 8e/8a first/last name)', () => {
