@@ -15,6 +15,7 @@ type MockFact = {
 };
 
 let mockIsError = false;
+const mockRefetch = jest.fn();
 let mockFacts: MockFact[] = [
   {
     id: '18e639d8-2454-4a94-8fd1-6c062729bf35',
@@ -40,13 +41,15 @@ jest.mock('@/features/profile/api/memoryFactsApi', () => ({
         },
     isLoading: false,
     isError: mockIsError,
+    refetch: mockRefetch,
   }),
   useCorrectMemoryFactMutation: () => ({ mutate: mockCorrectMutate, isPending: false }),
   useDeleteMemoryFactMutation: () => ({ mutate: mockDeleteMutate, isPending: false }),
   useDeleteAllMemoryFactsMutation: () => ({ mutate: mockDeleteAllMutate, isPending: false }),
 }));
 
-jest.mock('expo-router', () => ({ useRouter: () => ({ back: jest.fn() }) }));
+const mockBack = jest.fn();
+jest.mock('expo-router', () => ({ useRouter: () => ({ back: mockBack }) }));
 
 describe('profile notebook screen', () => {
   beforeEach(() => {
@@ -64,6 +67,8 @@ describe('profile notebook screen', () => {
     mockCorrectMutate.mockClear();
     mockDeleteMutate.mockClear();
     mockDeleteAllMutate.mockClear();
+    mockRefetch.mockClear();
+    mockBack.mockClear();
   });
 
   it('renders the inline 25px headline, prompt icon, and correction label without its UUID', () => {
@@ -101,11 +106,17 @@ describe('profile notebook screen', () => {
     expect(screen.getByLabelText('Correction')).toBeTruthy();
   });
 
-  it('shows an honest error message instead of a spinner when the fetch fails', () => {
+  it('shows an honest error message with working Retry and Back instead of a dead end (issue #175)', () => {
     mockIsError = true;
     render(<NotebookScreen />);
 
     expect(screen.getByText('Unable to load your notebook.')).toBeTruthy();
+
+    fireEvent.press(screen.getByRole('button', { name: 'Retry' }));
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Back' }));
+    expect(mockBack).toHaveBeenCalledTimes(1);
   });
 
   it('keeps the New badge in sentence case and uses the shared Back button', () => {

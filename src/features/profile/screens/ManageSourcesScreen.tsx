@@ -6,6 +6,7 @@ import { useSourcesQuery, DEVICE_SOURCES } from '@/features/home';
 import { sourceLabels } from '@/features/profile/lib/profileCopy';
 import { BackButton } from '@/shared/components/BackButton';
 import { GlassCard } from '@/shared/components/GlassCard';
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
 import { colors, componentSizes, radii, spacing, typography } from '@/shared/theme/tokens';
@@ -15,10 +16,23 @@ export default function ManageSourcesScreen() {
   const query = useSourcesQuery();
   const sources = query.data ?? [];
 
-  let content: ReactNode;
   if (query.isError) {
-    content = <Text style={styles.status}>Unable to load connected sources.</Text>;
-  } else if (query.isLoading) {
+    return (
+      <View style={styles.root}>
+        <SkyBackground style={StyleSheet.absoluteFill} />
+        <View style={styles.error}>
+          <QueryErrorState
+            message="Unable to load connected sources."
+            onRetry={() => query.refetch()}
+            onBack={() => router.back()}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  let content: ReactNode;
+  if (query.isLoading) {
     content = <ActivityIndicator color={colors.ink45} />;
   } else {
     content = (
@@ -57,6 +71,7 @@ export default function ManageSourcesScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  error: { alignItems: 'center', flex: 1, justifyContent: 'center' },
   content: { gap: spacing.lg },
   header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
   headerSpacer: {

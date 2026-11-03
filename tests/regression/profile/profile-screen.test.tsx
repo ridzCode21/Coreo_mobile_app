@@ -10,6 +10,13 @@
  * Diet/Fitness/Wellness pillar rows above. The row is not in the design (19a doesn't show it); the
  * PR must flag this to the design owner for confirmation (see plan.md Decision log). Tapping it
  * pushes `/profile/diet-preferences`, a new route that renders the card unchanged.
+ *
+ * Issue #175 — adds the design's "Account" row (design-spec line 2591), which replaces the inline
+ * `AccountActionsSection` that used to live directly on Profile (moved to the new `/profile/account`
+ * placeholder screen, see plan.md Decision log #2 — the design never showed those three actions on
+ * 19a). Also gives a failed profile load working Retry/Back controls instead of a dead-end message,
+ * and guards that the design's Phone-row "Verify" action (on hold, SMS is a paid service) never
+ * renders on Profile.
  */
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
@@ -23,8 +30,9 @@ import type { WellnessProfile } from '@/shared/types/wellnessProfile';
 import type { SourceStatus } from '@/features/home/api/sourcesApi';
 
 const mockPush = jest.fn();
+const mockBack = jest.fn();
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ push: mockPush, navigate: jest.fn() }),
+  useRouter: () => ({ push: mockPush, back: mockBack, navigate: jest.fn() }),
 }));
 
 type MockProfileUser = {
@@ -37,9 +45,16 @@ type MockProfileUser = {
 
 let mockUser: MockProfileUser | undefined;
 let mockActivePillars: ('diet' | 'fitness' | 'wellness')[];
+let mockProfileIsError = false;
+const mockProfileRefetch = jest.fn();
 
 jest.mock('@/features/auth', () => ({
-  useProfileQuery: () => ({ data: mockUser, isLoading: !mockUser }),
+  useProfileQuery: () => ({
+    data: mockUser,
+    isLoading: !mockUser && !mockProfileIsError,
+    isError: mockProfileIsError,
+    refetch: mockProfileRefetch,
+  }),
   usePillarSelectionStore: (selector?: (state: { activePillars: unknown }) => unknown) => {
     const state = { activePillars: mockActivePillars };
     return selector ? selector(state) : state;
@@ -70,14 +85,20 @@ jest.mock('@/features/home/api/sourcesApi', () => {
   };
 });
 
-jest.mock('@/features/profile/components/AccountActionsSection', () => ({
-  AccountActionsSection: () => null,
-}));
+jest.mock('@/features/profile/components/AccountActionsSection', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    AccountActionsSection: () => <Text testID="account-actions-section-marker" />,
+  };
+});
 
 describe('profile: ProfileScreen (issue #44, design-spec.md 19a)', () => {
   beforeEach(() => {
     jest.useFakeTimers().setSystemTime(new Date('2026-04-06T00:00:00Z'));
     mockPush.mockClear();
+    mockBack.mockClear();
+    mockProfileRefetch.mockClear();
+    mockProfileIsError = false;
     mockUser = {
       first_name: 'Shubham',
       created_at: '2026-03-02T00:00:00Z',
@@ -228,5 +249,37 @@ describe('profile: ProfileScreen (issue #44, design-spec.md 19a)', () => {
     expect(paths).toContain('M15 18l-6-6 6-6');
     expect(paths).toContain('M9 18l6-6-6-6');
     expect(paths).toContain('M5 12h14M13 6l6 6-6 6');
+  });
+
+  it('shows an "Account" row (design-spec.md line 2591, issue #175) and navigates to /profile/account', () => {
+    render(<ProfileScreen />);
+    expect(screen.getByText('Account')).toBeTruthy();
+    fireEvent.press(screen.getByRole('button', { name: 'Account' }));
+    expect(mockPush).toHaveBeenCalledWith('/profile/account');
+  });
+
+  it('no longer renders AccountActionsSection inline — it moved to the Account screen (issue #175)', () => {
+    render(<ProfileScreen />);
+    expect(screen.queryByTestId('account-actions-section-marker')).toBeNull();
+  });
+
+  it('never shows a phone "Verify" action — phone verification is on hold (issue #175)', () => {
+    render(<ProfileScreen />);
+    expect(screen.queryByText('Verify')).toBeNull();
+    expect(screen.queryByText(/phone/i)).toBeNull();
+  });
+
+  it('shows a working Retry and Back on a failed profile load instead of a dead end (issue #175)', () => {
+    mockUser = undefined;
+    mockProfileIsError = true;
+    render(<ProfileScreen />);
+
+    expect(screen.getByText('Unable to load your profile.')).toBeTruthy();
+
+    fireEvent.press(screen.getByRole('button', { name: 'Retry' }));
+    expect(mockProfileRefetch).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Back' }));
+    expect(mockBack).toHaveBeenCalledTimes(1);
   });
 });

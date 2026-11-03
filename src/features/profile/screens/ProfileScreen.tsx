@@ -8,7 +8,6 @@ import { useFitnessProfileQuery } from '@/features/fitness';
 import { useSourcesQuery } from '@/features/home';
 import { DIET_QUICK_SETUP_SUBTITLE } from '@/features/nutrition';
 import { useDietProfileQuery } from '@/features/onboarding';
-import { AccountActionsSection } from '@/features/profile/components/AccountActionsSection';
 import { BackButton } from '@/shared/components/BackButton';
 import {
   checkInStyleLabel,
@@ -21,6 +20,7 @@ import {
 } from '@/features/profile/lib/profileCopy';
 import { useWellnessProfileQuery } from '@/features/wellness';
 import { GlassCard } from '@/shared/components/GlassCard';
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
 import { colors, componentSizes, glass, radii, spacing, typography } from '@/shared/theme/tokens';
@@ -96,7 +96,11 @@ export default function ProfileScreen() {
     return (
       <View style={styles.loading}>
         <SkyBackground style={StyleSheet.absoluteFill} />
-        <Text style={styles.rowSummary}>Unable to load your profile.</Text>
+        <QueryErrorState
+          message="Unable to load your profile."
+          onRetry={() => profile.refetch()}
+          onBack={() => router.back()}
+        />
       </View>
     );
   const goal = formatGoalSummary(diet.data?.weight_kg ?? null, diet.data?.target_weight_kg ?? null);
@@ -203,7 +207,30 @@ export default function ProfileScreen() {
             </Pressable>
           </View>
         </GlassCard>
-        <AccountActionsSection />
+        <GlassCard variant="usualNote" radius={radii.md} padded={false}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Account"
+            onPress={() => router.push('/profile/account')}
+            style={styles.row}
+          >
+            <Text style={styles.rowLabel}>Account</Text>
+            <Svg
+              width={componentSizes.profilePillarChevron}
+              height={componentSizes.profilePillarChevron}
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <Path
+                d="M9 18l6-6-6-6"
+                stroke={colors.ink55}
+                strokeWidth={componentSizes.planHeaderStrokeWidth}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </Pressable>
+        </GlassCard>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="What Coreo knows about me"
