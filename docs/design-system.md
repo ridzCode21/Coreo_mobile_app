@@ -213,7 +213,8 @@ Profile 19a uses `typography.profileAvatar` (24px/200) and `componentSizes.profi
 (64px), `profileAvatarShadowRadius` (30px), `profilePillarChevron` (14px),
 `componentSizes.dietHeaderControl` (38px), `profileRowMinHeight` (58px),
 `profileManageMinHeight` (30px), `profileKnowledgeMinHeight` (56px), and
-`profileKnowledgeArrow` (40px).
+`profileKnowledgeArrow` (40px). Query error cards use
+`componentSizes.queryErrorActionHeight` (40px) for their Retry and Back controls.
 
 The compact profile circle used in Home and pillar headers uses
 `componentSizes.profileCircle` (36px), `profileCircleShadowRadius` (18px), and

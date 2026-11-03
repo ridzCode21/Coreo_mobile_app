@@ -9,9 +9,13 @@
  * That was a test bug, not an implementation bug, and it was never fixed across 4 rounds. This
  * test queries each source's status by a distinct `testID` instead, so "Connected" and "Not
  * connected" can never collide.
+ *
+ * Issue #175 — a failed load previously showed a dead-end message (never exercised by a test).
+ * Gives it working Retry (refetch) and Back (router.back) controls, matching the same 19d error
+ * card pattern used by Profile and Notebook (plan.md).
  */
 
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Path } from 'react-native-svg';
 
@@ -20,19 +24,32 @@ import type { SourceStatus } from '@/features/home/api/sourcesApi';
 
 let mockSources: SourceStatus[] | undefined;
 let mockIsLoading = false;
+let mockIsError = false;
+const mockRefetch = jest.fn();
 
 jest.mock('@/features/home/api/sourcesApi', () => {
   const actual = jest.requireActual('@/features/home/api/sourcesApi');
   return {
     ...actual,
-    useSourcesQuery: () => ({ data: mockSources, isLoading: mockIsLoading }),
+    useSourcesQuery: () => ({
+      data: mockSources,
+      isLoading: mockIsLoading,
+      isError: mockIsError,
+      refetch: mockRefetch,
+    }),
   };
 });
+
+const mockBack = jest.fn();
+jest.mock('expo-router', () => ({ useRouter: () => ({ back: mockBack }) }));
 
 describe('profile: ManageSourcesScreen (issue #44, GET /integrations/sources/)', () => {
   beforeEach(() => {
     mockIsLoading = false;
+    mockIsError = false;
     mockSources = undefined;
+    mockRefetch.mockClear();
+    mockBack.mockClear();
   });
 
   it('shows connected vs. not-connected state per source, honestly, with no fabricated sentence', () => {
@@ -73,6 +90,19 @@ describe('profile: ManageSourcesScreen (issue #44, GET /integrations/sources/)',
     render(<ManageSourcesScreen />);
 
     expect(screen.queryByTestId('source-status-apple_health')).toBeNull();
+  });
+
+  it('shows a working Retry and Back on a failed load instead of a dead end (issue #175)', () => {
+    mockIsError = true;
+    render(<ManageSourcesScreen />);
+
+    expect(screen.getByText('Unable to load connected sources.')).toBeTruthy();
+
+    fireEvent.press(screen.getByRole('button', { name: 'Retry' }));
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Back' }));
+    expect(mockBack).toHaveBeenCalledTimes(1);
   });
 
   it('renders the profile navigation control with the shared glass back treatment', () => {

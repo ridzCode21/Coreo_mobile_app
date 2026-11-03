@@ -24,7 +24,11 @@ function AccountAction({ label, onPress }: AccountActionProps) {
   );
 }
 
-export function AccountActionsSection() {
+type AccountActionsSectionProps = {
+  showLabel?: boolean;
+};
+
+export function AccountActionsSection({ showLabel = true }: AccountActionsSectionProps) {
   const exportData = useExportDataMutation();
   const deleteData = useDeleteAccountDataMutation();
   const deleteAccount = useDeleteAccountMutation();
@@ -62,7 +66,7 @@ export function AccountActionsSection() {
 
   return (
     <View style={styles.section}>
-      <Text style={styles.label}>Account</Text>
+      {showLabel ? <Text style={styles.label}>Account</Text> : null}
       <GlassCard variant="usualNote" radius={radii.md} padded={false}>
         <AccountAction label="Export my data" onPress={confirmExport} />
         <AccountAction label="Delete my data" onPress={confirmDeleteData} />

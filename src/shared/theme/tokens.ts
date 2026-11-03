@@ -494,6 +494,7 @@ export const componentSizes = {
   notebookPromptIcon: 40,
   notebookBadgeHeight: 26,
   profileKnowledgeArrow: 40,
+  queryErrorActionHeight: 40,
   wellnessStepDot: 6,
   wellnessPrimaryActionHeight: 58,
   wellnessPrimaryIconCircle: 42,

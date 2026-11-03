@@ -27,6 +27,7 @@ import {
 } from '@/features/profile/schemas';
 import { BackButton } from '@/shared/components/BackButton';
 import { GlassCard } from '@/shared/components/GlassCard';
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { Screen } from '@/shared/components/Screen';
 import {
   colors,
@@ -75,7 +76,11 @@ export default function NotebookScreen() {
         <Screen background="transparent" scroll={false}>
           <View style={styles.unavailable}>
             {notebook.isError ? (
-              <Text style={styles.status}>Unable to load your notebook.</Text>
+              <QueryErrorState
+                message="Unable to load your notebook."
+                onRetry={() => notebook.refetch()}
+                onBack={() => router.back()}
+              />
             ) : (
               <ActivityIndicator color={colors.ink45} />
             )}
@@ -238,7 +243,6 @@ export default function NotebookScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  status: { ...typography.wellnessStep, color: colors.ink65, textAlign: 'center' },
   unavailable: { alignItems: 'center', flex: 1, justifyContent: 'center' },
   content: { gap: spacing.md },
   top: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
