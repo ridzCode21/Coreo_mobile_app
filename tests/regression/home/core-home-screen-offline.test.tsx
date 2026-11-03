@@ -79,6 +79,16 @@ describe('home: offline state (issue #49, design 25c)', () => {
     expect(screen.queryByText('Ask me anything')).toBeNull();
   });
 
+  it('still shows the profile circle offline and opens Profile on tap (issue #174, design 25c)', () => {
+    useHomeCacheStore.setState({ cache: buildHomeCache('2026-07-07', SAVED_AT) });
+    goOffline();
+    render(<CoreoHomeScreen />);
+
+    expect(screen.getByText('A')).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('Your profile'));
+    expect(mockPush).toHaveBeenCalledWith('/profile');
+  });
+
   it('invents nothing: no nutrition/movement/hydration rows, no score, no subtitle, no live clock axis', () => {
     useHomeCacheStore.setState({ cache: buildHomeCache('2026-07-07', SAVED_AT) });
     goOffline();

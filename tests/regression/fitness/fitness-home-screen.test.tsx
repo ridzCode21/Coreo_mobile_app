@@ -24,6 +24,9 @@ jest.mock('expo-router', () => ({
 
 jest.mock('@/features/fitness/api/fitnessProfileApi');
 jest.mock('@/features/fitness/api/trainingWeekApi');
+jest.mock('@/features/auth/api/profileApi', () => ({
+  useProfileQuery: () => ({ data: { first_name: 'Asha' }, isLoading: false }),
+}));
 
 function mockProfile(state: { data?: unknown; isLoading: boolean; isError: boolean }) {
   (fitnessProfileApi.useFitnessProfileQuery as jest.Mock).mockReturnValue(state);
@@ -237,6 +240,17 @@ describe('FitnessHomeScreen: training-week states (#40)', () => {
     fireEvent.press(screen.getByRole('button', { name: /go back/i }));
 
     expect(mockBack).toHaveBeenCalled();
+  });
+
+  it('shows the profile circle next to the week chip and opens Profile on tap (issue #174)', () => {
+    mockTrainingWeek({ isLoading: false, isError: false, data: FULL_WEEK });
+
+    render(<FitnessHomeScreen />);
+
+    expect(screen.getByText('Week 3 · Day 2')).toBeTruthy();
+    expect(screen.getByText('A')).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('Your profile'));
+    expect(mockPush).toHaveBeenCalledWith('/profile');
   });
 
   it('the "Start session" card uses the chipSelected glass recipe, not chip (round-4 regression, plan.md Decision 7)', () => {

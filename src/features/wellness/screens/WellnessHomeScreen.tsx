@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import Svg, { Path, Rect } from 'react-native-svg';
 
-import { usePillarSelectionStore } from '@/features/auth';
+import { usePillarSelectionStore, useProfileQuery } from '@/features/auth';
 import { PillarNotSelectedScreen } from '@/features/home';
 import { useWindDownQuery } from '@/features/wellness/api/windDownApi';
 import { GlassCard } from '@/shared/components/GlassCard';
@@ -24,6 +24,7 @@ const INTERVIEW_ROUTE = '/wellness-interview' as Href;
 
 export default function WellnessHomeScreen() {
   const router = useRouter();
+  const userProfileQuery = useProfileQuery();
   const activePillars = usePillarSelectionStore((state) => state.activePillars);
   const hasHydrated = usePillarSelectionStore((state) => state.hasHydrated);
   const hasWellness = activePillars.includes('wellness');
@@ -61,6 +62,7 @@ export default function WellnessHomeScreen() {
         <PillarHeader
           eyebrow="Wellness"
           onBack={() => router.back()}
+          firstName={userProfileQuery.data?.first_name}
           trailing={
             <View style={styles.timePill}>
               <Text style={styles.timeText}>{windDown.clock}</Text>

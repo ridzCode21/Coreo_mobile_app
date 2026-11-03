@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import Svg, { Path, Rect } from 'react-native-svg';
 
+import { useProfileQuery } from '@/features/auth';
 import { useDietProfileQuery } from '@/features/onboarding';
 import {
   todayISO,
@@ -21,6 +22,7 @@ import { normalizeMacroSummary, targetsFromProfile } from '@/features/nutrition/
 import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
 import { GlassCard } from '@/shared/components/GlassCard';
+import { ProfileCircle } from '@/shared/components/ProfileCircle';
 import {
   colors,
   componentSizes,
@@ -33,6 +35,7 @@ import {
 
 export default function DietHomeScreen() {
   const router = useRouter();
+  const userProfileQuery = useProfileQuery();
   const today = todayISO();
   const mealType = currentMealByClock();
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -97,13 +100,14 @@ export default function DietHomeScreen() {
 
           <Text style={styles.eyebrow}>Diet</Text>
 
-          {weightChip ? (
-            <View style={styles.weightChip}>
-              <Text style={styles.weightChipText}>{weightChip}</Text>
-            </View>
-          ) : (
-            <View style={styles.headerSpacer} />
-          )}
+          <View style={styles.headerTrailing}>
+            {weightChip ? (
+              <View style={styles.weightChip}>
+                <Text style={styles.weightChipText}>{weightChip}</Text>
+              </View>
+            ) : null}
+            <ProfileCircle firstName={userProfileQuery.data?.first_name} />
+          </View>
         </View>
 
         <View style={styles.headline}>
@@ -322,7 +326,7 @@ const styles = StyleSheet.create({
     ...textStyle('weightChip'),
     color: colors.ink60,
   },
-  headerSpacer: { width: componentSizes.dietHeaderControl },
+  headerTrailing: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   headline: {
     flexDirection: 'row',
     flexWrap: 'wrap',

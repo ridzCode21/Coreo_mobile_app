@@ -90,6 +90,12 @@ describe('home: CoreoHomeScreen calibrating state (issue #19)', () => {
       expect(screen.queryByText(/Morning,/)).toBeNull();
     });
 
+    it('shows the profile circle in the calibrating state too (issue #174)', () => {
+      render(<CoreoHomeScreen />);
+      expect(screen.getByText('A')).toBeTruthy();
+      expect(screen.getByLabelText('Your profile')).toBeTruthy();
+    });
+
     it('shows the fixed subtitle "Still reading you. The wave stays dashed until day 4."', () => {
       render(<CoreoHomeScreen />);
       expect(

@@ -29,6 +29,11 @@ jest.mock('expo-router', () => ({
   useRouter: () => ({ replace: mockReplace, back: mockBack }),
 }));
 
+jest.mock('@/features/auth', () => ({
+  ...jest.requireActual('@/features/auth'),
+  useProfileQuery: () => ({ data: undefined, isLoading: true }),
+}));
+
 jest.mock('@/features/wellness/api/windDownApi');
 
 function mockQuery(state: { data?: unknown; isLoading: boolean; isError: boolean }) {

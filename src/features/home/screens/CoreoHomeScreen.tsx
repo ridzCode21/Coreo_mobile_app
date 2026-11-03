@@ -63,7 +63,7 @@ export default function CoreoHomeScreen() {
   const rejectedMeals = useRejectedMeals();
 
   const isLoading = profileQuery.isLoading || summaryQuery.isLoading;
-  const firstName = userProfileQuery.data?.first_name.trim();
+  const firstName = userProfileQuery.data?.first_name;
   const profile = profileQuery.data;
   const summary = summaryQuery.data;
   const log = summary?.daily_log;
@@ -84,7 +84,7 @@ export default function CoreoHomeScreen() {
     <View style={styles.root}>
       <SkyBackground style={StyleSheet.absoluteFill} />
       <Screen background="transparent" contentContainerStyle={styles.scrollContent}>
-        <HomeHeader now={now} />
+        <HomeHeader now={now} firstName={firstName} />
         {rejectedMeals.count > 0 ? (
           <HomeNoticeBanner
             text={`${rejectedMeals.count === 1 ? '1 logged meal' : `${rejectedMeals.count} logged meals`} couldn't be saved.`}
