@@ -27,6 +27,11 @@ jest.mock('expo-router', () => ({
   useRouter: () => ({ replace: mockReplace, push: mockPush, back: mockBack }),
 }));
 
+jest.mock('@/features/auth', () => ({
+  ...jest.requireActual('@/features/auth'),
+  useProfileQuery: () => ({ data: undefined, isLoading: true }),
+}));
+
 jest.mock('@/shared/components/WaveChart', () => ({ WaveChart: jest.fn(() => null) }));
 
 jest.mock('@/features/fitness/api/fitnessProfileApi');

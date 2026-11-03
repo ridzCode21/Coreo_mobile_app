@@ -21,8 +21,13 @@ import type { FoodEntriesResponse } from '@/features/nutrition/api/nutritionApi'
 import { colors, componentSizes } from '@/shared/theme/tokens';
 
 const mockBack = jest.fn();
+const mockPush = jest.fn();
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ back: mockBack, push: jest.fn() }),
+  useRouter: () => ({ back: mockBack, push: mockPush }),
+}));
+
+jest.mock('@/features/auth/api/profileApi', () => ({
+  useProfileQuery: () => ({ data: { first_name: 'Asha' }, isLoading: false }),
 }));
 
 let mockProfile: Partial<DietProfile> | undefined;
@@ -150,6 +155,20 @@ describe('nutrition: DietHomeScreen (issue #22)', () => {
     render(<DietHomeScreen />);
     fireEvent.press(screen.getByLabelText('Go back'));
     expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the profile circle alongside the weight chip and opens Profile on tap (issue #174, design 14a v2)', () => {
+    render(<DietHomeScreen />);
+    expect(screen.getByText('78 → 72')).toBeTruthy();
+    expect(screen.getByText('A')).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('Your profile'));
+    expect(mockPush).toHaveBeenCalledWith('/profile');
+  });
+
+  it('still shows the profile circle when the weight chip is hidden', () => {
+    mockProfile = { ...FULL_PROFILE, weight_kg: null };
+    render(<DietHomeScreen />);
+    expect(screen.getByLabelText('Your profile')).toBeTruthy();
   });
 
   it('renders the Next meal card and the reassurance strip', () => {

@@ -11,14 +11,16 @@ import {
   textStyle,
   withAlpha,
 } from '@/shared/theme/tokens';
+import { ProfileCircle } from '@/shared/components/ProfileCircle';
 
 type Props = {
   eyebrow: string;
   onBack: () => void;
   trailing?: ReactNode;
+  firstName?: string | null;
 };
 
-export function PillarHeader({ eyebrow, onBack, trailing }: Props) {
+export function PillarHeader({ eyebrow, onBack, trailing, firstName }: Props) {
   return (
     <View style={styles.header}>
       <Pressable
@@ -50,7 +52,10 @@ export function PillarHeader({ eyebrow, onBack, trailing }: Props) {
         </LinearGradient>
       </Pressable>
       <Text style={styles.eyebrow}>{eyebrow}</Text>
-      {trailing ?? <View style={styles.spacer} />}
+      <View style={styles.trailing}>
+        {trailing}
+        <ProfileCircle firstName={firstName} />
+      </View>
     </View>
   );
 }
@@ -72,5 +77,5 @@ const styles = StyleSheet.create({
     elevation: componentSizes.dietElevation,
   },
   eyebrow: { ...textStyle('afterSnapEyebrow'), color: colors.ink45, textAlign: 'center' },
-  spacer: { width: componentSizes.dietHeaderControl, height: componentSizes.dietHeaderControl },
+  trailing: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
 });

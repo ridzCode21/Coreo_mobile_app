@@ -42,14 +42,15 @@
  * summary hasn't loaded yet.
  */
 
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import CoreoHomeScreen from '@/features/home/screens/CoreoHomeScreen';
 import type { DietProfile } from '@/shared/types/dietProfile';
 import type { DailySummary } from '@/shared/types/dailyLog';
 
+const mockPush = jest.fn();
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ navigate: jest.fn(), push: jest.fn() }),
+  useRouter: () => ({ navigate: jest.fn(), push: mockPush }),
 }));
 
 let mockProfileData: { first_name: string } | undefined;
@@ -88,6 +89,7 @@ describe('home: CoreoHomeScreen (issue #17)', () => {
     mockDietProfile = { daily_calories: 2000 } as Partial<DietProfile>;
     mockSummary = undefined;
     mockNudgeData = { nudge: null, message: null };
+    mockPush.mockClear();
   });
 
   afterEach(() => {
@@ -113,6 +115,28 @@ describe('home: CoreoHomeScreen (issue #17)', () => {
     render(<CoreoHomeScreen />);
     expect(screen.getByText(/Morning,/)).toBeTruthy();
     expect(screen.queryByText(/Asha/)).toBeNull();
+  });
+
+  describe('issue #174: profile circle opens Profile from Home', () => {
+    it('shows the profile circle with the first initial next to the date', () => {
+      render(<CoreoHomeScreen />);
+      expect(screen.getByText('A')).toBeTruthy();
+      expect(screen.getByLabelText('Your profile')).toBeTruthy();
+    });
+
+    it('shows a neutral circle with no letter while the profile is still loading', () => {
+      mockProfileData = undefined;
+      mockProfileLoading = true;
+      render(<CoreoHomeScreen />);
+      expect(screen.getByLabelText('Your profile')).toBeTruthy();
+      expect(screen.queryByText('A')).toBeNull();
+    });
+
+    it('opens Profile on tap', () => {
+      render(<CoreoHomeScreen />);
+      fireEvent.press(screen.getByLabelText('Your profile'));
+      expect(mockPush).toHaveBeenCalledWith('/profile');
+    });
   });
 
   it('shows the four pillar petals in design order with labels only', () => {

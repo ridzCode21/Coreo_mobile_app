@@ -9,6 +9,11 @@ jest.mock('expo-router', () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
 }));
 
+jest.mock('@/features/auth', () => ({
+  ...jest.requireActual('@/features/auth'),
+  useProfileQuery: () => ({ data: undefined, isLoading: true }),
+}));
+
 // Issue #51: both tabs now gate on the picked pillar before rendering real content. Seed both as
 // selected so this legacy route-level test keeps reaching 16b/17b, not the new invitation screen.
 beforeEach(() => {

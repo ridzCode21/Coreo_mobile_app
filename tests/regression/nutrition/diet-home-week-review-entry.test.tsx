@@ -17,6 +17,11 @@ jest.mock('expo-router', () => ({
   useRouter: () => ({ back: mockBack, push: mockPush }),
 }));
 
+jest.mock('@/features/auth', () => ({
+  ...jest.requireActual('@/features/auth'),
+  useProfileQuery: () => ({ data: undefined, isLoading: true }),
+}));
+
 jest.mock('@/features/onboarding', () => ({
   useDietProfileQuery: () => ({
     data: {

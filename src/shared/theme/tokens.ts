@@ -485,6 +485,8 @@ export const componentSizes = {
   targetSliderThumbShadowRadius: 18,
   profileAvatar: 64,
   profileAvatarShadowRadius: 30,
+  profileCircle: 36,
+  profileCircleShadowRadius: 18,
   profilePillarChevron: 14,
   profileRowMinHeight: 58,
   profileManageMinHeight: 30,
@@ -711,6 +713,7 @@ export const typography = {
   eveningCheckInPreviewLine: { fontSize: 17, fontWeight: '300', letterSpacing: 0, lineHeight: 1.7 },
   eveningCheckInPreviewAction: { fontSize: 13.5, fontWeight: '500', letterSpacing: 0 },
   profileAvatar: { fontSize: 24, fontWeight: '200', letterSpacing: 0 },
+  profileCircleInitial: { fontSize: 14, fontWeight: '300', letterSpacing: 0 },
   wellnessHeadline: { fontSize: 25, fontWeight: '200', letterSpacing: -0.5, lineHeight: 1.4 },
   wellnessCardLabel: {
     fontSize: 10,

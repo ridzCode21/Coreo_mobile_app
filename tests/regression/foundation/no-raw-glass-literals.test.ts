@@ -28,6 +28,7 @@ const FILES_MUST_BE_LITERAL_FREE = [
   'src/shared/components/ToggleRow.tsx',
   'src/shared/components/PetalCluster.tsx',
   'src/shared/components/VoiceInputBar.tsx',
+  'src/shared/components/ProfileCircle.tsx',
   'src/features/home/screens/CoreoHomeScreen.tsx',
   'src/features/home/screens/PillarNotSelectedScreen.tsx',
   'src/features/nutrition/screens/DietHomeScreen.tsx',

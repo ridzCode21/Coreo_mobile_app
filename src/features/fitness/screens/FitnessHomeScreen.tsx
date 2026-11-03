@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { useRouter, type Href } from 'expo-router';
 import Svg, { Path, Rect } from 'react-native-svg';
 
-import { usePillarSelectionStore } from '@/features/auth';
+import { usePillarSelectionStore, useProfileQuery } from '@/features/auth';
 import { useFitnessProfileQuery } from '@/features/fitness/api/fitnessProfileApi';
 import { useTrainingWeekQuery } from '@/features/fitness/api/trainingWeekApi';
 import { TrainingSessionCard } from '@/features/fitness/components/TrainingSessionCard';
@@ -27,6 +27,7 @@ const WEEK_ROUTE = '/fitness/week' as Href;
 
 export default function FitnessHomeScreen() {
   const router = useRouter();
+  const userProfileQuery = useProfileQuery();
   const activePillars = usePillarSelectionStore((state) => state.activePillars);
   const hasHydrated = usePillarSelectionStore((state) => state.hasHydrated);
   const hasFitness = activePillars.includes('fitness');
@@ -72,6 +73,7 @@ export default function FitnessHomeScreen() {
         <PillarHeader
           eyebrow="Fitness"
           onBack={() => router.back()}
+          firstName={userProfileQuery.data?.first_name}
           trailing={
             <Pressable
               onPress={() => router.push(WEEK_ROUTE)}

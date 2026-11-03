@@ -215,6 +215,11 @@ Profile 19a uses `typography.profileAvatar` (24px/200) and `componentSizes.profi
 `profileManageMinHeight` (30px), `profileKnowledgeMinHeight` (56px), and
 `profileKnowledgeArrow` (40px).
 
+The compact profile circle used in Home and pillar headers uses
+`componentSizes.profileCircle` (36px), `profileCircleShadowRadius` (18px), and
+`typography.profileCircleInitial` (14px/300). Its 44px touch target comes from the shared
+`minimumTapTarget` standard through hit slop.
+
 My foods 32a/32b uses `componentSizes.myFoodsEmptyIcon` (52px),
 `myFoodsEmptyIconStrokeWidth` (1.3), `myFoodsAddButtonHeight` (56px), and
 `myFoodsEmptyBodyMaxWidth` (250px).

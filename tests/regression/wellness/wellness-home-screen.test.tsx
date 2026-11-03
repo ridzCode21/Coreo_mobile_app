@@ -13,11 +13,15 @@ import { usePillarSelectionStore } from '@/features/auth/store/pillarSelectionSt
 
 const mockReplace = jest.fn();
 const mockBack = jest.fn();
+const mockPush = jest.fn();
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ replace: mockReplace, back: mockBack }),
+  useRouter: () => ({ replace: mockReplace, back: mockBack, push: mockPush }),
 }));
 
 jest.mock('@/features/wellness/api/windDownApi');
+jest.mock('@/features/auth/api/profileApi', () => ({
+  useProfileQuery: () => ({ data: { first_name: 'Asha' }, isLoading: false }),
+}));
 
 function mockWindDown(state: { data?: unknown; isLoading: boolean; isError: boolean }) {
   (windDownApi.useWindDownQuery as jest.Mock).mockReturnValue(state);
@@ -96,6 +100,15 @@ describe('WellnessHomeScreen: 17b content (#42)', () => {
     expect(
       screen.getByText('One routine, built from your interview. No library to scroll.'),
     ).toBeTruthy();
+  });
+
+  it('shows the profile circle next to the time pill and opens Profile on tap (issue #174)', () => {
+    render(<WellnessHomeScreen />);
+
+    expect(screen.getByText('9:12 PM')).toBeTruthy();
+    expect(screen.getByText('A')).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('Your profile'));
+    expect(mockPush).toHaveBeenCalledWith('/profile');
   });
 
   it('renders exactly the 3 API steps as "{time}, {text}" with the reason alongside (design-spec.md 17b markup)', () => {
