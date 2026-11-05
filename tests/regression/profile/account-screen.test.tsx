@@ -1,19 +1,20 @@
 /**
  * Issue #175 — "Add the Account row ... a placeholder screen is fine until then." `AccountScreen`
- * is the new destination for Profile's "Account" row (`/profile/account`). The design's 19d Account
- * screen (design-spec lines 2777-2890) is the full account screen (name/password/alerts/contact);
- * building that is explicitly left to later issues (plan.md "Out of scope"). This placeholder only
- * needs: the shared back control, the "Account" title (19d header, line 2785), and the
- * `AccountActionsSection` that used to live inline on Profile (plan.md Decision log #2) — so no
- * functionality (export/delete data/delete account) is lost in the move.
+ * is the destination for Profile's "Account" row (`/profile/account`). Issue #176 then built out
+ * the 19d Account identity/name/timezone content and the loading/error/offline/expired states (see
+ * `account-screen-identity.test.tsx` and `account-screen-states.test.tsx`) — this file keeps #175's
+ * three regression checks (title, back control, data actions reachable) passing against the real,
+ * now-data-backed screen by adding the `useProfileQuery`/`useConnectivityStore` wiring #176
+ * introduced as a dependency.
  */
 
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import AccountScreen from '@/features/profile/screens/AccountScreen';
+import { useConnectivityStore } from '@/shared/stores/connectivityStore';
 
 const mockBack = jest.fn();
-jest.mock('expo-router', () => ({ useRouter: () => ({ back: mockBack }) }));
+jest.mock('expo-router', () => ({ useRouter: () => ({ back: mockBack, push: jest.fn() }) }));
 
 const mockExportMutate = jest.fn();
 const mockDeleteDataMutate = jest.fn();
@@ -26,12 +27,32 @@ jest.mock('@/features/profile/api/accountApi', () => ({
 }));
 
 jest.mock('@/features/auth', () => ({
+  useProfileQuery: () => ({
+    data: {
+      first_name: 'Shubham',
+      last_name: 'Rao',
+      email: 'shubham@example.com',
+      timezone: 'America/New_York',
+      created_at: '2026-03-02T00:00:00Z',
+    },
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  }),
+  useUpdateProfileMutation: () => ({ mutate: jest.fn(), isPending: false }),
   useSessionStore: { getState: () => ({ signOut: jest.fn() }) },
 }));
 
-describe('profile: AccountScreen placeholder (issue #175)', () => {
+describe('profile: AccountScreen placeholder regressions (issue #175, now backed by #176 data)', () => {
   beforeEach(() => {
     mockBack.mockClear();
+    act(() => {
+      useConnectivityStore.setState({
+        isOnline: true,
+        networkOnline: true,
+        simulatedOffline: false,
+      });
+    });
   });
 
   it('shows the "Account" title (design 19d header, line 2785)', () => {
@@ -39,7 +60,7 @@ describe('profile: AccountScreen placeholder (issue #175)', () => {
     expect(screen.getByText('Account')).toBeTruthy();
   });
 
-  it('has a working back control', () => {
+  it('has a working back control when there are no unsaved changes', () => {
     render(<AccountScreen />);
     fireEvent.press(screen.getByRole('button', { name: 'Back' }));
     expect(mockBack).toHaveBeenCalledTimes(1);

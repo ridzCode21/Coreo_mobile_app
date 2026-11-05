@@ -59,6 +59,11 @@ export function membershipSummary(createdAt: string, now = new Date()): string {
   return `With Coreo since ${created.toLocaleString('en-US', { month: 'long', timeZone: 'UTC' })} · Week ${Math.floor(days / 7) + 1}`;
 }
 
+export function accountSinceSummary(createdAt: string): string {
+  const created = new Date(createdAt);
+  return `With Coreo since ${created.toLocaleString('en-US', { month: 'long', timeZone: 'UTC' })}`;
+}
+
 export function formatGoalSummary(weight: number | null, target: number | null): string | null {
   return weight !== null && target !== null && weight !== target
     ? `${weight} → ${target} kg`

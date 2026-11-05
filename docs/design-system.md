@@ -28,44 +28,46 @@ these rules, it's probably the wrong component, not an exception to add.
 
 ## 1. Color tokens
 
-| Token                       | Hex                     | Role                                                                                    |
-| --------------------------- | ----------------------- | --------------------------------------------------------------------------------------- |
-| `ink`                       | `#17191D`               | Primary text, primary icon stroke                                                       |
-| `ink40`                     | `rgba(23,25,29,.42)`    | Tertiary text, eyebrow labels                                                           |
-| `ink45`                     | `rgba(23,25,29,.45)`    | Screen/chip caption labels (very common in practice)                                    |
-| `ink50`                     | `rgba(23,25,29,.5)`     | Half-strength secondary text                                                            |
-| `ink55`                     | `rgba(23,25,29,.55)`    | Secondary text                                                                          |
-| `ink60`                     | `rgba(23,25,29,.6)`     | Strong secondary text and slider fills                                                  |
-| `ink62`                     | `rgba(23,25,29,.62)`    | Secondary text at the pre-existing .62 strength                                         |
-| `ink65`                     | `rgba(23,25,29,.65)`    | Reassurance copy on light glass                                                         |
-| `ink70`                     | `rgba(23,25,29,.7)`     | Live portion-estimate text                                                              |
-| `ink75`                     | `rgba(23,25,29,.75)`    | High-emphasis secondary text                                                            |
-| `ink80`                     | `rgba(23,25,29,.8)`     | Google sign-in label on the Save your core screen                                       |
-| `ink85`                     | `rgba(23,25,29,.85)`    | User-entered values in light-glass input fields                                         |
-| `label`                     | `#5F6B76`               | Muted caption/label color used inside light glass cards (e.g. field labels)             |
-| `zenith`                    | `#EDF4FB`               | Atmosphere · highest/lightest (morning)                                                 |
-| `day`                       | `#D3E6F8`               | Atmosphere · high                                                                       |
-| `air`                       | `#9EC3E8`               | Atmosphere · mid                                                                        |
-| `sky`                       | `#7FA0C6`               | Atmosphere · mid                                                                        |
-| `dusk`                      | `#5D80A9`               | Atmosphere · low                                                                        |
-| `horizon`                   | `#466687`               | Atmosphere · low                                                                        |
-| `evening`                   | `#48678C`               | Night ramp                                                                              |
-| `night`                     | `#2E4666`               | Night ramp · dark glass base                                                            |
-| `midnight`                  | `#152741`               | Night ramp · deepest                                                                    |
-| `nightShadow`               | `rgba(8,24,44,.3)`      | Neutral shadow under solid-ink primary controls                                         |
-| `dockActiveIconShadow`      | `rgba(8,24,44,.32)`     | Shadow below the glass dock's active icon circle                                        |
-| `coreBlue` / `coreBlueDeep` | `#35689E` → `#16395E`   | First-open blue circle; legacy primary CTAs still use it pending migration              |
-| `white`                     | `#FFFFFF`               | Interactive glass, highlights, active states                                            |
-| `onNight`                   | `#F0F4F8`               | Text/icon color on dark glass or night atmosphere                                       |
-| `onNight60`                 | `rgba(240,244,248,.6)`  | Secondary text on the label-recovery night action                                       |
-| `rightNowText`              | `#F2F6FA`               | Primary headline on the dusk-gradient Right now screen                                  |
-| `fitnessOnNight50`          | `rgba(239,244,249,.5)`  | Fitness-session metadata on the dark training card                                      |
-| `fitnessOnNight75`          | `rgba(239,244,249,.75)` | Fitness-session exercise names on the dark training card                                |
-| `fog`                       | `#EFF4F8`               | Faded secondary text on dark glass                                                      |
-| `overlayInk`                | `#122A46`               | Base for translucent dark overlays and glass shadows                                    |
-| `labelPreview*`             | white/navy alpha set    | Border, icon strokes, and shade for the unreadable-label preview                        |
-| `success`                   | `#3E8E63`               | Status tint · "Verified" — always paired with a word, never used alone                  |
-| `attention`                 | `#7A5220`               | Status tint · "needs a look" — always paired with a word, never used as a raw error/red |
+| Token                       | Hex                           | Role                                                                                    |
+| --------------------------- | ----------------------------- | --------------------------------------------------------------------------------------- |
+| `ink`                       | `#17191D`                     | Primary text, primary icon stroke                                                       |
+| `ink40`                     | `rgba(23,25,29,.42)`          | Tertiary text, eyebrow labels                                                           |
+| `ink45`                     | `rgba(23,25,29,.45)`          | Screen/chip caption labels (very common in practice)                                    |
+| `ink50`                     | `rgba(23,25,29,.5)`           | Half-strength secondary text                                                            |
+| `ink55`                     | `rgba(23,25,29,.55)`          | Secondary text                                                                          |
+| `ink60`                     | `rgba(23,25,29,.6)`           | Strong secondary text and slider fills                                                  |
+| `ink62`                     | `rgba(23,25,29,.62)`          | Secondary text at the pre-existing .62 strength                                         |
+| `ink65`                     | `rgba(23,25,29,.65)`          | Reassurance copy on light glass                                                         |
+| `ink70`                     | `rgba(23,25,29,.7)`           | Live portion-estimate text                                                              |
+| `ink75`                     | `rgba(23,25,29,.75)`          | High-emphasis secondary text                                                            |
+| `ink80`                     | `rgba(23,25,29,.8)`           | Google sign-in label on the Save your core screen                                       |
+| `ink85`                     | `rgba(23,25,29,.85)`          | User-entered values in light-glass input fields                                         |
+| `label`                     | `#5F6B76`                     | Muted caption/label color used inside light glass cards (e.g. field labels)             |
+| `zenith`                    | `#EDF4FB`                     | Atmosphere · highest/lightest (morning)                                                 |
+| `day`                       | `#D3E6F8`                     | Atmosphere · high                                                                       |
+| `air`                       | `#9EC3E8`                     | Atmosphere · mid                                                                        |
+| `sky`                       | `#7FA0C6`                     | Atmosphere · mid                                                                        |
+| `dusk`                      | `#5D80A9`                     | Atmosphere · low                                                                        |
+| `horizon`                   | `#466687`                     | Atmosphere · low                                                                        |
+| `evening`                   | `#48678C`                     | Night ramp                                                                              |
+| `night`                     | `#2E4666`                     | Night ramp · dark glass base                                                            |
+| `midnight`                  | `#152741`                     | Night ramp · deepest                                                                    |
+| `nightShadow`               | `rgba(8,24,44,.3)`            | Neutral shadow under solid-ink primary controls                                         |
+| `dockActiveIconShadow`      | `rgba(8,24,44,.32)`           | Shadow below the glass dock's active icon circle                                        |
+| `coreBlue` / `coreBlueDeep` | `#35689E` → `#16395E`         | First-open blue circle; legacy primary CTAs still use it pending migration              |
+| `white`                     | `#FFFFFF`                     | Interactive glass, highlights, active states                                            |
+| `onNight`                   | `#F0F4F8`                     | Text/icon color on dark glass or night atmosphere                                       |
+| `onNight60`                 | `rgba(240,244,248,.6)`        | Secondary text on the label-recovery night action                                       |
+| `rightNowText`              | `#F2F6FA`                     | Primary headline on the dusk-gradient Right now screen                                  |
+| `fitnessOnNight50`          | `rgba(239,244,249,.5)`        | Fitness-session metadata on the dark training card                                      |
+| `fitnessOnNight75`          | `rgba(239,244,249,.75)`       | Fitness-session exercise names on the dark training card                                |
+| `fog`                       | `#EFF4F8`                     | Faded secondary text on dark glass                                                      |
+| `overlayInk`                | `#122A46`                     | Base for translucent dark overlays and glass shadows                                    |
+| `labelPreview*`             | white/navy alpha set          | Border, icon strokes, and shade for the unreadable-label preview                        |
+| `success`                   | `#3E8E63`                     | Status tint · "Verified" — always paired with a word, never used alone                  |
+| `attention`                 | `#7A5220`                     | Status tint · "needs a look" — always paired with a word, never used as a raw error/red |
+| `attention12/25/45`         | `rgba(122,82,32,.12/.25/.45)` | Account discard surface/border and invalid-name field border                            |
+| `profileInputFocus`         | `#2C5EA8`                     | Focus ring on the Account-name input                                                    |
 
 **Sky gradients:** `skyGradient` is `168deg`, `#D3E6F8` at 0%, `#9EC3E8` at 48%, and
 `#6F9CCE` at 100%. `sheetSkyGradient` is `168deg`, `#A3C4E5` at 0%, `#7299C6` at 52%, and
@@ -215,6 +217,9 @@ Profile 19a uses `typography.profileAvatar` (24px/200) and `componentSizes.profi
 `profileManageMinHeight` (30px), `profileKnowledgeMinHeight` (56px), and
 `profileKnowledgeArrow` (40px). Query error cards use
 `componentSizes.queryErrorActionHeight` (40px) for their Retry and Back controls.
+
+Account-name editing uses `componentSizes.inputFocusBorder` (1.5px) and
+`savedCheckStroke` (2.2px) for its design-specified input borders and success check.
 
 The compact profile circle used in Home and pillar headers uses
 `componentSizes.profileCircle` (36px), `profileCircleShadowRadius` (18px), and
@@ -923,6 +928,9 @@ Centralize this instead of scattering `Dimensions`/`useWindowDimensions` calls t
   and component-size tokens for screens 28a–28d. `MacroSummaryCard` gained a compact plan variant
   so 28c keeps the shared remaining-macro logic while matching its 24px card, 22px kcal value,
   9px macro rows, and 3px tracks.
+- **v1.14 (issue #176 — account identity):** Added the exact attention alpha variants for the
+  Account discard treatment and invalid-name border, plus the design-specified Account-name input
+  focus ring.
 - **v2.0 (fitness interview, screens 16a·1–16a·5):** The authenticated five-question flow reuses
   `OnboardingStepScaffold` with compact horizontal padding, `onboardingTitleStyles.compact`, a
   five-segment `ProgressDots` rail, and the existing `NextBar`. Goal, sports, and protected-area

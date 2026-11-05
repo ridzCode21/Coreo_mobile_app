@@ -41,6 +41,24 @@ registerMock('GET', '/users/profile/', (request) => {
   };
 });
 
+/** `PUT /users/profile/update/` — partial profile update, matching UserProfileUpdateSerializer. */
+registerMock('PUT', '/users/profile/update/', (request) => {
+  const user = requireMockUser(request);
+  if (!user) {
+    return { status: 401, body: styleAError('UNAUTHORIZED', 'Authentication required.') };
+  }
+
+  const body = (request.body ?? {}) as Record<string, unknown>;
+  if (typeof body.first_name === 'string') user.first_name = body.first_name;
+  if (typeof body.last_name === 'string') user.last_name = body.last_name;
+  user.updated_at = new Date().toISOString();
+
+  return {
+    status: 200,
+    body: styleAOk({ user: serializeMockUser(user) }, 'Profile updated successfully'),
+  };
+});
+
 registerMock('POST', '/users/password-reset/', (request) => {
   const body = (request.body ?? {}) as Record<string, unknown>;
   const email = asString(body.email).trim().toLowerCase();
