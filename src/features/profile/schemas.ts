@@ -13,3 +13,18 @@ export const accountNameSchema = z.object({
 });
 
 export type AccountNameFormValues = z.infer<typeof accountNameSchema>;
+
+export const changePasswordMismatchMessage = "These don't match.";
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Current password is required.'),
+    newPassword: z.string().min(8, 'At least 8 characters. Try again.'),
+    newPasswordConfirm: z.string().min(1, 'Confirm your new password.'),
+  })
+  .refine((values) => values.newPassword === values.newPasswordConfirm, {
+    message: changePasswordMismatchMessage,
+    path: ['newPasswordConfirm'],
+  });
+
+export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;

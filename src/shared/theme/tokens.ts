@@ -495,6 +495,8 @@ export const componentSizes = {
   profileRowMinHeight: 58,
   inputFocusBorder: 1.5,
   savedCheckStroke: 2.2,
+  passwordChangeSuccessIcon: 14,
+  passwordChangeSuccessStroke: 2,
   profileManageMinHeight: 30,
   profileKnowledgeMinHeight: 56,
   notebookPromptIcon: 40,
