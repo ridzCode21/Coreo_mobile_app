@@ -17,9 +17,12 @@ describe('auth: GET /users/profile/ response schema includes created_at (issue #
       data: {
         user: {
           first_name: 'Asha',
+          last_name: 'Rao',
+          email: 'asha@example.com',
           calibration_day: null,
           calibration_complete: true,
           wave: 'solid',
+          timezone: 'Asia/Kolkata',
           created_at: '2026-03-02T00:00:00Z',
         },
       },

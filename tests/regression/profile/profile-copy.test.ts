@@ -9,6 +9,7 @@
 
 import {
   membershipSummary,
+  accountSinceSummary,
   formatGoalSummary,
   dietPillarSummary,
   fitnessPillarSummary,
@@ -32,6 +33,18 @@ describe('profile: membershipSummary (design-spec.md #5 "With Coreo since March 
   it('never drops below Week 1, even on the day the account was created', () => {
     const result = membershipSummary('2026-03-02T00:00:00Z', new Date('2026-03-02T00:00:00Z'));
     expect(result).toBe('With Coreo since March · Week 1');
+  });
+});
+
+describe('profile: accountSinceSummary (issue #176, design-spec 19d line 2794 "With Coreo since March")', () => {
+  it('shows only the month, never the Week N suffix membershipSummary adds', () => {
+    const result = accountSinceSummary('2026-03-02T00:00:00Z');
+    expect(result).toBe('With Coreo since March');
+  });
+
+  it('never includes a week number', () => {
+    const result = accountSinceSummary('2026-03-02T00:00:00Z');
+    expect(result).not.toMatch(/Week/);
   });
 });
 
