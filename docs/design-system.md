@@ -220,6 +220,9 @@ Profile 19a uses `typography.profileAvatar` (24px/200) and `componentSizes.profi
 
 Account-name editing uses `componentSizes.inputFocusBorder` (1.5px) and
 `savedCheckStroke` (2.2px) for its design-specified input borders and success check.
+The Account password-change success state uses
+`componentSizes.passwordChangeSuccessIcon` (14px) and
+`passwordChangeSuccessStroke` (2px) for its circle-check glyph.
 
 The compact profile circle used in Home and pillar headers uses
 `componentSizes.profileCircle` (36px), `profileCircleShadowRadius` (18px), and

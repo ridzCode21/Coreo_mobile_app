@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useProfileQuery, useSessionStore, useUpdateProfileMutation } from '@/features/auth';
 import { AccountActionsSection } from '@/features/profile/components/AccountActionsSection';
 import { AccountIdentitySection } from '@/features/profile/components/AccountIdentitySection';
+import { PasswordSection } from '@/features/profile/components/PasswordSection';
 import { useAccountNameForm } from '@/features/profile/lib/useAccountNameForm';
 import { ApiError } from '@/shared/api/errors';
 import { BackButton } from '@/shared/components/BackButton';
@@ -73,6 +74,7 @@ export default function AccountScreen() {
     return (
       <>
         <AccountIdentitySection isOnline={isOnline} nameForm={nameForm} user={user} />
+        <PasswordSection isOnline={isOnline} />
         <AccountActionsSection showLabel={false} />
       </>
     );

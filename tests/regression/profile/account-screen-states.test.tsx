@@ -22,6 +22,10 @@ jest.mock('@/features/profile/api/accountApi', () => ({
   useDeleteAccountMutation: () => ({ mutate: jest.fn(), isPending: false }),
 }));
 
+jest.mock('@/features/profile/api/passwordApi', () => ({
+  useChangePasswordMutation: () => ({ mutate: jest.fn(), isPending: false }),
+}));
+
 const baseUser = {
   first_name: 'Shubham',
   last_name: 'Rao',
