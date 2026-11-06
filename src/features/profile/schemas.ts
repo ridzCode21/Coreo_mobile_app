@@ -28,3 +28,14 @@ export const changePasswordSchema = z
   });
 
 export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
+
+export const contactSupportSchema = z.object({
+  subject: z
+    .string()
+    .trim()
+    .min(1, 'Subject is required.')
+    .max(200, 'Subject must be 200 characters or fewer.'),
+  message: z.string().trim().min(1, 'Message is required.'),
+});
+
+export type ContactSupportFormValues = z.infer<typeof contactSupportSchema>;

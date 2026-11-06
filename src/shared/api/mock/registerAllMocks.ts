@@ -20,6 +20,8 @@ import '@/features/nutrition/mocks/mealPlan.handlers';
 import '@/features/chat/mocks/chat.handlers';
 import '@/features/profile/mocks/account.handlers';
 import '@/features/profile/mocks/passwordChange.handlers';
+import '@/features/profile/mocks/contactSupport.handlers';
+import '@/features/profile/mocks/appConfig.handlers';
 import '@/features/profile/mocks/memoryFacts.handlers';
 import '@/features/patterns/mocks/insights.handlers';
 import '@/features/notifications/mocks/checkInNotices.handlers';

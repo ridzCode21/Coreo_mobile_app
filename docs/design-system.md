@@ -31,6 +31,8 @@ these rules, it's probably the wrong component, not an exception to add.
 | Token                       | Hex                           | Role                                                                                    |
 | --------------------------- | ----------------------------- | --------------------------------------------------------------------------------------- |
 | `ink`                       | `#17191D`                     | Primary text, primary icon stroke                                                       |
+| `ink20`                     | `rgba(23,25,29,.2)`           | Low-emphasis inline separators                                                          |
+| `ink30`                     | `rgba(23,25,29,.3)`           | Low-emphasis version text                                                               |
 | `ink40`                     | `rgba(23,25,29,.42)`          | Tertiary text, eyebrow labels                                                           |
 | `ink45`                     | `rgba(23,25,29,.45)`          | Screen/chip caption labels (very common in practice)                                    |
 | `ink50`                     | `rgba(23,25,29,.5)`           | Half-strength secondary text                                                            |
@@ -372,7 +374,8 @@ Account screens 8e and 8b, plus password reset screens 8c and 8d, use `authButto
 for their solid-ink primary actions. Password reset success uses
 `passwordResetSignInHeight` (48px), `passwordResetSuccessIcon` (56px),
 `passwordResetCheckIcon` (22px), and `passwordResetCheckStrokeWidth` (2px) for its compact final
-state. `spacing.authResetFieldGap` is the 9px stack gap on 8d,
+state. `componentSizes.contactSupportSendHeight` is 48px for the Account Contact us Send pill.
+`spacing.authResetFieldGap` is the 9px stack gap on 8d,
 `spacing.homeAskBarRightPadding` is the 9px trailing inset on the composed Home ask bar,
 `spacing.passwordResetFieldPadY` is its 13px field-card vertical padding, and
 `spacing.passwordResetSignInPaddingX` is the 28px horizontal padding on its success action.

@@ -99,6 +99,14 @@ export type MockEveningCheckIn = {
   note: string;
 };
 
+export type MockSupportRequest = {
+  userId: string;
+  subject: string;
+  message: string;
+  category: 'bug' | 'feature' | 'support' | 'other';
+  attachLogs: boolean;
+};
+
 type MockDb = {
   users: MockUser[];
   passwordResetTokens: Record<
@@ -174,6 +182,7 @@ type MockDb = {
   checkInNotices: MockCheckInNotice[];
   /** One closed evening ritual per user-local date. */
   eveningCheckIns: Record<string, MockEveningCheckIn>;
+  supportRequests: MockSupportRequest[];
   /** Monotonic id source for created food entries. */
   nextFoodEntryId: number;
   /** Monotonic id source for user-created food items. */
@@ -214,6 +223,7 @@ function createEmptyDb(): MockDb {
     deviceTokens: [],
     checkInNotices: [],
     eveningCheckIns: {},
+    supportRequests: [],
     nextFoodEntryId: 1,
     nextFoodItemId: 11,
     nextMealPlanId: 1,
@@ -252,6 +262,7 @@ export function __resetMockDbForTests(): void {
   mockDb.deviceTokens = [];
   mockDb.checkInNotices = [];
   mockDb.eveningCheckIns = {};
+  mockDb.supportRequests = [];
   mockDb.nextFoodEntryId = 1;
   mockDb.nextFoodItemId = 11;
   mockDb.nextMealPlanId = 1;

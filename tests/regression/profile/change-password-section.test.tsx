@@ -53,6 +53,23 @@ jest.mock('@/features/profile/api/passwordApi', () => ({
   useChangePasswordMutation: () => mockChangePasswordState,
 }));
 
+// Issue #179: Contact us / Legal rows, mocked at the hook boundary so this pre-existing screen
+// test keeps passing now that AccountScreen renders those sections too.
+jest.mock('@/features/profile/api/contactSupportApi', () => ({
+  useSendSupportMessageMutation: () => ({ mutate: jest.fn(), isPending: false }),
+}));
+
+jest.mock('@/features/profile/api/appConfigApi', () => ({
+  useAppConfigQuery: () => ({
+    data: {
+      termsUrl: 'https://med_app.com/terms',
+      privacyUrl: 'https://med_app.com/privacy',
+    },
+    isLoading: false,
+    isError: false,
+  }),
+}));
+
 function setUser(overrides: Partial<typeof baseUser> = {}) {
   mockProfileState = {
     data: { ...baseUser, ...overrides },

@@ -14,3 +14,5 @@ export {
   useDeleteAccountDataMutation,
   useDeleteAccountMutation,
 } from '@/features/profile/api/accountApi';
+export { useSendSupportMessageMutation } from '@/features/profile/api/contactSupportApi';
+export { useAppConfigQuery } from '@/features/profile/api/appConfigApi';
