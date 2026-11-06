@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { MealSheetSkyFrame, MealSheetSubmitButton } from '@/features/nutrition';
 import { PERMISSION_EXPLANATION } from '@/features/notifications/lib/permissionPrompt';
+import { MealSheetSkyFrame } from '@/shared/components/MealSheetSkyFrame';
+import { MealSheetSubmitButton } from '@/shared/components/MealSheetSubmitButton';
 import { colors, spacing, textStyle } from '@/shared/theme/tokens';
 
 type CheckInPermissionSheetProps = {

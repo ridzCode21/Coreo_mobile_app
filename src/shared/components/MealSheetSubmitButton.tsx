@@ -10,6 +10,7 @@ type MealSheetSubmitButtonProps = {
   style?: ViewStyle;
 };
 
+/** Shared primary control for sky sheets. */
 export function MealSheetSubmitButton({
   label,
   busy,
@@ -45,11 +46,6 @@ const styles = StyleSheet.create({
     minHeight: componentSizes.sheetControlHeight,
     paddingHorizontal: spacing.lg,
   },
-  buttonText: {
-    ...textStyle('buttonSm'),
-    color: colors.white,
-  },
-  disabled: {
-    opacity: 0.46,
-  },
+  buttonText: { ...textStyle('buttonSm'), color: colors.white },
+  disabled: { opacity: 0.46 },
 });

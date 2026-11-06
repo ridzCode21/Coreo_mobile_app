@@ -9,6 +9,7 @@
  */
 import { queryClient } from '@/shared/api/queryClient';
 import { onBeforeSessionEnd } from '@/shared/lib/sessionCleanup';
+import { withTimeout } from '@/shared/lib/withTimeout';
 import { unregisterDeviceTokenWith } from '@/features/notifications/api/deviceTokenApi';
 import {
   configureForegroundPresentation,
@@ -18,15 +19,6 @@ import { startNotificationResponseHandling } from '@/features/notifications/lib/
 
 /** Logout must not hang on a bad connection: give the server call a few seconds. */
 export const UNREGISTER_TIMEOUT_MS = 5000;
-
-async function withTimeout(task: Promise<unknown>, ms: number): Promise<void> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  try {
-    await Promise.race([task, new Promise((resolve) => (timer = setTimeout(resolve, ms)))]);
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 export function startNotifications(): void {
   try {

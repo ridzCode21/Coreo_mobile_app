@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { storage } from '@/shared/lib/storage';
+import { onSessionEnd } from '@/shared/lib/sessionCleanup';
 import type { ActivePillar, Gender, InterviewGoal } from '@/shared/types/user';
 
 export type OnboardingPillar = ActivePillar;
@@ -85,3 +86,5 @@ export const useOnboardingStore = create<OnboardingState>()(
     },
   ),
 );
+
+onSessionEnd(() => useOnboardingStore.getState().reset());

@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 
-import { MealSheetSkyFrame } from '@/features/nutrition/components/MealSheetSkyFrame';
-import { MealSheetSubmitButton } from '@/features/nutrition/components/MealSheetSubmitButton';
 import { PortionSlider } from '@/features/nutrition/components/PortionSlider';
 import { scaleLabelServing } from '@/features/nutrition/lib/labelServing';
 import { formatMultiplier } from '@/features/nutrition/lib/portionEstimate';
+import { MealSheetSkyFrame } from '@/shared/components/MealSheetSkyFrame';
+import { MealSheetSubmitButton } from '@/shared/components/MealSheetSubmitButton';
 import { colors, spacing, textStyle } from '@/shared/theme/tokens';
 
 type LabelServingsSheetProps = {

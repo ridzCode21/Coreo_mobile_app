@@ -51,3 +51,8 @@ export function useRejectedMeals(): { count: number; dismiss: () => void } {
   const count = useMealQueueStore((state) => rejectedMeals(state.queue).length);
   return { count, dismiss: () => void useMealQueueStore.getState().dismissRejected() };
 }
+
+/** Pending entries are still waiting for server sync; rejected entries are intentionally excluded. */
+export function usePendingMealCount(): number {
+  return useMealQueueStore((state) => pendingMeals(state.queue).length);
+}

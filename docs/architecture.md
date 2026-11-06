@@ -131,6 +131,8 @@ src/
       errors.ts                  # normalized ApiError shape + helpers
     components/
       GlassCard.tsx               # the liquid-glass material primitive (design-system.md §4)
+      MealSheetSkyFrame.tsx       # reusable sky-background sheet chassis (meal + account flows)
+      MealSheetSubmitButton.tsx   # reusable primary sheet action (meal + account flows)
       Screen.tsx                  # safe-area + scroll + responsive-width screen wrapper
       WaveMark.tsx                # the wave logo/wordmark primitive (design-system.md §7)
       WaveChart.tsx                # signature wave primitive — solid/dashed/glow-dot/area fill,

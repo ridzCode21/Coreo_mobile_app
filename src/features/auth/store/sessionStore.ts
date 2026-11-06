@@ -3,8 +3,12 @@ import { create } from 'zustand';
 import { secureAuthTokenStore } from '@/shared/api/authTokenStore';
 import { queryClient } from '@/shared/api/queryClient';
 import { runBeforeSessionEnd, runSessionCleanup } from '@/shared/lib/sessionCleanup';
-import { profileKeys } from '@/features/auth/api/profileApi';
+import { withTimeout } from '@/shared/lib/withTimeout';
+import { logout } from '@/features/auth/api/authApi';
 import { usePillarSelectionStore } from '@/features/auth/store/pillarSelectionStore';
+import { useConnectivityStore } from '@/shared/stores/connectivityStore';
+
+const LOGOUT_TIMEOUT_MS = 5000;
 
 type SessionStatus = 'checking' | 'signedOut' | 'signedIn';
 
@@ -48,8 +52,14 @@ export const useSessionStore = create<SessionState>((set) => ({
   signOut: async () => {
     // Steps that need the session (like deleting this phone's push registration) go first.
     await runBeforeSessionEnd();
+    if (useConnectivityStore.getState().isOnline) {
+      await withTimeout(
+        logout().catch(() => undefined),
+        LOGOUT_TIMEOUT_MS,
+      );
+    }
     await secureAuthTokenStore.clearTokens();
-    queryClient.removeQueries({ queryKey: profileKeys.all });
+    queryClient.clear();
     usePillarSelectionStore.getState().clear();
     // Saved offline copies are personal data on unencrypted storage: never outlive the session.
     await runSessionCleanup();

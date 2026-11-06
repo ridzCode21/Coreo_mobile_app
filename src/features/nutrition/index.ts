@@ -28,7 +28,8 @@ export {
 } from '@/features/nutrition/api/nutritionApi';
 export { mealPlanKeys, useMealPlanQuery } from '@/features/nutrition/api/mealPlanApi';
 export { targetsFromProfile } from '@/features/nutrition/lib/macros';
-export { useMealQueueSync, useRejectedMeals } from '@/features/nutrition/api/mealQueueSync';
-// The glass sheet frame and its button, reused by the check-in notification sheet (issue #47).
-export { MealSheetSkyFrame } from '@/features/nutrition/components/MealSheetSkyFrame';
-export { MealSheetSubmitButton } from '@/features/nutrition/components/MealSheetSubmitButton';
+export {
+  useMealQueueSync,
+  usePendingMealCount,
+  useRejectedMeals,
+} from '@/features/nutrition/api/mealQueueSync';

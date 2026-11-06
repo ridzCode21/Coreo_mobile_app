@@ -17,6 +17,7 @@ export {
   passwordResetFieldErrors,
   useConfirmPasswordResetMutation,
   useRequestPasswordResetMutation,
+  logout,
   type RegisterRequestValues,
   type GoogleSignInRequestValues,
 } from '@/features/auth/api/authApi';

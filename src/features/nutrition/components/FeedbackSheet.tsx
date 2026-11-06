@@ -1,8 +1,6 @@
 import { StyleSheet, TextInput, View } from 'react-native';
 
 import { MealSheetSelectableChip } from '@/features/nutrition/components/MealSheetSelectableChip';
-import { MealSheetSkyFrame } from '@/features/nutrition/components/MealSheetSkyFrame';
-import { MealSheetSubmitButton } from '@/features/nutrition/components/MealSheetSubmitButton';
 import {
   colors,
   componentSizes,
@@ -11,6 +9,8 @@ import {
   textStyle,
   withAlpha,
 } from '@/shared/theme/tokens';
+import { MealSheetSkyFrame } from '@/shared/components/MealSheetSkyFrame';
+import { MealSheetSubmitButton } from '@/shared/components/MealSheetSubmitButton';
 import type { FeedbackType } from '@/shared/types/mealPlan';
 
 type FeedbackSheetProps = {

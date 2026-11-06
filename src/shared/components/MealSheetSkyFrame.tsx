@@ -1,5 +1,13 @@
 import type { PropsWithChildren } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type TextStyle,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassCard } from '@/shared/components/GlassCard';
@@ -17,14 +25,17 @@ type MealSheetSkyFrameProps = PropsWithChildren<{
   visible: boolean;
   title: string;
   subtitle: string;
+  titleStyle?: StyleProp<TextStyle>;
   centeredHeader?: boolean;
   onClose: () => void;
 }>;
 
+/** Shared sky-sheet chassis used by meal and account flows. */
 export function MealSheetSkyFrame({
   visible,
   title,
   subtitle,
+  titleStyle,
   centeredHeader = false,
   onClose,
   children,
@@ -57,7 +68,9 @@ export function MealSheetSkyFrame({
         <GlassCard variant="sheet" padded={false}>
           <View style={styles.content}>
             <View style={styles.grabber} />
-            <Text style={[styles.title, centeredHeader && styles.centeredHeader]}>{title}</Text>
+            <Text style={[styles.title, titleStyle, centeredHeader && styles.centeredHeader]}>
+              {title}
+            </Text>
             <Text style={[styles.subtitle, centeredHeader && styles.centeredHeader]}>
               {subtitle}
             </Text>
@@ -99,7 +112,5 @@ const styles = StyleSheet.create({
     color: colors.ink55,
     marginTop: spacing.sheetSubtitleGap,
   },
-  centeredHeader: {
-    textAlign: 'center',
-  },
+  centeredHeader: { textAlign: 'center' },
 });

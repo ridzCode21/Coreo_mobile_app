@@ -166,7 +166,7 @@ weight contrast within a size, not from adding more sizes or going bold.
 | `bodySm`                 | 12–12.5px | 300              | normal, line-height ~1.6  | Card descriptions, insight text                                       |
 | `small`                  | 12px      | 300              | normal, line-height 1.6   | Small supporting text                                                 |
 | `nudgeTitle`             | 12px      | 500              | normal                    | Home nudge card title                                                 |
-| `nudgeTime`              | 10px      | 400              | normal                    | Home nudge card timing label                                          |
+| `nudgeTime`              | 10px      | 400              | normal                    | Home nudge card timing label and signed-out toast                     |
 | `caption`                | 11px      | 400              | normal                    | Chip text, secondary metadata                                         |
 | `dockLabel`              | 8.5px     | 400              | +0.4px                    | Inactive glass-dock labels                                            |
 | `dockLabelActive`        | 8.5px     | 500              | +0.4px                    | Active glass-dock label                                               |
@@ -219,6 +219,15 @@ Profile 19a uses `typography.profileAvatar` (24px/200) and `componentSizes.profi
 `profileManageMinHeight` (30px), `profileKnowledgeMinHeight` (56px), and
 `profileKnowledgeArrow` (40px). Query error cards use
 `componentSizes.queryErrorActionHeight` (40px) for their Retry and Back controls.
+
+Account 19d's standalone Sign out pill uses the white `.94` → `.6` gradient, `.9` white border,
+and `overlayInk` `.16` shadow recipe in `glass.accountSignOut`, with a separate white outer glow.
+Its 48px height, 14px/32px shadow, and 20px glow use the `componentSizes.accountSignOut*` tokens.
+The confirmation sheet's glass secondary action uses `glass.signOutSheetSecondary`. The first-open
+signed-out toast uses `componentSizes.firstOpenSignedOutToastTop` (58px) and its design-exact
+`firstOpenSignedOutToastPadX` (16px) / `firstOpenSignedOutToastPadY` (7px) tokens. The pending
+meal and offline Sign out sheet titles use `typography.signOutSheetEyebrow` (10px/500, 1.6px
+tracking, uppercase); its secondary action uses the white `.55` → `.2` diagonal glass gradient.
 
 Account-name editing uses `componentSizes.inputFocusBorder` (1.5px) and
 `savedCheckStroke` (2.2px) for its design-specified input borders and success check.

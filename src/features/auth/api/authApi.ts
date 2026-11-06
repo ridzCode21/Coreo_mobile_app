@@ -21,6 +21,16 @@ type PasswordResetEnvelope = {
   message: string;
 };
 
+type LogoutEnvelope = {
+  success: true;
+  message: string;
+};
+
+/** `POST /users/logout/` revokes the presented bearer token; it has no request body. */
+export function logout(): Promise<LogoutEnvelope> {
+  return apiClient.post<LogoutEnvelope>('/users/logout/');
+}
+
 export function useRequestPasswordResetMutation() {
   return useMutation({
     mutationFn: (values: RequestPasswordResetFormValues) =>
