@@ -7,6 +7,8 @@
 export const colors = {
   ink: '#17191D',
   ink10: 'rgba(23,25,29,0.1)',
+  ink20: 'rgba(23,25,29,0.2)',
+  ink30: 'rgba(23,25,29,0.3)',
   adjustedChipBackground: 'rgba(23,25,29,0.08)',
   ink40: 'rgba(23,25,29,0.42)',
   ink45: 'rgba(23,25,29,0.45)',
@@ -534,6 +536,7 @@ export const componentSizes = {
   saveSocialButtonHeight: 54,
   authButtonHeight: 54,
   passwordResetSignInHeight: 48,
+  contactSupportSendHeight: 48,
   passwordResetSuccessIcon: 56,
   passwordResetCheckIcon: 22,
   passwordResetCheckStrokeWidth: 2,
