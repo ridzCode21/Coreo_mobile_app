@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { MealSheetSkyFrame } from '@/features/nutrition/components/MealSheetSkyFrame';
-import { MealSheetSubmitButton } from '@/features/nutrition/components/MealSheetSubmitButton';
 import { PortionSlider } from '@/features/nutrition/components/PortionSlider';
 import {
   computePortionEstimate,
@@ -10,6 +8,8 @@ import {
   MIN_PORTION_MULTIPLIER,
   type PortionMacros,
 } from '@/features/nutrition/lib/portionEstimate';
+import { MealSheetSkyFrame } from '@/shared/components/MealSheetSkyFrame';
+import { MealSheetSubmitButton } from '@/shared/components/MealSheetSubmitButton';
 import { colors, radii, spacing, textStyle, withAlpha } from '@/shared/theme/tokens';
 
 type PortionSheetProps = {

@@ -28,6 +28,15 @@ jest.mock('@/features/auth', () => ({
   useSessionStore: { getState: () => ({ signOut: mockSignOut }) },
 }));
 
+// Issue #180 adds a "Sign out" action with its own router/connectivity/meal-queue wiring, covered
+// by its own suite (tests/regression/profile/sign-out-action.test.tsx). Stub it here so this
+// suite's existing Export/Delete-data/Delete-account assertions don't need those extra mocks.
+jest.mock(
+  '../../../src/features/profile/components/SignOutAction',
+  () => ({ SignOutAction: () => null }),
+  { virtual: true },
+);
+
 function pressConfirmButton(alertSpy: jest.SpyInstance, wantedText: RegExp) {
   const lastCall = alertSpy.mock.calls.at(-1);
   if (!lastCall) throw new Error('Alert.alert was never called');

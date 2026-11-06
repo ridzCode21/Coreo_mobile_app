@@ -21,6 +21,7 @@ const mockPush = jest.fn();
 const mockReplace = jest.fn();
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: mockPush, replace: mockReplace }),
+  useLocalSearchParams: () => ({}),
 }));
 
 describe('onboarding: First open screen matches the design (issue #11)', () => {

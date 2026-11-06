@@ -6,6 +6,7 @@ import {
   useExportDataMutation,
 } from '@/features/profile/api/accountApi';
 import { useSessionStore } from '@/features/auth';
+import { SignOutAction } from '@/features/profile/components/SignOutAction';
 import { GlassCard } from '@/shared/components/GlassCard';
 import { colors, componentSizes, radii, spacing, typography } from '@/shared/theme/tokens';
 
@@ -72,13 +73,17 @@ export function AccountActionsSection({ showLabel = true }: AccountActionsSectio
         <AccountAction label="Delete my data" onPress={confirmDeleteData} />
         <AccountAction label="Delete my account" onPress={confirmDeleteAccount} />
       </GlassCard>
+      <View style={styles.signOutAction}>
+        <SignOutAction />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  section: { gap: spacing.sm, marginTop: spacing.lg },
-  label: { ...typography.wellnessCardLabel, color: colors.ink55 },
+  section: { marginTop: spacing.lg },
+  label: { ...typography.wellnessCardLabel, color: colors.ink55, marginBottom: spacing.sm },
+  signOutAction: { marginTop: spacing.ml },
   row: {
     minHeight: componentSizes.minimumTapTarget,
     justifyContent: 'center',

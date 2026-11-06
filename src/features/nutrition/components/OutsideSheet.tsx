@@ -3,9 +3,9 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 
 import { MealSheetSelectableChip } from '@/features/nutrition/components/MealSheetSelectableChip';
-import { MealSheetSkyFrame } from '@/features/nutrition/components/MealSheetSkyFrame';
-import { MealSheetSubmitButton } from '@/features/nutrition/components/MealSheetSubmitButton';
 import { GlassCard } from '@/shared/components/GlassCard';
+import { MealSheetSkyFrame } from '@/shared/components/MealSheetSkyFrame';
+import { MealSheetSubmitButton } from '@/shared/components/MealSheetSubmitButton';
 import {
   colors,
   componentSizes,

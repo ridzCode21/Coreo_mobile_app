@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
@@ -10,7 +10,14 @@ import { SkyBackground } from '@/shared/components/SkyBackground';
 import { WaveMark } from '@/shared/components/WaveMark';
 import { useOrientationLock } from '@/shared/hooks/useOrientationLock';
 import { useAppFlagsStore } from '@/shared/stores/appFlagsStore';
-import { colors, radii, spacing, textStyle } from '@/shared/theme/tokens';
+import {
+  colors,
+  componentSizes,
+  radii,
+  spacing,
+  textStyle,
+  withAlpha,
+} from '@/shared/theme/tokens';
 import { useOnboardingStore } from '@/features/onboarding/store/onboardingStore';
 
 /**
@@ -20,6 +27,7 @@ import { useOnboardingStore } from '@/features/onboarding/store/onboardingStore'
  */
 export default function FirstOpenScreen() {
   const router = useRouter();
+  const { signedOut } = useLocalSearchParams<{ signedOut?: string }>();
   const markFirstOpenSeen = useAppFlagsStore((state) => state.markFirstOpenSeen);
   const resetOnboarding = useOnboardingStore((state) => state.reset);
   const insets = useSafeAreaInsets();
@@ -38,6 +46,11 @@ export default function FirstOpenScreen() {
 
   return (
     <SkyBackground style={styles.fill}>
+      {signedOut === '1' ? (
+        <View testID="first-open-signed-out-toast" style={styles.signedOutToast}>
+          <Text style={styles.signedOutToastText}>{"You're signed out."}</Text>
+        </View>
+      ) : null}
       <View
         style={[
           styles.content,
@@ -114,6 +127,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.screenPadX,
   },
+  signedOutToast: {
+    alignSelf: 'center',
+    backgroundColor: withAlpha(colors.ink, 0.6),
+    borderRadius: radii.pill,
+    paddingHorizontal: componentSizes.firstOpenSignedOutToastPadX,
+    paddingVertical: componentSizes.firstOpenSignedOutToastPadY,
+    position: 'absolute',
+    top: componentSizes.firstOpenSignedOutToastTop,
+    zIndex: 1,
+  },
+  signedOutToastText: { ...textStyle('nudgeTime'), color: withAlpha(colors.onNight, 0.85) },
   brand: {
     flex: 1,
     alignItems: 'center',

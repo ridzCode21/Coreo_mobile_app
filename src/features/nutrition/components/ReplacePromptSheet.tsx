@@ -2,10 +2,10 @@ import { useRef } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 
-import { MealSheetSkyFrame } from '@/features/nutrition/components/MealSheetSkyFrame';
 import { QuotaBanner } from '@/features/nutrition/components/QuotaBanner';
 import { stripApproxPrefix } from '@/features/nutrition/lib/replacePreview';
 import { GlassCard } from '@/shared/components/GlassCard';
+import { MealSheetSkyFrame } from '@/shared/components/MealSheetSkyFrame';
 import {
   colors,
   componentSizes,

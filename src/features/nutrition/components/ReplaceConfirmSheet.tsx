@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { MealSheetSkyFrame } from '@/features/nutrition/components/MealSheetSkyFrame';
 import { deltaLine, formatCountdown } from '@/features/nutrition/lib/replacePreview';
 import { GlassCard } from '@/shared/components/GlassCard';
+import { MealSheetSkyFrame } from '@/shared/components/MealSheetSkyFrame';
 import {
   colors,
   componentSizes,
