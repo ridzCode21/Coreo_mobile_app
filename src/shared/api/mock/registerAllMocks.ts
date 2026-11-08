@@ -27,3 +27,4 @@ import '@/features/patterns/mocks/insights.handlers';
 import '@/features/notifications/mocks/checkInNotices.handlers';
 import '@/features/evening-checkin/mocks/eveningCheckIn.handlers';
 import '@/features/integrations/mocks/deviceImport.handlers';
+import '@/features/integrations/mocks/strava.handlers';

@@ -13,6 +13,12 @@
  * Issue #175 — a failed load previously showed a dead-end message (never exercised by a test).
  * Gives it working Retry (refetch) and Back (router.back) controls, matching the same 19d error
  * card pattern used by Profile and Notebook (plan.md).
+ *
+ * Issue #56 — the Strava row gets a real "Connect with Strava" brand button (issue body) wired to
+ * `useStravaConnect` (`@/features/integrations`). `useStravaConnect` itself is covered end-to-end by
+ * `tests/regression/integrations/use-strava-connect.test.tsx`; this file only checks the screen
+ * wires it correctly: button shown only while disconnected, tap calls `connect`, and a surfaced
+ * `errorMessage` renders without ever touching the apple_health/health_connect rows.
  */
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
@@ -43,6 +49,22 @@ jest.mock('@/features/home/api/sourcesApi', () => {
 const mockBack = jest.fn();
 jest.mock('expo-router', () => ({ useRouter: () => ({ back: mockBack }) }));
 
+const mockConnect = jest.fn();
+let mockStravaStatus: 'idle' | 'connecting' | 'exchanging' | 'success' | 'error' = 'idle';
+let mockStravaErrorMessage: string | null = null;
+
+jest.mock('@/features/integrations', () => {
+  const actual = jest.requireActual('@/features/integrations');
+  return {
+    ...actual,
+    useStravaConnect: () => ({
+      connect: mockConnect,
+      status: mockStravaStatus,
+      errorMessage: mockStravaErrorMessage,
+    }),
+  };
+});
+
 describe('profile: ManageSourcesScreen (issue #44, GET /integrations/sources/)', () => {
   beforeEach(() => {
     mockIsLoading = false;
@@ -50,6 +72,9 @@ describe('profile: ManageSourcesScreen (issue #44, GET /integrations/sources/)',
     mockSources = undefined;
     mockRefetch.mockClear();
     mockBack.mockClear();
+    mockConnect.mockClear();
+    mockStravaStatus = 'idle';
+    mockStravaErrorMessage = null;
   });
 
   it('shows connected vs. not-connected state per source, honestly, with no fabricated sentence', () => {
@@ -114,5 +139,66 @@ describe('profile: ManageSourcesScreen (issue #44, GET /integrations/sources/)',
     expect(screen.UNSAFE_getAllByType(Path).map((path) => path.props.d)).toContain(
       'M15 18l-6-6 6-6',
     );
+  });
+
+  it('shows the "Connect with Strava" button only for the disconnected Strava row (issue #56)', () => {
+    mockSources = [
+      { source: 'apple_health', connected: false, last_synced_at: null, synced_through: null },
+      { source: 'health_connect', connected: false, last_synced_at: null, synced_through: null },
+      { source: 'strava', connected: false, last_synced_at: null, synced_through: null },
+    ];
+
+    render(<ManageSourcesScreen />);
+
+    expect(screen.getByRole('button', { name: 'Connect with Strava' })).toBeTruthy();
+  });
+
+  it('calls useStravaConnect().connect when "Connect with Strava" is tapped (issue #56)', () => {
+    mockSources = [
+      { source: 'apple_health', connected: false, last_synced_at: null, synced_through: null },
+      { source: 'health_connect', connected: false, last_synced_at: null, synced_through: null },
+      { source: 'strava', connected: false, last_synced_at: null, synced_through: null },
+    ];
+
+    render(<ManageSourcesScreen />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Connect with Strava' }));
+    expect(mockConnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the "Connect with Strava" button once Strava is connected (issue #56)', () => {
+    mockSources = [
+      { source: 'apple_health', connected: false, last_synced_at: null, synced_through: null },
+      { source: 'health_connect', connected: false, last_synced_at: null, synced_through: null },
+      {
+        source: 'strava',
+        connected: true,
+        last_synced_at: '2026-11-08T06:00:00Z',
+        synced_through: null,
+      },
+    ];
+
+    render(<ManageSourcesScreen />);
+
+    expect(screen.queryByRole('button', { name: 'Connect with Strava' })).toBeNull();
+    expect(screen.getByTestId('source-status-strava')).toHaveTextContent('Connected');
+  });
+
+  it('surfaces a Strava connect error message without touching the other rows (issue #56)', () => {
+    mockSources = [
+      { source: 'apple_health', connected: false, last_synced_at: null, synced_through: null },
+      { source: 'health_connect', connected: false, last_synced_at: null, synced_through: null },
+      { source: 'strava', connected: false, last_synced_at: null, synced_through: null },
+    ];
+    mockStravaStatus = 'error';
+    mockStravaErrorMessage = 'Strava authorization failed. Please try connecting again.';
+
+    render(<ManageSourcesScreen />);
+
+    expect(
+      screen.getByText('Strava authorization failed. Please try connecting again.'),
+    ).toBeTruthy();
+    expect(screen.getByTestId('source-status-apple_health')).toHaveTextContent('Not connected');
+    expect(screen.getByTestId('source-status-health_connect')).toHaveTextContent('Not connected');
   });
 });

@@ -183,6 +183,8 @@ type MockDb = {
   /** One closed evening ritual per user-local date. */
   eveningCheckIns: Record<string, MockEveningCheckIn>;
   supportRequests: MockSupportRequest[];
+  /** One connected Strava account per user, matching the real StravaConnection model. */
+  stravaConnections: Record<string, { athleteId: number; lastSyncedAt: string | null }>;
   /** Monotonic id source for created food entries. */
   nextFoodEntryId: number;
   /** Monotonic id source for user-created food items. */
@@ -224,6 +226,7 @@ function createEmptyDb(): MockDb {
     checkInNotices: [],
     eveningCheckIns: {},
     supportRequests: [],
+    stravaConnections: {},
     nextFoodEntryId: 1,
     nextFoodItemId: 11,
     nextMealPlanId: 1,
@@ -263,6 +266,7 @@ export function __resetMockDbForTests(): void {
   mockDb.checkInNotices = [];
   mockDb.eveningCheckIns = {};
   mockDb.supportRequests = [];
+  mockDb.stravaConnections = {};
   mockDb.nextFoodEntryId = 1;
   mockDb.nextFoodItemId = 11;
   mockDb.nextMealPlanId = 1;
