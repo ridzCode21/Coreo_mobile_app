@@ -1,9 +1,14 @@
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 
 import { useSourcesQuery, DEVICE_SOURCES } from '@/features/home';
-import { StravaConnectButton, useStravaConnect } from '@/features/integrations';
+import {
+  StravaConnectButton,
+  useHealthSync,
+  useStravaConnect,
+  type HealthSyncStatus,
+} from '@/features/integrations';
 import { sourceLabels } from '@/features/profile/lib/profileCopy';
 import { BackButton } from '@/shared/components/BackButton';
 import { GlassCard } from '@/shared/components/GlassCard';
@@ -12,10 +17,82 @@ import { Screen } from '@/shared/components/Screen';
 import { SkyBackground } from '@/shared/components/SkyBackground';
 import { colors, componentSizes, radii, spacing, typography } from '@/shared/theme/tokens';
 
+type HealthConnectActionProps = {
+  status: HealthSyncStatus;
+  onConnect: () => void;
+  onOpenSettings: () => Promise<void>;
+};
+
+function getHealthConnectAction({
+  status,
+  onConnect,
+  onOpenSettings,
+}: HealthConnectActionProps): ReactNode {
+  if (status === 'needs_install') {
+    return (
+      <>
+        <Text style={styles.healthConnectMessage}>Update Health Connect to keep syncing.</Text>
+        <HealthConnectButton label="Open settings" onPress={onOpenSettings} />
+      </>
+    );
+  }
+
+  if (status === 'unavailable') {
+    return (
+      <Text style={styles.healthConnectMessage}>
+        Health Connect isn&apos;t available on this phone.
+      </Text>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <>
+        <Text style={styles.healthConnectMessage}>Couldn&apos;t connect Health Connect.</Text>
+        <HealthConnectButton label="Connect Health Connect" onPress={onConnect} />
+      </>
+    );
+  }
+
+  if (status === 'needs_permission' || status === 'syncing') {
+    return (
+      <HealthConnectButton
+        disabled={status === 'syncing'}
+        label="Connect Health Connect"
+        onPress={onConnect}
+      />
+    );
+  }
+
+  return null;
+}
+
+type HealthConnectButtonProps = {
+  label: string;
+  onPress: () => void | Promise<void>;
+  disabled?: boolean;
+};
+
+function HealthConnectButton({ label, onPress, disabled = false }: HealthConnectButtonProps) {
+  return (
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={styles.healthConnectButton}
+    >
+      <Text style={styles.healthConnectButtonText}>{label}</Text>
+    </Pressable>
+  );
+}
+
 export default function ManageSourcesScreen() {
   const router = useRouter();
   const query = useSourcesQuery();
   const stravaConnect = useStravaConnect();
+  const healthSync = useHealthSync();
   const sources = query.data ?? [];
 
   if (query.isError) {
@@ -43,9 +120,18 @@ export default function ManageSourcesScreen() {
           const item = sources.find((candidate) => candidate.source === source);
           const isStrava = source === 'strava';
           const isConnected = item?.connected ?? false;
+          const showsHealthConnectAction =
+            Platform.OS === 'android' && source === 'health_connect' && !isConnected;
+          const healthConnectAction = showsHealthConnectAction
+            ? getHealthConnectAction({
+                status: healthSync.status,
+                onConnect: healthSync.connect,
+                onOpenSettings: healthSync.openSettings,
+              })
+            : null;
           return (
             <GlassCard key={source} variant="usualNote" radius={radii.md} padded={false}>
-              <View style={isStrava ? styles.stravaRow : styles.row}>
+              <View style={isStrava || healthConnectAction ? styles.actionRow : styles.row}>
                 <View style={styles.rowHeader}>
                   <Text style={styles.source}>{sourceLabels[source]}</Text>
                   <Text testID={`source-status-${source}`} style={styles.status}>
@@ -66,6 +152,7 @@ export default function ManageSourcesScreen() {
                     />
                   </>
                 ) : null}
+                {healthConnectAction}
               </View>
             </GlassCard>
           );
@@ -109,8 +196,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  stravaRow: { gap: spacing.sm, padding: spacing.fieldPadX },
+  actionRow: { gap: spacing.sm, padding: spacing.fieldPadX },
   source: { ...typography.mealReviewRowTitle, color: colors.ink },
   status: { ...typography.usualRowSubtitle, color: colors.ink55 },
   stravaError: { ...typography.usualRowSubtitle, color: colors.ink62 },
+  healthConnectMessage: { ...typography.usualRowSubtitle, color: colors.ink62 },
+  healthConnectButton: {
+    alignItems: 'center',
+    backgroundColor: colors.ink,
+    borderRadius: radii.sourceQuietAction,
+    height: componentSizes.sheetChipHeight,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  healthConnectButtonText: { ...typography.sourceQuietAction, color: colors.white },
 });
