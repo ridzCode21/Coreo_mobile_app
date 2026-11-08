@@ -100,6 +100,7 @@ const config: ExpoConfig = {
     // GOOGLE_CLIENT_ID: the backend checks the identity token's audience against it.
     googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
     googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    stravaClientId: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID,
     // Links this app to its EAS project (builds, credentials, updates). Not a secret.
     eas: { projectId: 'dcb9efd0-ff95-47e2-aff3-c15233310f72' },
   },

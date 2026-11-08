@@ -2,8 +2,9 @@
  * Issue #44 acceptance criterion: "Export and delete work and ask for a clear confirmation."
  * Backend: `GET /users/me/data/export/`, `DELETE /users/me/data/`, `DELETE /users/me/`
  * (`apps/users/api/views/profile.py:167-189`). `AccountActionsSection` is the component that renders
- * these three actions. Delete my data / Delete my account keep their `Alert.alert` confirmation (RN
- * built-in, no new dependency) — untouched by issue #181.
+ * these three actions. Delete my data keeps its `Alert.alert` confirmation (RN built-in, no new
+ * dependency) — untouched by issue #181. Delete my account's `Alert.alert` was replaced by issue
+ * #183's warning/confirm-email/states sheet flow — see `account-actions-delete-flow.test.tsx`.
  *
  * Issue #181 replaces Export's old `Alert.alert` + `Share.share`-as-text flow with the design's
  * `ExportDataSheet` (working/done/failed/offline states; see `export-data-sheet-copy.test.ts` and
@@ -207,24 +208,6 @@ describe('profile: AccountActionsSection — Delete my data / Delete my account 
     expect(mockSignOut).not.toHaveBeenCalled();
   });
 
-  it('asks a destructive, "cannot be undone" confirmation before deleting the account', () => {
-    render(<AccountActionsSection />);
-    fireEvent.press(screen.getByRole('button', { name: 'Delete my account' }));
-
-    const lastCall = alertSpy.mock.calls.at(-1);
-    const [, message] = lastCall as [string, string];
-    expect(message).toMatch(/cannot be undone/i);
-  });
-
-  it('signs the user out only after the delete-account confirmation succeeds', () => {
-    mockDeleteAccountMutate.mockImplementation((_arg, options) => {
-      options?.onSuccess?.();
-    });
-    render(<AccountActionsSection />);
-    fireEvent.press(screen.getByRole('button', { name: 'Delete my account' }));
-    pressConfirmButton(alertSpy, /delete/i);
-
-    expect(mockDeleteAccountMutate).toHaveBeenCalled();
-    expect(mockSignOut).toHaveBeenCalled();
-  });
+  // "Delete my account" no longer uses Alert.alert — issue #183 replaced it with the
+  // warning/type-your-email/states sheet flow. See account-actions-delete-flow.test.tsx.
 });

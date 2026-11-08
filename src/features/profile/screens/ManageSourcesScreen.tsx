@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 
 import { useSourcesQuery, DEVICE_SOURCES } from '@/features/home';
+import { StravaConnectButton, useStravaConnect } from '@/features/integrations';
 import { sourceLabels } from '@/features/profile/lib/profileCopy';
 import { BackButton } from '@/shared/components/BackButton';
 import { GlassCard } from '@/shared/components/GlassCard';
@@ -14,6 +15,7 @@ import { colors, componentSizes, radii, spacing, typography } from '@/shared/the
 export default function ManageSourcesScreen() {
   const router = useRouter();
   const query = useSourcesQuery();
+  const stravaConnect = useStravaConnect();
   const sources = query.data ?? [];
 
   if (query.isError) {
@@ -39,13 +41,31 @@ export default function ManageSourcesScreen() {
       <View style={styles.rows}>
         {DEVICE_SOURCES.map((source) => {
           const item = sources.find((candidate) => candidate.source === source);
+          const isStrava = source === 'strava';
+          const isConnected = item?.connected ?? false;
           return (
             <GlassCard key={source} variant="usualNote" radius={radii.md} padded={false}>
-              <View style={styles.row}>
-                <Text style={styles.source}>{sourceLabels[source]}</Text>
-                <Text testID={`source-status-${source}`} style={styles.status}>
-                  {item?.connected ? 'Connected' : 'Not connected'}
-                </Text>
+              <View style={isStrava ? styles.stravaRow : styles.row}>
+                <View style={styles.rowHeader}>
+                  <Text style={styles.source}>{sourceLabels[source]}</Text>
+                  <Text testID={`source-status-${source}`} style={styles.status}>
+                    {isConnected ? 'Connected' : 'Not connected'}
+                  </Text>
+                </View>
+                {isStrava && !isConnected ? (
+                  <>
+                    {stravaConnect.errorMessage ? (
+                      <Text style={styles.stravaError}>{stravaConnect.errorMessage}</Text>
+                    ) : null}
+                    <StravaConnectButton
+                      disabled={
+                        stravaConnect.status === 'connecting' ||
+                        stravaConnect.status === 'exchanging'
+                      }
+                      onPress={stravaConnect.connect}
+                    />
+                  </>
+                ) : null}
               </View>
             </GlassCard>
           );
@@ -81,12 +101,16 @@ const styles = StyleSheet.create({
   title: { ...typography.cardTitle, color: colors.ink },
   rows: { gap: spacing.sm },
   row: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     minHeight: componentSizes.profileKnowledgeMinHeight,
     paddingHorizontal: spacing.fieldPadX,
   },
+  rowHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  stravaRow: { gap: spacing.sm, padding: spacing.fieldPadX },
   source: { ...typography.mealReviewRowTitle, color: colors.ink },
   status: { ...typography.usualRowSubtitle, color: colors.ink55 },
+  stravaError: { ...typography.usualRowSubtitle, color: colors.ink62 },
 });

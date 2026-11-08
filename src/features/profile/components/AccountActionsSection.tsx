@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRouter, type Href } from 'expo-router';
 
 import {
   useDeleteAccountDataMutation,
@@ -8,7 +9,9 @@ import {
 } from '@/features/profile/api/accountApi';
 import { useSessionStore } from '@/features/auth';
 import { ExportDataSheet } from '@/features/profile/components/ExportDataSheet';
+import { DeleteAccountSheet } from '@/features/profile/components/DeleteAccountSheet';
 import { SignOutAction } from '@/features/profile/components/SignOutAction';
+import type { DeleteAccountStep } from '@/features/profile/lib/deleteAccountCopy';
 import { downloadExportFile, writeExportFile } from '@/features/profile/lib/exportFile';
 import type { DataExport } from '@/features/profile/api/accountApi';
 import type { ExportDataSheetState } from '@/features/profile/lib/exportDataSheetCopy';
@@ -17,13 +20,16 @@ import { reportError } from '@/shared/lib/reportError';
 import { useConnectivityStore } from '@/shared/stores/connectivityStore';
 import { colors, componentSizes, radii, spacing, typography } from '@/shared/theme/tokens';
 
-type AccountActionProps = { label: string; onPress: () => void };
+type AccountActionProps = { hidden?: boolean; label: string; onPress: () => void };
 
-function AccountAction({ label, onPress }: AccountActionProps) {
+function AccountAction({ hidden = false, label, onPress }: AccountActionProps) {
   return (
     <Pressable
+      accessibilityElementsHidden={hidden}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessible={!hidden}
+      importantForAccessibility={hidden ? 'no-hide-descendants' : 'auto'}
       onPress={onPress}
       style={styles.row}
     >
@@ -34,9 +40,14 @@ function AccountAction({ label, onPress }: AccountActionProps) {
 
 type AccountActionsSectionProps = {
   showLabel?: boolean;
+  accountEmail?: string;
 };
 
-export function AccountActionsSection({ showLabel = true }: AccountActionsSectionProps) {
+export function AccountActionsSection({
+  showLabel = true,
+  accountEmail = '',
+}: AccountActionsSectionProps) {
+  const router = useRouter();
   const exportData = useExportDataMutation();
   const deleteData = useDeleteAccountDataMutation();
   const deleteAccount = useDeleteAccountMutation();
@@ -44,6 +55,8 @@ export function AccountActionsSection({ showLabel = true }: AccountActionsSectio
   const [exportSheetVisible, setExportSheetVisible] = useState(false);
   const [exportState, setExportState] = useState<ExportDataSheetState>({ kind: 'working' });
   const [exportPayload, setExportPayload] = useState<DataExport | null>(null);
+  const [deleteStep, setDeleteStep] = useState<DeleteAccountStep | null>(null);
+  const [typedEmail, setTypedEmail] = useState('');
   const exportGeneration = useRef(0);
 
   const startExport = () => {
@@ -91,18 +104,31 @@ export function AccountActionsSection({ showLabel = true }: AccountActionsSectio
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete my data', style: 'destructive', onPress: () => deleteData.mutate() },
     ]);
-  const confirmDeleteAccount = () =>
-    Alert.alert('Delete my account', 'Delete your account? This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete my account',
-        style: 'destructive',
-        onPress: () =>
-          deleteAccount.mutate(undefined, {
-            onSuccess: () => useSessionStore.getState().signOut(),
-          }),
+  const closeDeleteAccount = () => {
+    setDeleteStep(null);
+    setTypedEmail('');
+  };
+
+  const confirmDeleteAccount = () => {
+    if (!isOnline) {
+      setDeleteStep({ kind: 'offline' });
+      return;
+    }
+    setDeleteStep({ kind: 'deleting' });
+    deleteAccount.mutate(undefined, {
+      onSuccess: async () => {
+        await useSessionStore.getState().signOut();
+        setDeleteStep({ kind: 'deleted' });
       },
-    ]);
+      onError: () => setDeleteStep({ kind: 'failed' }),
+    });
+  };
+  const goToConfirmEmail = () => setDeleteStep({ kind: 'confirmEmail' });
+
+  const openExportFromDelete = () => {
+    closeDeleteAccount();
+    openExport();
+  };
 
   return (
     <View style={styles.section}>
@@ -110,7 +136,11 @@ export function AccountActionsSection({ showLabel = true }: AccountActionsSectio
       <GlassCard variant="usualNote" radius={radii.md} padded={false}>
         <AccountAction label="Export my data" onPress={openExport} />
         <AccountAction label="Delete my data" onPress={confirmDeleteData} />
-        <AccountAction label="Delete my account" onPress={confirmDeleteAccount} />
+        <AccountAction
+          hidden={deleteStep !== null}
+          label="Delete my account"
+          onPress={() => setDeleteStep({ kind: 'warning' })}
+        />
       </GlassCard>
       <View style={styles.signOutAction}>
         <SignOutAction />
@@ -121,6 +151,20 @@ export function AccountActionsSection({ showLabel = true }: AccountActionsSectio
         onClose={closeExport}
         onRetry={startExport}
         onDownload={downloadExport}
+      />
+      <DeleteAccountSheet
+        accountEmail={accountEmail}
+        onBack={goToConfirmEmail}
+        onCancel={closeDeleteAccount}
+        onChangeTypedEmail={setTypedEmail}
+        onConfirmDelete={confirmDeleteAccount}
+        onContinue={goToConfirmEmail}
+        onOpenExport={openExportFromDelete}
+        onRetry={confirmDeleteAccount}
+        onStartOver={() => router.replace('/(public)/first-open' as Href)}
+        step={deleteStep ?? { kind: 'warning' }}
+        typedEmail={typedEmail}
+        visible={deleteStep !== null}
       />
     </View>
   );

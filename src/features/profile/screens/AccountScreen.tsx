@@ -79,7 +79,7 @@ export default function AccountScreen() {
         <PasswordSection isOnline={isOnline} />
         <ContactSupportSection isOnline={isOnline} />
         <LegalSection />
-        <AccountActionsSection showLabel={false} />
+        <AccountActionsSection accountEmail={user.email} showLabel={false} />
       </>
     );
   })();

@@ -62,10 +62,15 @@ export const colors = {
 
   success: '#3E8E63',
   attention: '#7A5220',
+  attention08: 'rgba(122,82,32,0.08)',
   attention12: 'rgba(122,82,32,0.12)',
+  attention18: 'rgba(122,82,32,0.18)',
   attention25: 'rgba(122,82,32,0.25)',
   attention45: 'rgba(122,82,32,0.45)',
+  attention70: 'rgba(122,82,32,0.7)',
   profileInputFocus: '#2C5EA8',
+  // Strava's required partner-brand color; not part of Coreo's own palette.
+  stravaOrange: '#FC4C02',
   unreadablePhotoStart: '#6E7A85',
   unreadablePhotoEnd: '#454F58',
   unreadablePhotoOverlay: 'rgba(8,24,44,0.45)',
@@ -514,6 +519,7 @@ export const componentSizes = {
   passwordChangeSuccessStroke: 2,
   profileManageMinHeight: 30,
   profileKnowledgeMinHeight: 56,
+  stravaConnectButtonHeight: 48,
   notebookPromptIcon: 40,
   notebookBadgeHeight: 26,
   profileKnowledgeArrow: 40,
