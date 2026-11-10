@@ -13,10 +13,14 @@ function validationError(details: Record<string, string[]>) {
   return { status: 400, body: styleAError('VALIDATION_ERROR', 'Invalid request data', details) };
 }
 
+function unauthorized() {
+  return { status: 401, body: styleAError('UNAUTHORIZED', 'Authentication required.') };
+}
+
 registerMock('POST', '/integrations/strava/exchange/', (request) => {
   const user = requireMockUser(request);
   if (!user) {
-    return { status: 401, body: styleAError('UNAUTHORIZED', 'Authentication required.') };
+    return unauthorized();
   }
 
   const body = isRecord(request.body) ? request.body : {};
@@ -42,4 +46,18 @@ registerMock('POST', '/integrations/strava/exchange/', (request) => {
   const athleteId = 1;
   mockDb.stravaConnections[user.id] = { athleteId, lastSyncedAt: new Date().toISOString() };
   return { status: 200, body: { success: true, athlete_id: athleteId, activities_imported: 0 } };
+});
+
+registerMock('POST', '/integrations/strava/disconnect/', (request) => {
+  const user = requireMockUser(request);
+  if (!user) {
+    return unauthorized();
+  }
+
+  if (!mockDb.stravaConnections[user.id]) {
+    return { status: 404, body: styleAError('NOT_FOUND', 'Strava is not connected') };
+  }
+
+  delete mockDb.stravaConnections[user.id];
+  return { status: 200, body: { success: true, message: 'Strava disconnected' } };
 });

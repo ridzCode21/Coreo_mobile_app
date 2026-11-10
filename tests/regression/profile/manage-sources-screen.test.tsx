@@ -21,14 +21,15 @@
  * `errorMessage` renders without ever touching the apple_health/health_connect rows.
  */
 
+import { Alert, Platform } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Platform } from 'react-native';
 import { Path } from 'react-native-svg';
 
 import ManageSourcesScreen from '@/features/profile/screens/ManageSourcesScreen';
 import type { SourceStatus } from '@/features/home/api/sourcesApi';
 import type { HealthSyncStatus } from '@/features/integrations';
+import { ApiError } from '@/shared/api/errors';
 import { componentSizes, spacing } from '@/shared/theme/tokens';
 
 let mockSources: SourceStatus[] | undefined;
@@ -60,6 +61,11 @@ const mockHealthConnect = jest.fn();
 const mockOpenSettings = jest.fn();
 let mockHealthSyncStatus: HealthSyncStatus = 'checking';
 
+const mockDisconnectStravaMutate = jest.fn();
+let mockDisconnectStravaIsPending = false;
+let mockDisconnectStravaIsError = false;
+let mockDisconnectStravaError: unknown = null;
+
 jest.mock('@/features/integrations', () => {
   const actual = jest.requireActual('@/features/integrations');
   return {
@@ -76,6 +82,12 @@ jest.mock('@/features/integrations', () => {
       connect: mockHealthConnect,
       syncNow: jest.fn(),
       openSettings: mockOpenSettings,
+    }),
+    useDisconnectStravaMutation: () => ({
+      mutate: mockDisconnectStravaMutate,
+      isPending: mockDisconnectStravaIsPending,
+      isError: mockDisconnectStravaIsError,
+      error: mockDisconnectStravaError,
     }),
   };
 });
@@ -95,6 +107,10 @@ describe('profile: ManageSourcesScreen (issue #44, GET /integrations/sources/)',
     mockHealthConnect.mockClear();
     mockOpenSettings.mockClear();
     mockHealthSyncStatus = 'checking';
+    mockDisconnectStravaMutate.mockClear();
+    mockDisconnectStravaIsPending = false;
+    mockDisconnectStravaIsError = false;
+    mockDisconnectStravaError = null;
     Platform.OS = originalPlatformOs;
   });
 
@@ -385,5 +401,216 @@ describe('profile: ManageSourcesScreen — Health Connect connect flow (issue #5
     expect(appleHealthStatus).toHaveTextContent('Not connected');
     // Only one connect action exists on the screen, and it belongs to Health Connect, not Apple Health.
     expect(screen.getAllByRole('button', { name: 'Connect Health Connect' })).toHaveLength(1);
+  });
+});
+
+/**
+ * Issue #58 — "Profile screen shows live connected sources": the Manage-sources screen (reached
+ * from Profile's "Connected" row, issue #44) must show each source's last-synced state, not just a
+ * flat connected/not-connected label, and let the person disconnect Strava through the real
+ * `POST /integrations/strava/disconnect/` endpoint (`apps/integrations/urls.py:11`, view
+ * `apps/integrations/views.py:99-109`). `apple_health` and `health_connect` have no backend
+ * connection row to revoke (`apps/integrations/source_status.py:39-48` — phone sources are a plain
+ * presence check, not a stored grant like `StravaConnection`/`WearableConnection`), so no Disconnect
+ * action exists for them (plan.md Decision log, Out of scope); their existing "Open settings" path
+ * (issue #55/#57) is the only way to revoke phone permission, unchanged by this issue.
+ */
+const NOW = new Date('2026-06-09T13:00:00.000Z');
+
+describe('profile: ManageSourcesScreen — last-synced state (issue #58, GET /integrations/sources/)', () => {
+  beforeEach(() => {
+    jest.useFakeTimers().setSystemTime(NOW);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('shows "Last synced …" for each connected source that has reported a sync time', () => {
+    mockSources = [
+      {
+        source: 'apple_health',
+        connected: true,
+        last_synced_at: '2026-06-09T06:05:00.000Z',
+        synced_through: '2026-06-08',
+      },
+      { source: 'health_connect', connected: false, last_synced_at: null, synced_through: null },
+      {
+        source: 'strava',
+        connected: true,
+        last_synced_at: '2026-06-08T23:40:00.000Z',
+        synced_through: null,
+      },
+    ];
+
+    render(<ManageSourcesScreen />);
+
+    expect(screen.getByTestId('source-last-synced-apple_health')).toHaveTextContent(
+      'Last synced today, 6:05 AM',
+    );
+    expect(screen.getByTestId('source-last-synced-strava')).toHaveTextContent(
+      'Last synced yesterday, 11:40 PM',
+    );
+    expect(screen.queryByTestId('source-last-synced-health_connect')).toBeNull();
+  });
+
+  it('shows no last-synced line for a connected source that has never synced, rather than inventing one', () => {
+    mockSources = [
+      { source: 'apple_health', connected: true, last_synced_at: null, synced_through: null },
+      { source: 'health_connect', connected: false, last_synced_at: null, synced_through: null },
+      { source: 'strava', connected: false, last_synced_at: null, synced_through: null },
+    ];
+
+    render(<ManageSourcesScreen />);
+
+    expect(screen.queryByTestId('source-last-synced-apple_health')).toBeNull();
+  });
+
+  it('shows no last-synced line for a disconnected source even if a stale timestamp exists', () => {
+    mockSources = [
+      {
+        source: 'apple_health',
+        connected: false,
+        last_synced_at: '2026-06-01T08:00:00.000Z',
+        synced_through: null,
+      },
+      { source: 'health_connect', connected: false, last_synced_at: null, synced_through: null },
+      { source: 'strava', connected: false, last_synced_at: null, synced_through: null },
+    ];
+
+    render(<ManageSourcesScreen />);
+
+    expect(screen.queryByTestId('source-last-synced-apple_health')).toBeNull();
+  });
+});
+
+function pressDisconnectConfirm(alertSpy: jest.SpyInstance) {
+  const lastCall = alertSpy.mock.calls.at(-1);
+  if (!lastCall) throw new Error('Alert.alert was never called');
+  const buttons = lastCall[2] as { text?: string; style?: string; onPress?: () => void }[];
+  const button = buttons.find((candidate) => candidate.style === 'destructive');
+  if (!button?.onPress) throw new Error('No destructive confirm button found');
+  button.onPress();
+}
+
+describe('profile: ManageSourcesScreen — Strava disconnect (issue #58, POST /integrations/strava/disconnect/)', () => {
+  let alertSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    alertSpy.mockRestore();
+  });
+
+  it('shows a "Disconnect Strava" action only for the connected Strava row', () => {
+    mockSources = [
+      { source: 'apple_health', connected: true, last_synced_at: null, synced_through: null },
+      { source: 'health_connect', connected: false, last_synced_at: null, synced_through: null },
+      {
+        source: 'strava',
+        connected: true,
+        last_synced_at: '2026-11-08T06:00:00Z',
+        synced_through: null,
+      },
+    ];
+
+    render(<ManageSourcesScreen />);
+
+    expect(screen.getByRole('button', { name: 'Disconnect Strava' })).toBeTruthy();
+  });
+
+  it('never shows a disconnect action for apple_health or health_connect, connected or not', () => {
+    mockSources = [
+      { source: 'apple_health', connected: true, last_synced_at: null, synced_through: null },
+      {
+        source: 'health_connect',
+        connected: true,
+        last_synced_at: '2026-11-08T06:00:00Z',
+        synced_through: '2026-11-07',
+      },
+      { source: 'strava', connected: false, last_synced_at: null, synced_through: null },
+    ];
+
+    render(<ManageSourcesScreen />);
+
+    expect(screen.queryByRole('button', { name: /^Disconnect/ })).toBeNull();
+  });
+
+  it('hides "Disconnect Strava" while Strava is not connected', () => {
+    mockSources = [
+      { source: 'apple_health', connected: false, last_synced_at: null, synced_through: null },
+      { source: 'health_connect', connected: false, last_synced_at: null, synced_through: null },
+      { source: 'strava', connected: false, last_synced_at: null, synced_through: null },
+    ];
+
+    render(<ManageSourcesScreen />);
+
+    expect(screen.queryByRole('button', { name: 'Disconnect Strava' })).toBeNull();
+  });
+
+  it('asks for confirmation before disconnecting, and only calls the mutation once confirmed', () => {
+    mockSources = [
+      { source: 'apple_health', connected: false, last_synced_at: null, synced_through: null },
+      { source: 'health_connect', connected: false, last_synced_at: null, synced_through: null },
+      {
+        source: 'strava',
+        connected: true,
+        last_synced_at: '2026-11-08T06:00:00Z',
+        synced_through: null,
+      },
+    ];
+
+    render(<ManageSourcesScreen />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Disconnect Strava' }));
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(mockDisconnectStravaMutate).not.toHaveBeenCalled();
+
+    pressDisconnectConfirm(alertSpy);
+    expect(mockDisconnectStravaMutate).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables "Disconnect Strava" while the mutation is pending', () => {
+    mockDisconnectStravaIsPending = true;
+    mockSources = [
+      { source: 'apple_health', connected: false, last_synced_at: null, synced_through: null },
+      { source: 'health_connect', connected: false, last_synced_at: null, synced_through: null },
+      {
+        source: 'strava',
+        connected: true,
+        last_synced_at: '2026-11-08T06:00:00Z',
+        synced_through: null,
+      },
+    ];
+
+    render(<ManageSourcesScreen />);
+
+    const button = screen.getByRole('button', { name: 'Disconnect Strava' });
+    expect(button.props.accessibilityState?.disabled).toBe(true);
+  });
+
+  it('shows the fallback disconnect error without changing the phone-source rows', () => {
+    mockDisconnectStravaIsError = true;
+    mockDisconnectStravaError = new ApiError('Strava unavailable', 'server', 502, {
+      error: { code: 'STRAVA_UNAVAILABLE' },
+    });
+    mockSources = [
+      { source: 'apple_health', connected: true, last_synced_at: null, synced_through: null },
+      { source: 'health_connect', connected: false, last_synced_at: null, synced_through: null },
+      {
+        source: 'strava',
+        connected: true,
+        last_synced_at: '2026-11-08T06:00:00Z',
+        synced_through: null,
+      },
+    ];
+
+    render(<ManageSourcesScreen />);
+
+    expect(screen.getByText('Could not connect to Strava. Try again.')).toBeTruthy();
+    expect(screen.getByTestId('source-status-apple_health')).toHaveTextContent('Connected');
+    expect(screen.getByTestId('source-status-health_connect')).toHaveTextContent('Not connected');
   });
 });
