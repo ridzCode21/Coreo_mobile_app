@@ -7,4 +7,9 @@ export { HealthSyncHost } from '@/features/integrations/components/HealthSyncHos
 export { StravaConnectButton } from '@/features/integrations/components/StravaConnectButton';
 export { useHealthSync, type HealthSyncStatus } from '@/features/integrations/lib/useHealthSync';
 export { useStravaConnect } from '@/features/integrations/lib/useStravaConnect';
+export { useDisconnectStravaMutation } from '@/features/integrations/api/stravaApi';
+export {
+  stravaConnectErrorCode,
+  stravaConnectErrorMessage,
+} from '@/features/integrations/lib/strava/errors';
 export type { DeviceSource } from '@/features/integrations/lib/types';
